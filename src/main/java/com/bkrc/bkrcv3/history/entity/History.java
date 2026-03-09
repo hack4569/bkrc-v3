@@ -21,14 +21,12 @@ public class History extends BaseEntity {
     @Column(name = "history_id")
     private Long id;
 
-    @Column(name = "login_id")
     private String loginId;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @Column(name = "item_id")
     private int itemId;
 
     public void setMember(Member member) {

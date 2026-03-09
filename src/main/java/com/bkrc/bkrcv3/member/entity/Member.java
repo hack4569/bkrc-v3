@@ -16,24 +16,20 @@ import lombok.*;
 public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="member_id")
     private long memberId;
 
     @NotEmpty
+    @Column(unique = true)
     private String loginId;
-
     @NotEmpty
     private String password;
-
-    @Column(name = "member_type")
     private String memberType;
-    @Column(name="session_id")
     private String sessionId;
 
-    @Column(length = 20, name = "query_type")
+    @Column(length = 20)
     private String queryType;
 
-    @Column(length = 20, name = "filter_type")
+    @Column(length = 20)
     private String fiterType;
 
     public static Member register(MemberRegisterRequest createRequest, PasswordEncoder passwordEncoder) {

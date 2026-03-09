@@ -6,6 +6,7 @@ import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -22,7 +23,8 @@ public class BatchService {
 
     private final AladinService aladinService;
 
-    //@Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
+    @SchedulerLock(name = "recommendScheduler", lockAtMostFor = "10m", lockAtLeastFor = "1m")
+    @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
     public void recommendScheduler() {
             List<AladinBook> aladinBookList = new ArrayList<>();
             List<AladinBook> successList = new ArrayList<>();
