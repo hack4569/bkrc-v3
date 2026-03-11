@@ -18,6 +18,7 @@ import com.bkrc.bkrcv3.history.entity.History;
 import com.bkrc.bkrcv3.member.application.UserServiceImpl;
 import com.bkrc.bkrcv3.member.application.response.RecommendView;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -66,6 +67,7 @@ public class AladinService {
         aladinApi = RestClient.create(aladinHost);
     }
 
+    @RateLimiter(name = "aladin", fallbackMethod = "getApiFallback")
     public List<AladinBook> getBooksForRecommend(AladinRequest aladinRequest, List<AladinBookResponse> registeredBooks) {
         this.aladinRequest = aladinRequest;
 
@@ -141,7 +143,12 @@ public class AladinService {
             log.error("[알라딘] 에러 메세지 파싱 에러 errorMessage={}", e.getMessage(), e);
             throw new AladinException("파싱에러");
         }
+    }
 
+    // fallback: 제한 걸렸거나 대기 시간 초과 시 호출 (선택)
+    private AladinResponse getApiFallback(String path, AladinRequest aladinRequest, Exception e) {
+        log.warn("[알라딘] 요청 제한 또는 타임아웃 path={}", path, e);
+        throw new AladinException("일시적으로 요청이 제한되었습니다.");
     }
 
     public List<AladinBook> saveNewAladinBooks(AladinRecommendSaveRequest request) {
@@ -160,6 +167,7 @@ public class AladinService {
     }
 
     //책 상세 조회
+    @RateLimiter(name = "aladin", fallbackMethod = "getApiFallback")
     public AladinBook bookDetail(AladinRequest aladinRequest) {
         var aladinBooks = this.getApi(AladinConstants.ITEM_LOOKUP, aladinRequest).getItem();
         if (aladinBooks.isEmpty()) throw new AladinException("상품조회시 데이터가 없습니다.");

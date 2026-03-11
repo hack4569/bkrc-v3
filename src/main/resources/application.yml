@@ -28,3 +28,11 @@ aladin:
 token:
   expiration-time: 86400000 #10 days
   secret: my-very-long-secret-key-1234567890123456
+
+resilience4j:
+  ratelimiter:
+    instances:
+      aladin:
+        limitForPeriod: 10        # 한 주기당 허용 요청 수
+        limitRefreshPeriod: 1m   # 주기 (1분)
+        timeoutDuration: 5s       # 허용될 때까지 기다리는 시간
