@@ -32,14 +32,13 @@ public class Member {
     @Column(length = 20)
     private String fiterType;
 
-    public static Member register(MemberRegisterRequest createRequest, PasswordEncoder passwordEncoder) {
+    public static Member register(String loginId, String password, PasswordEncoder passwordEncoder) {
         Member member = new Member();
-
-        member.loginId = createRequest.loginId();
-        member.password = passwordEncoder.hashPassword(createRequest.password());
-
+        member.loginId = loginId;
+        member.password = passwordEncoder.hashPassword(password);
         return member;
     }
+
 
     public boolean checkPassword(String passwordReq, PasswordEncoder passwordEncoder) {
         return passwordEncoder.checkPassword(passwordReq, this.password);

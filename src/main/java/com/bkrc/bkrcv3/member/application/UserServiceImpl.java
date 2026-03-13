@@ -1,6 +1,8 @@
 package com.bkrc.bkrcv3.member.application;
 
+import com.bkrc.bkrcv3.member.application.request.MemberModifyRequest;
 import com.bkrc.bkrcv3.member.application.request.MemberRegisterRequest;
+import com.bkrc.bkrcv3.member.application.response.MemberModifyResponse;
 import com.bkrc.bkrcv3.member.dto.MemberDto;
 import com.bkrc.bkrcv3.member.entity.Member;
 import com.bkrc.bkrcv3.member.entity.MemberException;
@@ -12,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.net.PasswordAuthentication;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,14 +28,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public Member saveMember(MemberRegisterRequest request) {
         checkDuplicateId(request);
-        checkPwd(request);
+        checkPwd(request.password(), request.passwordCheck());
 
-        var member = Member.register(request, passwordEncoder);
+        var member = Member.register(request.loginId(), request.password(), passwordEncoder);
         return memberRepository.save(member);
     }
 
-    private void checkPwd(MemberRegisterRequest request) {
-        if (!request.passwordCheck().equals(request.password())) {
+    private void checkPwd(String pwd, String pwdChk) {
+        if (!pwd.equals(pwdChk)) {
             throw new MemberException("비밀번호가 일치하지 않습니다.");
         }
     }
@@ -58,15 +61,6 @@ public class UserServiceImpl implements UserService {
         return List.of();
     }
 
-//    public Member login(String loginId){
-//        return memberRepository.findMemberByLoginId(loginId).orElse(null);
-//    }
-
-    //@Transactional
-//    public void saveMember(Member member) {
-//        memberRepository.save(member);
-//    }
-
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         var member = memberRepository.findMemberByLoginId(username).orElseThrow( () -> new UsernameNotFoundException(username));
@@ -75,4 +69,19 @@ public class UserServiceImpl implements UserService {
                 true, true, true, true,
                 new ArrayList<>());
     }
+
+    @Override
+    public Member modifyMember(String loginId, MemberModifyRequest request) {
+        var member = memberRepository.findMemberByLoginId(loginId).orElseThrow( () -> new UsernameNotFoundException(loginId));
+        if (!member.getPassword().equals(encodePassword(request.originPassword()))) throw new MemberException("비밀번호가 일치하지 않습니다.");
+        this.checkPwd(request.newPassword(), request.newPasswordCheck());
+        var updatedMember = Member.register(request.loginId(), request.newPassword(), passwordEncoder);
+        return memberRepository.save(updatedMember);
+    }
+
+    public String encodePassword(String password) {
+        return passwordEncoder.hashPassword(password);
+    }
+
+
 }
