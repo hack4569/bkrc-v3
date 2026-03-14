@@ -11,8 +11,6 @@ import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
 import com.bkrc.bkrcv3.aladin.entity.AladinException;
 import com.bkrc.bkrcv3.aladin.entity.Category;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
-import com.bkrc.bkrcv3.common.utils.LocalDateUtils;
-import com.bkrc.bkrcv3.history.application.HistoryResponse;
 import com.bkrc.bkrcv3.history.application.HistoryService;
 import com.bkrc.bkrcv3.history.entity.History;
 import com.bkrc.bkrcv3.member.application.UserServiceImpl;
@@ -32,9 +30,9 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -55,6 +53,7 @@ public class AladinService {
     private final CategoryService categoryService;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
+    private final AladinMapper aladinMapper;
 
     @Value("${aladin.host}")
     private String aladinHost;
@@ -80,9 +79,13 @@ public class AladinService {
         var aladinBooks = this.getApi(AladinConstants.ITEM_LIST, aladinRequest).getItem();
         if (ObjectUtils.isEmpty(aladinBooks)) throw new AladinException("상품조회시 데이터가 없습니다.");
         var newAladinBooks = aladinBooks.stream().filter(i -> !registeredBookItemIds.contains(i.getItemId())).toList();
+        Set<Integer> allowedCategoryIds = categoryService.findAcceptedCategories().stream()
+                .map(Category::getCid)
+                .collect(Collectors.toCollection(HashSet::new));
+        int anchorYyyyMMdd = anchorDateYyyyMMdd();
         List<AladinBook> filtered = newAladinBooks.stream()
-                .filter(categoryFilter())
-                .filter(publicationDateFilter(this.anchorDate()))
+                .filter(book -> book.isInAllowedCategories(allowedCategoryIds))
+                .filter(book -> book.isPublishedAfter(anchorYyyyMMdd))
                 .toList();
         return filtered;
 
@@ -108,12 +111,16 @@ public class AladinService {
 
     public List<AladinBook> findAll(AladinBookPageResponse aladinBookPageResponse) {
         if (aladinBookPageResponse.getCount() == 0) return null;
-
-        return aladinBookPageResponse.getAladinBookResponseList().stream().map(AladinBookResponse::from).toList();
+        return aladinBookPageResponse.getAladinBookResponseList().stream()
+                .map(aladinMapper::toEntity)
+                .toList();
     }
+
     private AladinBookPageResponse findAllFromDb() {
         var aladinBooks = aladinBookRepository.findAllWithBookComments();
-        return AladinBookPageResponse.of(aladinBooks.stream().map(AladinBookResponse::from).toList(), aladinBooks.size());
+        return AladinBookPageResponse.of(
+                aladinBooks.stream().map(aladinMapper::toResponse).toList(),
+                aladinBooks.size());
     }
 
     private void evictAllBooksCache() {
@@ -178,33 +185,14 @@ public class AladinService {
         return aladinbook;
     }
 
-    private Predicate categoryFilter() {
-        List<Category> categories = categoryService.findAcceptedCategories();
-        var finalCids = categories.stream().map(Category::getCid).collect(Collectors.toCollection(HashSet::new));
-        if (finalCids == null) return book -> true;
-        // 허용된 카테고리만 필터링하는 Predicate
-        Predicate<AladinBook> categoryFilter = book ->
-                finalCids.contains(book.getCategoryId());
-        return categoryFilter;
-    }
-
-    private String anchorDate() {
-        //오늘 날짜
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.YEAR, -1);
-        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyyMMdd");
-        String today = dateFormatter.format(cal.getTime());
-        return today;
-    }
-
-    //출판일 필터링
-    private Predicate publicationDateFilter(String publicationDate) {
-        if (!StringUtils.hasText(publicationDate)) return book -> false;
-        // 1년 이내 출간된 책을 필터링하는 Predicate
-        Predicate<AladinBook> publicationDateFilter = book ->
-                Integer.parseInt(publicationDate) >
-                        Integer.parseInt(LocalDateUtils.getCustomDate(book.getPubDate()));
-        return publicationDateFilter;
+    /** 기준일(1년 전) yyyyMMdd */
+    private int anchorDateYyyyMMdd() {
+        int result = Integer.parseInt(
+                LocalDate.now()
+                        .minusYears(1)
+                        .format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+        );
+        return result;
     }
 
     public List<RecommendView> getRecommendBooksForUser(@Nullable String loginId, AladinRecommendForUserRequest request) {
@@ -248,18 +236,33 @@ public class AladinService {
     public List<AladinBook> filterForUser(List<AladinBook> aladinBooks, List<History> historyList) {
         if (ObjectUtils.isEmpty(aladinBooks)) return null;
         aladinBooks = aladinBooks.stream()
-                .filter( book -> book.historyFilter(historyList).test(book))
+                .filter(this.historyFilter(historyList))
                 .toList();
         return aladinBooks;
     }
 
     public void saveListForRedis(List<AladinBook> successList) {
         try {
-            var response = AladinBookPageResponse.of(successList.stream().map(AladinBookResponse::from).toList(), successList.size());
+            var response = AladinBookPageResponse.of(successList.stream().map(aladinMapper::toResponse).toList(), successList.size());
             String json = objectMapper.writeValueAsString(response);
             redisTemplate.opsForValue().set(CACHE_KEY_ALL_BOOKS, json, CACHE_TTL);
         } catch (Exception e) {
             log.warn("[알라딘] 캐시 저장 실패. key={}", CACHE_KEY_ALL_BOOKS, e);
         }
+    }
+
+    private Predicate historyFilter(List<History> histories) {
+        // 히스토리에 없는 책을 필터링하는 Predicate
+        if (ObjectUtils.isEmpty(histories)) return book -> true;
+
+        // 히스토리에 없는 책을 필터링하는 Predicate
+        Predicate<AladinBook> historyFilter = book -> {
+
+            return histories.stream().noneMatch(history ->
+                    book.getItemId() == history.getItemId() &&
+                            LocalDate.now().isEqual(history.getCreated().toLocalDate())
+            );
+        };
+        return historyFilter;
     }
 }

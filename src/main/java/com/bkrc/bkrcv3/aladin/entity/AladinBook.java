@@ -1,9 +1,6 @@
 package com.bkrc.bkrcv3.aladin.entity;
 
-import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
-import com.bkrc.bkrcv3.aladin.utils.BookRecommendUtil;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
-import com.bkrc.bkrcv3.history.entity.History;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,11 +9,10 @@ import lombok.Setter;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Setter
@@ -80,6 +76,35 @@ public class AladinBook {
         this.bookCommentList = bookCommentList;
     }
 
+    /** 허용된 카테고리 집합에 포함되는지 (도메인 규칙) */
+    public boolean isInAllowedCategories(Set<Integer> allowedCategoryIds) {
+        if (allowedCategoryIds == null || allowedCategoryIds.isEmpty()) {
+            return true;
+        }
+        return categoryId != null && allowedCategoryIds.contains(categoryId);
+    }
+
+    /** 기준일(yyyyMMdd) 이후 출간된 책인지 (도메인 규칙) */
+    public boolean isPublishedAfter(int anchorDateYyyyMMdd) {
+        if (pubDate == null || pubDate.isEmpty()) {
+            return false;
+        }
+        try {
+            int bookDate = Integer.parseInt(pubDate.replaceAll("[^0-9]", "").substring(0, 8));
+            return bookDate >= anchorDateYyyyMMdd;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** HTML 태그 제거 (도메인 내부 유틸) */
+    private static String stripHtmlTags(String originStr) {
+        if (originStr == null || originStr.isEmpty()) {
+            return "";
+        }
+        return originStr.replaceAll("<[^>]*>", "");
+    }
+
     private void setUserMdRecommend(List<BookComment> bookCommentList) {
         List<MdRecommend> mdRecommendList = this.getSubInfo().getMdRecommendList();
         if (!ObjectUtils.isEmpty(mdRecommendList)) {
@@ -112,7 +137,7 @@ public class AladinBook {
             for (int j = 1; j < phraseLen; j++) {
 
                 phrase = this.getSubInfo().getPhraseList().get(j);
-                String filteredPhrase = BookRecommendUtil.filterStr(phrase.getPhrase());
+                String filteredPhrase = stripHtmlTags(phrase.getPhrase());
                 if (!StringUtils.hasText(filteredPhrase)) {
                     continue;
                 }
@@ -133,7 +158,7 @@ public class AladinBook {
         String descriptionParagraph = descriptionParagraphFunc(description);
 
         //모든 태그 제거
-        String filteredDescriptionParagraph = BookRecommendUtil.filterStr(descriptionParagraph);
+        String filteredDescriptionParagraph = stripHtmlTags(descriptionParagraph);
         String[] descriptionArr = filteredDescriptionParagraph.split("\\.");
         List<String> descriptionList = Arrays.asList(descriptionArr);
         //글자가 많을 경우 2개 또는 ... 처리
@@ -177,20 +202,5 @@ public class AladinBook {
             }
         }
         return originParagraph;
-    }
-
-    public Predicate historyFilter(List<History> histories) {
-        // 히스토리에 없는 책을 필터링하는 Predicate
-        if (ObjectUtils.isEmpty(histories)) return book -> true;
-
-        // 히스토리에 없는 책을 필터링하는 Predicate
-        Predicate<AladinBook> historyFilter = book -> {
-
-            return histories.stream().noneMatch(history ->
-                    book.getItemId() == history.getItemId() &&
-                            LocalDate.now().isEqual(history.getCreated().toLocalDate())
-            );
-        };
-        return historyFilter;
     }
 }
