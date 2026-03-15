@@ -5,7 +5,7 @@
 
 ### 프로젝트 개요
 
-- **목표**: 추천한 책을 다시 노출되지 않는 책추천 서비스
+- **목표**: 사용자에게 책을 추천하고 추천한 책은 다시 노출되지 않는 책추천 서비스
 - **역할**: 개인 프로젝트 (요구사항 정의 → 아키텍처 설계 → 개발 → 테스트/운영까지 전 과정 모두 혼자 100%진행) 
 
 ### 기술 스택
@@ -20,18 +20,22 @@
 - **Scheduler**: Spring Scheduling (`@EnableScheduling`)
 - **기타**: Resilience4j Rate Limiter (알라딘 API 보호), ShedLock (스케줄 락, `ShedLockConfig`)
 
+### 핵심요약
+- **도메인 모델 패턴 적용**: 도메인 모젤 패턴을 적용하여 로직이 분산되지 않고 엔티티 안에서 로직을 관리하였고, 책임 분리 및 응집도를 증가하였습니다.
+- **외부 API 의존성 관리**: 호출량 제한(Resilience4j 설정 기반)과 예외/폴백 흐름 설계
+- **성능 최적화**: 전체 목록 Redis 캐시(TTL 24h)로 조회 부하 완화
+- **운영 안정성**: ShedLock으로 배치 중복 실행 방지(분산 환경 고려)
+- **보안**: Spring Security + JWT 기반 인증, 인증된 사용자 추천 API 제공
+
 ### 주요 기능
 
 - **회원 관리 (`member`)**
   - `/v1/member` 회원 가입 API (`UserController`)
-  - `UserService`/`UserServiceImpl` 기반 회원 저장 및 비밀번호 인코딩 (`PasswordEncoder`, `BCryptPasswordEncoder`)
 
 - **도서/추천 관리 (`aladin`)**
   - `/v1/aladin/books` : 전체 도서 목록 조회
   - `/v1/aladin/books/recommend` : 관리자/시스템이 추천 도서 등록
   - `/v1/aladin/books/recommend/user` : 로그인 사용자별 개인화 추천
-  - 알라딘 API 연동을 위한 `AladinRequest`, `AladinResponse`, `AladinBookPageResponse` 등 DTO/엔티티 구성
-  - 카테고리(`Category`), 서브 정보(`SubInfo`), 문장/구절(`Phrase`), MD 추천(`MdRecommend`) 등 도메인 모델 관리
 
 - **보안/인증 (`member.security`)**
   - `WebSecurity`에서 Spring Security 필터 체인 구성
@@ -41,7 +45,7 @@
   - `JwtAuthorizationFilter`를 활용한 요청 단위 JWT 검증
 
 - **도메인 설계**
-  - 회원, 도서, 카테고리, 추천, 이력 등 주요 도메인 모델링 및 연관관계 설계
+  - 회원, 도서, 카테고리, 이력 등 주요 도메인 모델링 및 연관관계 설계
   - 알라딘 외부 API 스펙을 분석해 내부 도메인/DTO로 변환하는 계층 분리
 
 - **보안 & 인증**
@@ -55,6 +59,4 @@
 - **운영 고려**
   - 스케줄링(@EnableScheduling)과 ShedLock으로 배치 작업 중복 실행 방지
 
-### 주요 포인트
-- 도메인 모델 패턴을 사용하여 로직이 분산되지 않고 엔티티 안에서 로직을 관리하였고, 책임 분리 및 응집도를 증가하였습니다.
 
