@@ -1,5 +1,7 @@
 package com.bkrc.bkrcv3.adapter;
 
+import com.bkrc.bkrcv3.aladin.entity.AladinException;
+import com.bkrc.bkrcv3.member.entity.MemberException;
 import org.springframework.http.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -11,11 +13,20 @@ import java.time.LocalDateTime;
 
 @ControllerAdvice
 public class ApiControllerAdvice extends ResponseEntityExceptionHandler {
+    @ExceptionHandler(MemberException.class)
+    public ProblemDetail handleMemberException(MemberException e) {
+        return getProblemDetail(HttpStatus.BAD_REQUEST, e); // 400
+    }
+
+    @ExceptionHandler(AladinException.class)
+    public ProblemDetail handleAladinException(AladinException e) {
+        return getProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, e); // 503
+    }
+
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleException(Exception exception) {
         return getProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, exception);
     }
-
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(

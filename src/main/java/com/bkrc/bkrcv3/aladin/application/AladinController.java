@@ -35,9 +35,4 @@ public class AladinController {
     public AladinBookPageResponse getAllBooks() {
         return aladinService.findAll();
     }
-
-    @PostMapping("/v1/aladin/books/recommend")
-    public List<AladinBook> addRecommendBook(@RequestBody AladinRecommendSaveRequest request) {
-        return aladinService.saveNewAladinBooks(request);
-    }
 }

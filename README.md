@@ -59,4 +59,24 @@
 - **운영 고려**
   - 스케줄링(@EnableScheduling)과 ShedLock으로 배치 작업 중복 실행 방지
 
+### 플로우 차트
+```mermaid
+flowchart TD
+Client([클라이언트])
+JWT[JWT 인증 필터]
+Controller[AladinController]
 
+    Client --> JWT
+    JWT -->|/v1/member| Member[회원가입/수정]
+    JWT -->|JWT 유효| Controller
+    JWT -->|JWT 무효| Error[401 Unauthorized]
+    
+    Controller --> Books[GET /books\n전체 도서 조회]
+    Controller --> Recommend[GET /recommend/user\n사용자 맞춤 추천]
+    
+    Books --> Redis[(Redis 캐시)]
+    Recommend --> History[(히스토리 DB)]
+    Save --> AladinAPI[알라딘 외부 API]
+    
+    Redis -->|MISS| DB[(MySQL DB)]
+```

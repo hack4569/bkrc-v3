@@ -6,6 +6,7 @@ import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookPageResponse;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
 import com.bkrc.bkrcv3.aladin.application.response.AladinResponse;
+import com.bkrc.bkrcv3.aladin.client.AladinClient;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
 import com.bkrc.bkrcv3.aladin.entity.AladinException;
@@ -18,22 +19,19 @@ import com.bkrc.bkrcv3.member.application.response.RecommendView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.annotation.Nullable;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestClient;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -45,8 +43,7 @@ public class AladinService {
     private static final String CACHE_KEY_ALL_BOOKS = "aladin:books:all";
     private static final Duration CACHE_TTL = Duration.ofHours(24);
     private final UserServiceImpl userServiceImpl;
-
-    private RestClient aladinApi;
+    private final AladinClient aladinClient;
     private final AladinBookRepository aladinBookRepository;
     private final BookCommentRepository bookCommentRepository;
     private final HistoryService historyService;
@@ -55,20 +52,10 @@ public class AladinService {
     private final ObjectMapper objectMapper;
     private final AladinMapper aladinMapper;
 
-    @Value("${aladin.host}")
-    private String aladinHost;
-    @Value("${aladin.ttbkey}")
-    private String aladinTbKey;
-    private AladinRequest aladinRequest;
 
-    @PostConstruct
-    void initRestClient() {
-        aladinApi = RestClient.create(aladinHost);
-    }
 
     @RateLimiter(name = "aladin", fallbackMethod = "getApiFallback")
     public List<AladinBook> getBooksForRecommend(AladinRequest aladinRequest, List<AladinBookResponse> registeredBooks) {
-        this.aladinRequest = aladinRequest;
 
         Set<Integer> registeredBookItemIds;
         if (!CollectionUtils.isEmpty(registeredBooks)) {
@@ -76,7 +63,7 @@ public class AladinService {
         } else {
             registeredBookItemIds = new HashSet<>();
         }
-        var aladinBooks = this.getApi(AladinConstants.ITEM_LIST, aladinRequest).getItem();
+        var aladinBooks = aladinClient.getApi(AladinConstants.ITEM_LIST, aladinRequest).getItem();
         if (ObjectUtils.isEmpty(aladinBooks)) throw new AladinException("상품조회시 데이터가 없습니다.");
         var newAladinBooks = aladinBooks.stream().filter(i -> !registeredBookItemIds.contains(i.getItemId())).toList();
         Set<Integer> allowedCategoryIds = categoryService.findAcceptedCategories().stream()
@@ -132,57 +119,30 @@ public class AladinService {
         }
     }
 
-    private AladinResponse getApi(String path, AladinRequest aladinRequest) {
-        ResponseEntity<AladinResponse> response = null;
-        try{
-            response = aladinApi
-                    .get()
-                    .uri(uriBuilder -> uriBuilder
-                            .path(path)
-                            .queryParam("ttbkey", aladinTbKey)
-                            .queryParams(aladinRequest.getApiParamMap())
-                            .build()
-                    )
-                    .retrieve()
-                    .toEntity(AladinResponse.class);
-            return response.getBody();
-        } catch (Exception e) {
-            log.error("[알라딘] 에러 메세지 파싱 에러 errorMessage={}", e.getMessage(), e);
-            throw new AladinException("파싱에러");
-        }
-    }
-
-    // fallback: 제한 걸렸거나 대기 시간 초과 시 호출 (선택)
-    private AladinResponse getApiFallback(String path, AladinRequest aladinRequest, Exception e) {
-        log.warn("[알라딘] 요청 제한 또는 타임아웃 path={}", path, e);
-        throw new AladinException("일시적으로 요청이 제한되었습니다.");
-    }
-
+    @RateLimiter(name = "aladin", fallbackMethod = "getApiFallback")
     public List<AladinBook> saveNewAladinBooks(AladinRecommendSaveRequest request) {
         var aladinBooks = request.newAladinBooks();
-        if (!CollectionUtils.isEmpty(aladinBooks)) {
-            List<AladinBook> aladinDetailList = new ArrayList<>();
-            aladinBooks.forEach( aladinBook -> {
-                var aladinDetail = this.bookDetail(AladinRequest.create(aladinBook.getIsbn13()));
-                aladinDetailList.add(aladinDetail);
-            });
+        if (CollectionUtils.isEmpty(aladinBooks)) return List.of();
+            //순차처리
+//            aladinBooks.forEach( aladinBook -> {
+//                var aladinDetail = this.bookDetail(AladinRequest.create(aladinBook.getIsbn13()));
+//                aladinDetailList.add(aladinDetail);
+//            });
+            List<CompletableFuture<AladinBook>> futures = aladinBooks.stream().map(book -> aladinClient.bookDetailAsync(book.getIsbn13())).toList();
+            List<AladinBook> aladinDetailList = futures.stream()
+                    //.map(CompletableFuture::join)
+                    .map(future -> {
+                        try {
+                            return future.join();
+                        } catch (Exception e) {
+                            log.warn("책 상세 조회 실패 msg = {}", e.getMessage());
+                            return null; // 실패한 건은 null로 처리
+                        }
+                    })
+                    .filter(Objects::nonNull).toList();
             List<AladinBook> saved = aladinBookRepository.saveAll(aladinDetailList);
             //evictAllBooksCache();
             return saved;
-        }
-        return List.of();
-    }
-
-    //책 상세 조회
-    @RateLimiter(name = "aladin", fallbackMethod = "getApiFallback")
-    public AladinBook bookDetail(AladinRequest aladinRequest) {
-        var aladinBooks = this.getApi(AladinConstants.ITEM_LOOKUP, aladinRequest).getItem();
-        if (aladinBooks.isEmpty()) throw new AladinException("상품조회시 데이터가 없습니다.");
-
-        var aladinbook = aladinBooks.get(0);
-        //코멘트 세팅
-        aladinbook.settingBookCommentList();
-        return aladinbook;
     }
 
     /** 기준일(1년 전) yyyyMMdd */
@@ -264,5 +224,11 @@ public class AladinService {
             );
         };
         return historyFilter;
+    }
+
+    // fallback: 제한 걸렸거나 대기 시간 초과 시 호출 (선택)
+    private AladinResponse getApiFallback(String path, AladinRequest aladinRequest, Exception e) {
+        log.warn("[알라딘] 요청 제한 또는 타임아웃 path={}", path, e);
+        throw new AladinException("일시적으로 요청이 제한되었습니다.");
     }
 }
