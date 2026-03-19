@@ -1,0 +1,18 @@
+package com.bkrc.bkrcv3.common.event.payload;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class MemberModifyEventPayload implements EventPayload {
+    private Long memberId;
+    private String loginId;
+    private LocalDateTime updated;
+}

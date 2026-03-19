@@ -1,5 +1,9 @@
 package com.bkrc.bkrcv3.member.application;
 
+import com.bkrc.bkrcv3.common.dataserializer.DataSerializer;
+import com.bkrc.bkrcv3.common.event.EventType;
+import com.bkrc.bkrcv3.common.event.payload.MemberJoinEventPayload;
+import com.bkrc.bkrcv3.common.event.payload.MemberModifyEventPayload;
 import com.bkrc.bkrcv3.member.application.request.MemberModifyRequest;
 import com.bkrc.bkrcv3.member.application.request.MemberRegisterRequest;
 import com.bkrc.bkrcv3.member.application.response.MemberModifyResponse;
@@ -7,12 +11,15 @@ import com.bkrc.bkrcv3.member.dto.MemberDto;
 import com.bkrc.bkrcv3.member.entity.Member;
 import com.bkrc.bkrcv3.member.entity.MemberException;
 import com.bkrc.bkrcv3.member.entity.PasswordEncoder;
+import com.bkrc.bkrcv3.notification.outbox.NotificationOutbox;
+import com.bkrc.bkrcv3.notification.outbox.NotificationOutboxRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.PasswordAuthentication;
 import java.util.ArrayList;
@@ -24,14 +31,27 @@ public class UserServiceImpl implements UserService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
+    private final NotificationOutboxRepository outboxRepository; // 추가
 
     @Override
+    @Transactional
     public Member saveMember(MemberRegisterRequest request) {
         checkDuplicateId(request);
         checkPwd(request.password(), request.passwordCheck());
 
         var member = Member.register(request.loginId(), request.password(), passwordEncoder);
-        return memberRepository.save(member);
+        var savedMember = memberRepository.save(member);
+
+        outboxRepository.save(NotificationOutbox.of(
+                EventType.MEMBER_JOIN,
+                DataSerializer.serialize(
+                        MemberJoinEventPayload.builder()
+                                .loginId(savedMember.getLoginId())
+                                .created(savedMember.getCreated())
+                                .build()
+                )
+        ));
+        return savedMember;
     }
 
     private void checkPwd(String pwd, String pwdChk) {
@@ -76,7 +96,17 @@ public class UserServiceImpl implements UserService {
         if (!member.getPassword().equals(encodePassword(request.originPassword()))) throw new MemberException("비밀번호가 일치하지 않습니다.");
         this.checkPwd(request.newPassword(), request.newPasswordCheck());
         var updatedMember = Member.register(request.loginId(), request.newPassword(), passwordEncoder);
-        return memberRepository.save(updatedMember);
+        var modifiedMember = memberRepository.save(updatedMember);
+        outboxRepository.save(NotificationOutbox.of(
+                EventType.MEMBER_MODIFY,
+                DataSerializer.serialize(
+                        MemberModifyEventPayload.builder()
+                                .loginId(modifiedMember.getLoginId())
+                                .updated(modifiedMember.getUpdated())
+                                .build()
+                )
+        ));
+        return modifiedMember;
     }
 
     public String encodePassword(String password) {

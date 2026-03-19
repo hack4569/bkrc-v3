@@ -31,6 +31,9 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt:0.12.3'
     implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
 
+    // Kafka 추가
+    implementation 'org.springframework.kafka:spring-kafka'
+
     runtimeOnly 'com.mysql:mysql-connector-j'
 
     implementation 'ch.qos.logback:logback-classic'

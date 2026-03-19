@@ -1,9 +1,12 @@
 package com.bkrc.bkrcv3.member.entity;
 
+import com.bkrc.bkrcv3.common.shared.BaseEntity;
 import com.bkrc.bkrcv3.member.application.request.MemberRegisterRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
+
+import java.time.LocalDateTime;
 
 
 @Entity
@@ -13,10 +16,10 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Member {
+public class Member extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long memberId;
+    private Long memberId;
 
     @NotEmpty
     @Column(unique = true)
@@ -36,6 +39,14 @@ public class Member {
         Member member = new Member();
         member.loginId = loginId;
         member.password = passwordEncoder.hashPassword(password);
+        return member;
+    }
+
+    public static Member registerForModify(String loginId, String password, PasswordEncoder passwordEncoder) {
+        Member member = new Member();
+        member.loginId = loginId;
+        member.password = passwordEncoder.hashPassword(password);
+        member.setUpdated(LocalDateTime.now());
         return member;
     }
 

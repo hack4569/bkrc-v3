@@ -3,6 +3,20 @@ spring:
     redis:
       host: localhost
       port: 6379
+    kafka:
+      bootstrap-servers: localhost:9092
+      producer:
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+        acks: all               # 모든 복제본 확인 후 성공 (데이터 유실 방지)
+        retries: 3              # 실패 시 3번 재시도
+      consumer:
+        group-id: bkrc-notification-group
+        key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+        value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+        auto-offset-reset: earliest
+        properties:
+          spring.json.trusted.packages: "com.bkrc.bkrcv3.*"
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/book_recommend?serverTimezone=UTC&useUnicode=true&charaterEncoding=utf-8
