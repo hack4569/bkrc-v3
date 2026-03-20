@@ -59,24 +59,49 @@
 - **운영 고려**
   - 스케줄링(@EnableScheduling)과 ShedLock으로 배치 작업 중복 실행 방지
 
-### 플로우 차트
+
+## 1. 시스템 플로우차트
+
 ```mermaid
 flowchart TD
-Client([클라이언트])
-JWT[JWT 인증 필터]
-Controller[AladinController]
+    Client([클라이언트])
 
-    Client --> JWT
-    JWT -->|/v1/member| Member[회원가입/수정]
-    JWT -->|JWT 유효| Controller
-    JWT -->|JWT 무효| Error[401 Unauthorized]
-    
-    Controller --> Books[GET /books\n전체 도서 조회]
-    Controller --> Recommend[GET /recommend/user\n사용자 맞춤 추천]
-    
-    Books --> Redis[(Redis 캐시)]
-    Recommend --> History[(히스토리 DB)]
-    Save --> AladinAPI[알라딘 외부 API]
-    
-    Redis -->|MISS| DB[(MySQL DB)]
+    Client --> JWTFilter{JWT 인증 필터}
+
+    JWTFilter -->|POST /v1/member\n인증 없이 허용| MemberAPI
+    JWTFilter -->|JWT 유효| AladinController
+    JWTFilter -->|JWT 없음 / 만료| Error401[401 Unauthorized]
+
+    subgraph MemberAPI[회원 API]
+        Register[POST /v1/member\n회원가입]
+        Modify[PUT /v1/member/:loginId\n회원정보 수정]
+    end
+
+    Register -->|@Transactional| OutboxJoin[(NotificationOutbox\nMEMBER_JOIN PENDING 저장)]
+    Modify -->|@Transactional| OutboxModify[(NotificationOutbox\nMEMBER_MODIFY PENDING 저장)]
+
+    subgraph AladinController[AladinController]
+        Books[GET /v1/aladin/books\n전체 도서 조회]
+        RecommendUser[GET /v1/aladin/books/recommend/user\n사용자 맞춤 추천]
+    end
+
+    Books -->|캐시 HIT| Redis[(Redis TTL 24h)]
+    Books -->|캐시 MISS| MySQL[(MySQL DB)]
+    MySQL --> Redis
+
+    RecommendUser --> Redis
+    RecommendUser --> HistoryDB[(History DB\n히스토리 필터링)]
+
+    subgraph OutboxFlow[Outbox + Kafka 알람 - 5초마다]
+        Producer[NotificationProducer\nPENDING 조회 → Kafka 발행]
+        Consumer[NotificationConsumer\nmember_join / member_modify]
+        Handler[EventHandler\nMemberJoin / MemberModify]
+    end
+
+    OutboxJoin --> Producer
+    OutboxModify --> Producer
+    Producer --> Consumer
+    Consumer --> Handler
+    Handler --> Alarm[알람 발송]
 ```
+
