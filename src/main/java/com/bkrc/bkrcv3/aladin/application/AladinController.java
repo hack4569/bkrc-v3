@@ -7,6 +7,8 @@ import com.bkrc.bkrcv3.aladin.application.response.AladinBookPageResponse;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.history.entity.History;
 import com.bkrc.bkrcv3.member.application.response.RecommendView;
+import com.bkrc.bkrcv3.member.security.LoginMember;
+import com.bkrc.bkrcv3.member.security.LoginMemberArgumentResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,15 +26,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AladinController {
     private final AladinService aladinService;
+    private final LoginMemberArgumentResolver loginMemberArgumentResolver;
 
     @GetMapping("/v1/aladin/books/recommend/user")
-    public List<RecommendView> getRecommendbooksForUser(@AuthenticationPrincipal String loginId, AladinRecommendForUserRequest request) {
+    public List<RecommendView> getRecommendbooksForUser(
+            @LoginMember String loginId,
+            AladinRecommendForUserRequest request) {
         List<RecommendView> recommendViewList = aladinService.getRecommendBooksForUser(loginId, request);
         return recommendViewList;
-    }
-
-    @GetMapping("/v1/aladin/books")
-    public AladinBookPageResponse getAllBooks() {
-        return aladinService.findAll();
     }
 }
