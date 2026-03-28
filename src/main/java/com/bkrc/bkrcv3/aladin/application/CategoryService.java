@@ -2,6 +2,7 @@ package com.bkrc.bkrcv3.aladin.application;
 
 import com.bkrc.bkrcv3.aladin.entity.Category;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
 
+    @Cacheable(value = "categories", key = "'accepted'")
     public List<Category> findAcceptedCategories() {
         String aladinAcceptCategory = environment.getProperty("aladin.accept-category-depth1");
         List<String> depth1s = Arrays.stream(aladinAcceptCategory.split(",")).collect(Collectors.toList());

@@ -1,6 +1,7 @@
 package com.bkrc.bkrcv3.member.application;
 
 import com.bkrc.bkrcv3.common.dataserializer.DataSerializer;
+import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.common.event.EventType;
 import com.bkrc.bkrcv3.common.event.payload.MemberJoinEventPayload;
 import com.bkrc.bkrcv3.common.event.payload.MemberModifyEventPayload;
@@ -12,9 +13,11 @@ import com.bkrc.bkrcv3.member.entity.Member;
 import com.bkrc.bkrcv3.member.entity.MemberException;
 import com.bkrc.bkrcv3.member.entity.PasswordEncoder;
 import com.bkrc.bkrcv3.notification.outbox.NotificationOutbox;
+import com.bkrc.bkrcv3.notification.outbox.NotificationOutboxEvent;
 import com.bkrc.bkrcv3.notification.outbox.NotificationOutboxRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -32,6 +35,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
     private final NotificationOutboxRepository outboxRepository; // 추가
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -42,15 +46,16 @@ public class UserServiceImpl implements UserService {
         var member = Member.register(request.loginId(), request.password(), passwordEncoder);
         var savedMember = memberRepository.save(member);
 
-        outboxRepository.save(NotificationOutbox.of(
+        NotificationOutbox outbox = outboxRepository.save(NotificationOutbox.of(
                 EventType.MEMBER_JOIN,
-                DataSerializer.serialize(
-                        MemberJoinEventPayload.builder()
-                                .loginId(savedMember.getLoginId())
-                                .created(savedMember.getCreated())
-                                .build()
-                )
+                Event.of(EventType.MEMBER_JOIN,MemberJoinEventPayload.builder()
+                        .loginId(savedMember.getLoginId())
+                        .created(savedMember.getCreated())
+                        .build()).toJson()
         ));
+
+        // 트랜잭션 커밋 후 이벤트 발행
+        eventPublisher.publishEvent(NotificationOutboxEvent.of(outbox));
         return savedMember;
     }
 

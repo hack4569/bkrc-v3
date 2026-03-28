@@ -29,6 +29,7 @@ public class AladinBook {
     private String link;
     private String author;
     private String pubDate;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private String isbn;
     private String isbn13;

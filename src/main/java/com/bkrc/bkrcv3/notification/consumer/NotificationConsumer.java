@@ -20,11 +20,10 @@ public class NotificationConsumer {
             EventType.Topic.MEMBER_JOIN,
             EventType.Topic.MEMBER_MODIFY
     })
-    public void listen(String message, Acknowledgment ack) {
+    public void listen(String message) {
         Event<EventPayload> event = Event.fromJson(message);
         if (event != null) {
             notificationService.handleEvent(event);
         }
-        ack.acknowledge();
     }
 }

@@ -5,7 +5,6 @@ import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendSaveRequest;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookPageResponse;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
-import com.bkrc.bkrcv3.aladin.application.response.AladinResponse;
 import com.bkrc.bkrcv3.aladin.client.AladinClient;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
@@ -30,8 +29,10 @@ import org.springframework.util.StringUtils;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -64,7 +65,7 @@ public class AladinService {
             registeredBookItemIds = new HashSet<>();
         }
         var aladinBooks = aladinClient.getApi(AladinConstants.ITEM_LIST, aladinRequest).getItem();
-        if (ObjectUtils.isEmpty(aladinBooks)) throw new AladinException("상품조회시 데이터가 없습니다.");
+        if (ObjectUtils.isEmpty(aladinBooks)) return List.of();
         var newAladinBooks = aladinBooks.stream().filter(i -> !registeredBookItemIds.contains(i.getItemId())).toList();
         Set<Integer> allowedCategoryIds = categoryService.findAcceptedCategories().stream()
                 .map(Category::getCid)
@@ -110,38 +111,29 @@ public class AladinService {
                 aladinBooks.size());
     }
 
-    private void evictAllBooksCache() {
-        try {
-            redisTemplate.delete(CACHE_KEY_ALL_BOOKS);
-            log.debug("[알라딘] 전체 책 목록 캐시 삭제. key={}", CACHE_KEY_ALL_BOOKS);
-        } catch (Exception e) {
-            log.warn("[알라딘] 캐시 삭제 실패. key={}", CACHE_KEY_ALL_BOOKS, e);
-        }
-    }
-
     @RateLimiter(name = "aladin", fallbackMethod = "getApiFallback")
     public List<AladinBook> saveNewAladinBooks(AladinRecommendSaveRequest request) {
         var aladinBooks = request.newAladinBooks();
+        List<AladinBook> aladinDetailList = new ArrayList<>();
         if (CollectionUtils.isEmpty(aladinBooks)) return List.of();
             //순차처리
-//            aladinBooks.forEach( aladinBook -> {
-//                var aladinDetail = this.bookDetail(AladinRequest.create(aladinBook.getIsbn13()));
-//                aladinDetailList.add(aladinDetail);
-//            });
-            List<CompletableFuture<AladinBook>> futures = aladinBooks.stream().map(book -> aladinClient.bookDetailAsync(book.getIsbn13())).toList();
-            List<AladinBook> aladinDetailList = futures.stream()
-                    //.map(CompletableFuture::join)
-                    .map(future -> {
-                        try {
-                            return future.join();
-                        } catch (Exception e) {
-                            log.warn("책 상세 조회 실패 msg = {}", e.getMessage());
-                            return null; // 실패한 건은 null로 처리
-                        }
-                    })
-                    .filter(Objects::nonNull).toList();
+            aladinBooks.forEach( aladinBook -> {
+                var aladinDetail = aladinClient.bookDetail(AladinRequest.create(aladinBook.getIsbn13()));
+                aladinDetailList.add(aladinDetail);
+            });
+//            List<CompletableFuture<AladinBook>> futures = aladinBooks.stream().map(book -> aladinClient.bookDetailAsync(book.getIsbn13())).toList();
+//            List<AladinBook> aladinDetailList = futures.stream()
+//                    //.map(CompletableFuture::join)
+//                    .map(future -> {
+//                        try {
+//                            return future.join();
+//                        } catch (Exception e) {
+//                            log.warn("책 상세 조회 실패 msg = {}", e.getMessage());
+//                            return null; // 실패한 건은 null로 처리
+//                        }
+//                    })
+//                    .filter(Objects::nonNull).toList();
             List<AladinBook> saved = aladinBookRepository.saveAll(aladinDetailList);
-            //evictAllBooksCache();
             return saved;
     }
 
@@ -227,8 +219,17 @@ public class AladinService {
     }
 
     // fallback: 제한 걸렸거나 대기 시간 초과 시 호출 (선택)
-    private AladinResponse getApiFallback(String path, AladinRequest aladinRequest, Exception e) {
-        log.warn("[알라딘] 요청 제한 또는 타임아웃 path={}", path, e);
-        throw new AladinException("일시적으로 요청이 제한되었습니다.");
+    private List<AladinBook> getApiFallback(AladinRequest aladinRequest, List<AladinBookResponse> registeredBooks, Throwable t) {
+        return showError(t);
+    }
+
+    private List<AladinBook> getApiFallback(AladinRecommendSaveRequest request, Throwable t) {
+        return showError(t);
+    }
+
+    private List<AladinBook> showError(Throwable t) {
+        log.warn("[알라딘] 요청 제한 또는 타임아웃 msg={}", t.getMessage(), t);
+        //throw new AladinException("일시적으로 요청이 제한되었습니다.");
+        return List.of();
     }
 }

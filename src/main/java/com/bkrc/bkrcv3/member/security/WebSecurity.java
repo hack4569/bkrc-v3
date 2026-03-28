@@ -44,8 +44,7 @@ public class WebSecurity {
 
         http.csrf( (csrf) -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/v1/member").permitAll()
-                        .anyRequest().authenticated()              // 그 외는 인증 필요
+                        .anyRequest().permitAll()
                 )
                 .authenticationManager(authenticationManager)
                 .addFilterBefore(getJwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
