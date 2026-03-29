@@ -3,6 +3,7 @@ package com.bkrc.bkrcv3.like.application;
 import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.common.event.EventType;
 import com.bkrc.bkrcv3.adapter.payload.BookLikeEventPayload;
+import com.bkrc.bkrcv3.config.RabbitMQConfig;
 import com.bkrc.bkrcv3.exception.UserException;
 import com.bkrc.bkrcv3.like.entity.Like;
 import com.bkrc.bkrcv3.like.entity.LikeCount;
@@ -42,7 +43,7 @@ public class LikeService {
         likeCountRepository.save(myLikeCount);
         Outbox outbox = outboxRepository.save(Outbox.of(
                 EventType.BOOK_LIKE,
-                String.valueOf(like.getItemId()),
+                RabbitMQConfig.LIKE_ROUTING_KEY,
                 Event.of(EventType.BOOK_LIKE,
                         BookLikeEventPayload.builder()
                                 .loginId(like.getLoginId())
