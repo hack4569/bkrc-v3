@@ -1,21 +1,21 @@
 package com.bkrc.bkrcv3.notification.publisher;
 
 import com.bkrc.bkrcv3.common.dataserializer.DataSerializer;
-import com.bkrc.bkrcv3.common.event.payload.EventPayload;
+import com.bkrc.bkrcv3.common.event.EventType;
 import com.bkrc.bkrcv3.notification.outbox.NotificationOutbox;
 import com.bkrc.bkrcv3.notification.outbox.NotificationOutboxEvent;
 import com.bkrc.bkrcv3.notification.outbox.NotificationOutboxRepository;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -23,7 +23,7 @@ import java.util.List;
 public class NotificationProducer {
 
     private final NotificationOutboxRepository outboxRepository;
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final RabbitTemplate rabbitTemplate;
     private static final int MAX_RETRY = 3;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -35,42 +35,38 @@ public class NotificationProducer {
             return;
         }
 
-        sendToKafka(outbox);
+        sendToRabbit(outbox);
     }
-//    @Scheduled(fixedDelay = 5000)
+
+    // FAILED 재처리 (5분마다)
+    @Scheduled(fixedDelay = 300000)
     @Transactional
-//    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void publish() {
-        List<NotificationOutbox> pendingList =
-                outboxRepository.findByStatus(NotificationOutbox.OutboxStatus.PENDING);
+    public void retryFailed() {
+        List<NotificationOutbox> failedList =
+                outboxRepository.findByStatus(NotificationOutbox.OutboxStatus.FAILED);
 
-        if (pendingList.isEmpty()) return;
+        if (failedList.isEmpty()) return;
 
-        pendingList.stream()
+        log.info("[Outbox] FAILED 재처리 {}건", failedList.size());
+        failedList.stream()
                 .filter(outbox -> outbox.getRetryCount() < MAX_RETRY)
-                .forEach(this::sendToKafka);
+                .forEach(this::sendToRabbit);
     }
 
-    private void sendToKafka(NotificationOutbox outbox) {
+    private void sendToRabbit(NotificationOutbox outbox) {
         try {
-            kafkaTemplate.send(
-                    outbox.getEventType().getTopic(),
-                            outbox.getPayload())
-                    .whenComplete((result, ex) -> {
-                        if (ex != null) {
-                            outbox.markAsFailed();
-                            log.error("[Outbox] 발행 실패 eventType={} outboxId={}",
-                                    outbox.getEventType(), outbox.getOutboxId());
-                        } else {
-                            outbox.markAsPublished();
-                            log.info("[Outbox] 발행 성공 eventType={} outboxId={}",
-                                    outbox.getEventType(), outbox.getOutboxId());
-                            outboxRepository.delete(outbox);
-                        }
-                    });
+            rabbitTemplate.convertAndSend(
+                    EventType.EXCHANGE,                    // Exchange
+                    outbox.getEventType().getRoutingKey(), // Routing Key
+                    outbox.getPayload()
+            );
+            outbox.markAsPublished();
+            log.info("[RabbitMQ] 발행 성공 eventType={} outboxId={}",
+                    outbox.getEventType(), outbox.getOutboxId());
         } catch (Exception e) {
-            log.error("[NotificationProducer sendToKafka error! = {}]", e.getMessage(), e);
             outbox.markAsFailed();
+            log.error("[RabbitMQ] 발행 실패 eventType={} outboxId={}",
+                    outbox.getEventType(), outbox.getOutboxId(), e);
         }
     }
 }

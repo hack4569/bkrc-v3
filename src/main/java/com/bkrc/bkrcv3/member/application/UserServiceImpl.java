@@ -46,16 +46,28 @@ public class UserServiceImpl implements UserService {
         var member = Member.register(request.loginId(), request.password(), passwordEncoder);
         var savedMember = memberRepository.save(member);
 
+        var payload = Event.of(
+                EventType.MEMBER_JOIN,
+                MemberJoinEventPayload.builder()
+                        .loginId(savedMember.getLoginId())
+                        .created(savedMember.getCreated()).build(),
+                null
+        );
         NotificationOutbox outbox = outboxRepository.save(NotificationOutbox.of(
                 EventType.MEMBER_JOIN,
-                Event.of(EventType.MEMBER_JOIN,MemberJoinEventPayload.builder()
-                        .loginId(savedMember.getLoginId())
-                        .created(savedMember.getCreated())
-                        .build()).toJson()
+                payload.toJson()
         ));
 
+        String newPayload = Event.of(
+                EventType.MEMBER_JOIN,
+                MemberJoinEventPayload.builder()
+                        .loginId(savedMember.getLoginId())
+                        .created(savedMember.getCreated()).build(),
+                outbox.getOutboxId()
+        ).toJson();
+        NotificationOutbox newoutBox = NotificationOutbox.of(EventType.MEMBER_JOIN, newPayload);
         // 트랜잭션 커밋 후 이벤트 발행
-        eventPublisher.publishEvent(NotificationOutboxEvent.of(outbox));
+        eventPublisher.publishEvent(NotificationOutboxEvent.of(newoutBox));
         return savedMember;
     }
 

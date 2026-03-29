@@ -6,11 +6,13 @@ import lombok.Getter;
 
 @Getter
 public class Event<T extends EventPayload> {
+    private Long outboxId;
     private EventType type;
     private T payload;
 
-    public static Event<EventPayload> of(EventType type, EventPayload payload) {
+    public static Event<EventPayload> of(EventType type, EventPayload payload, Long outboxId) {
         Event<EventPayload> event = new Event<>();
+        event.outboxId = outboxId;
         event.type = type;
         event.payload = payload;
         return event;
@@ -26,12 +28,14 @@ public class Event<T extends EventPayload> {
             return null;
         }
         Event<EventPayload> event = new Event<>();
+        event.outboxId = eventRaw.getOutboxId();
         event.type = EventType.from(eventRaw.getType());
         event.payload = DataSerializer.deserialize(eventRaw.getPayload(), event.type.getPayloadClass());
         return event;
     }
     @Getter
     private static class EventRaw {
+        private Long outboxId;
         private String type;
         private Object payload;
     }
