@@ -1,5 +1,7 @@
 package com.bkrc.bkrcv3.email.application;
 
+import com.bkrc.bkrcv3.adapter.eventhandler.MemberJoinEmailEventHandler;
+import com.bkrc.bkrcv3.adapter.payload.MemberJoinEventPayload;
 import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.required.EventPayload;
 import com.bkrc.bkrcv3.required.EmailEventHandler;
