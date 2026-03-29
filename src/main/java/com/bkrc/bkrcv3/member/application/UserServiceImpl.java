@@ -6,6 +6,7 @@ import com.bkrc.bkrcv3.common.event.EventType;
 import com.bkrc.bkrcv3.adapter.payload.MemberJoinEventPayload;
 import com.bkrc.bkrcv3.adapter.payload.MemberModifyEventPayload;
 import com.bkrc.bkrcv3.common.shared.Snowflake;
+import com.bkrc.bkrcv3.config.RabbitMQConfig;
 import com.bkrc.bkrcv3.exception.UserException;
 import com.bkrc.bkrcv3.member.application.request.MemberModifyRequest;
 import com.bkrc.bkrcv3.member.application.request.MemberRegisterRequest;
@@ -17,6 +18,7 @@ import com.bkrc.bkrcv3.outbox.OutboxEvent;
 import com.bkrc.bkrcv3.outbox.OutboxRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.User;
@@ -36,6 +38,7 @@ public class UserServiceImpl implements UserService {
     private final ObjectMapper objectMapper;
     private final OutboxRepository outboxRepository; // 추가
     private final ApplicationEventPublisher eventPublisher;
+    private final RabbitTemplate rabbitTemplate;
     private Snowflake snowflake = new Snowflake();
 
     @Override
@@ -49,7 +52,7 @@ public class UserServiceImpl implements UserService {
 
         Outbox outbox = outboxRepository.save(Outbox.of(
                 EventType.MEMBER_JOIN,
-                String.valueOf(savedMember.getLoginId()),
+                RabbitMQConfig.JOIN_ROUTING_KEY,
                 Event.of(EventType.MEMBER_JOIN,MemberJoinEventPayload.builder()
                         .loginId(savedMember.getLoginId())
                         .created(savedMember.getCreated())
@@ -108,7 +111,7 @@ public class UserServiceImpl implements UserService {
         var modifiedMember = memberRepository.save(updatedMember);
         outboxRepository.save(Outbox.of(
                 EventType.MEMBER_MODIFY,
-                modifiedMember.getLoginId(),
+                RabbitMQConfig.MODIFY_ROUTING_KEY,
                 DataSerializer.serialize(
                         MemberModifyEventPayload.builder()
                                 .loginId(modifiedMember.getLoginId())
