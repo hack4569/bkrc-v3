@@ -24,19 +24,15 @@ JWT 기반 인증/인가, Redis 캐시, Outbox 패턴 기반 Kafka 이벤트 알
 | Message Queue | Kafka |
 | Security | Spring Security, JWT (jjwt 0.12.3) |
 | Persistence | Spring Data JPA, Hibernate |
-| Scheduler | Spring Scheduling, ShedLock |
-| 안정성 | Resilience4j Rate Limiter |
-| 비동기 | CompletableFuture, ThreadPoolTaskExecutor |
+| Scheduler | Spring Scheduling, ShedLock 
 
 ---
 
 ## 핵심 성과
 
 - **Redis 캐시 도입**: k6 부하 테스트(VU 100) 기준 평균 응답시간 **29.9ms → 8.6ms**
-- **비동기 병렬 처리**: `CompletableFuture` 기반 알라딘 API 병렬 호출로 순차 처리 대비 도서 저장 속도 개선
 - **Outbox 패턴**: `@Transactional` 내 Outbox 저장으로 DB 트랜잭션과 Kafka 발행 원자성 보장, 알람 유실 방지
 - **이벤트 드리븐 설계**: `EventType` + `EventHandler` 패턴으로 신규 이벤트 추가 시 기존 코드 수정 없이 구현체만 추가하는 OCP 기반 확장 구조
-- **외부 API 안정성**: Resilience4j Rate Limiter로 알라딘 API 분당 100건 제한 및 폴백 흐름 설계
 - **운영 안정성**: ShedLock으로 분산 환경에서 배치 스케줄러 중복 실행 방지
 
 ## 주요 기능
@@ -61,10 +57,8 @@ JWT 기반 인증/인가, Redis 캐시, Outbox 패턴 기반 Kafka 이벤트 알
 
 ### 운영/안정성
 - `ShedLock` — Redis 기반 분산 배치 락, 다중 서버 환경 중복 실행 방지
-- `Resilience4j RateLimiter` — 알라딘 API 분당 10건 제한 및 폴백 처리
 - `HikariCP` 커넥션 풀 튜닝 (maxPoolSize: 16, connectionTimeout: 3s)
 - `CallerRunsPolicy` — 스레드풀 포화 시 요청 스레드가 직접 처리, 데이터 유실 방지
-- `CompletableFuture` 비동기 병렬 처리 — 알라딘 API 다중 호출 병렬화
 
 
 ## 1. 시스템 플로우차트
@@ -73,13 +67,13 @@ JWT 기반 인증/인가, Redis 캐시, Outbox 패턴 기반 Kafka 이벤트 알
 flowchart TD
     Client([클라이언트])
 
-    Client --> JWTFilter{JWT 인증 필터}
+    Client --> JWTFilter{JWT 인증 필터\nJwtAuthorizationFilter}
 
-    JWTFilter -->|POST /v1/member\n인증 없이 허용| MemberAPI
+    JWTFilter -->|POST /v1/member\n회원가입/수정 허용| MemberAPI
     JWTFilter -->|JWT 유효| AladinController
     JWTFilter -->|JWT 없음 / 만료| Error401[401 Unauthorized]
 
-    subgraph MemberAPI[회원 API]
+    subgraph MemberAPI[회원 API - UserController]
         Register[POST /v1/member\n회원가입]
         Modify[PUT /v1/member/:loginId\n회원정보 수정]
     end
@@ -99,16 +93,18 @@ flowchart TD
     RecommendUser --> Redis
     RecommendUser --> HistoryDB[(History DB\n히스토리 필터링)]
 
-    subgraph OutboxFlow[Outbox + Kafka 알람 - 5초마다]
-        Producer[NotificationProducer\nPENDING 조회 → Kafka 발행]
-        Consumer[NotificationConsumer\nmember_join / member_modify]
-        Handler[EventHandler\nMemberJoin / MemberModify]
-    end
+subgraph OutboxFlow[Outbox + Kafka 알람 - AFTER_COMMIT]
+Producer[NotificationProducer\nAFTER_COMMIT → Kafka 발행]
+Consumer[NotificationConsumer\nmember_join / member_modify]
+Handler[EventHandler\nMemberJoin / MemberModify]
+end
 
-    OutboxJoin --> Producer
-    OutboxModify --> Producer
-    Producer --> Consumer
-    Consumer --> Handler
-    Handler --> Alarm[알람 발송]
+OutboxJoin --> Producer
+OutboxModify --> Producer
+Producer -->|발행 성공| Consumer
+Producer -->|발행 실패| Failed[(FAILED\n5분마다 재처리)]
+Failed --> Producer
+Consumer --> Handler
+Handler --> Alarm[알람 발송]
 ```
 
