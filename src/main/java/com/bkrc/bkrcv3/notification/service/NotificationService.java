@@ -23,6 +23,6 @@ public class NotificationService {
         return eventHandlers.stream()
                 .filter(eventHandler -> eventHandler.supports(event))
                 .findAny()
-                .orElse(null);
+                .orElseThrow(() -> new IllegalStateException("No handler found for event " + event));
     }
 }

@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name="MEMBER")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -35,6 +34,13 @@ public class Member extends BaseEntity {
     @Column(length = 20)
     private String fiterType;
 
+//    public Boolean checkPassword(String reqPssword, PasswordEncoder passwordEncoder) {
+//        if (passwordEncoder.hashPassword(reqPssword).equals(this.password)) {
+//            return true;
+//        } else {
+//            return false;
+//        }
+//    }
     public static Member register(String loginId, String password, PasswordEncoder passwordEncoder) {
         Member member = new Member();
         member.loginId = loginId;

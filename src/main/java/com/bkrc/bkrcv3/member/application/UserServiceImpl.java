@@ -98,7 +98,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public Member modifyMember(String loginId, MemberModifyRequest request) {
         var member = memberRepository.findMemberByLoginId(loginId).orElseThrow( () -> new UsernameNotFoundException(loginId));
-        if (!member.getPassword().equals(encodePassword(request.originPassword()))) throw new MemberException("비밀번호가 일치하지 않습니다.");
+        if (!member.checkPassword(request.originPassword(), passwordEncoder)) {
+            throw new MemberException("비밀번호가 일치하지 않습니다.");
+        }
         this.checkPwd(request.newPassword(), request.newPasswordCheck());
         var updatedMember = Member.register(request.loginId(), request.newPassword(), passwordEncoder);
         var modifiedMember = memberRepository.save(updatedMember);
