@@ -7,14 +7,13 @@ import com.bkrc.bkrcv3.common.event.payload.MemberJoinEventPayload;
 import com.bkrc.bkrcv3.common.event.payload.MemberModifyEventPayload;
 import com.bkrc.bkrcv3.member.application.request.MemberModifyRequest;
 import com.bkrc.bkrcv3.member.application.request.MemberRegisterRequest;
-import com.bkrc.bkrcv3.member.application.response.MemberModifyResponse;
 import com.bkrc.bkrcv3.member.dto.MemberDto;
 import com.bkrc.bkrcv3.member.entity.Member;
 import com.bkrc.bkrcv3.member.entity.MemberException;
 import com.bkrc.bkrcv3.member.entity.PasswordEncoder;
-import com.bkrc.bkrcv3.notification.outbox.NotificationOutbox;
-import com.bkrc.bkrcv3.notification.outbox.NotificationOutboxEvent;
-import com.bkrc.bkrcv3.notification.outbox.NotificationOutboxRepository;
+import com.bkrc.bkrcv3.outbox.outbox.Outbox;
+import com.bkrc.bkrcv3.outbox.outbox.OutboxEvent;
+import com.bkrc.bkrcv3.outbox.outbox.OutboxRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -24,7 +23,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.net.PasswordAuthentication;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +32,7 @@ public class UserServiceImpl implements UserService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
-    private final NotificationOutboxRepository outboxRepository; // 추가
+    private final OutboxRepository outboxRepository; // 추가
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -46,8 +44,9 @@ public class UserServiceImpl implements UserService {
         var member = Member.register(request.loginId(), request.password(), passwordEncoder);
         var savedMember = memberRepository.save(member);
 
-        NotificationOutbox outbox = outboxRepository.save(NotificationOutbox.of(
+        Outbox outbox = outboxRepository.save(Outbox.of(
                 EventType.MEMBER_JOIN,
+                String.valueOf(savedMember.getLoginId()),
                 Event.of(EventType.MEMBER_JOIN,MemberJoinEventPayload.builder()
                         .loginId(savedMember.getLoginId())
                         .created(savedMember.getCreated())
@@ -55,7 +54,7 @@ public class UserServiceImpl implements UserService {
         ));
 
         // 트랜잭션 커밋 후 이벤트 발행
-        eventPublisher.publishEvent(NotificationOutboxEvent.of(outbox));
+        eventPublisher.publishEvent(OutboxEvent.of(outbox));
         return savedMember;
     }
 
@@ -104,8 +103,9 @@ public class UserServiceImpl implements UserService {
         this.checkPwd(request.newPassword(), request.newPasswordCheck());
         var updatedMember = Member.register(request.loginId(), request.newPassword(), passwordEncoder);
         var modifiedMember = memberRepository.save(updatedMember);
-        outboxRepository.save(NotificationOutbox.of(
+        outboxRepository.save(Outbox.of(
                 EventType.MEMBER_MODIFY,
+                modifiedMember.getLoginId(),
                 DataSerializer.serialize(
                         MemberModifyEventPayload.builder()
                                 .loginId(modifiedMember.getLoginId())

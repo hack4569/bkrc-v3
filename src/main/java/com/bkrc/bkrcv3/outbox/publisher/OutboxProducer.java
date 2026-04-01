@@ -1,34 +1,27 @@
-package com.bkrc.bkrcv3.notification.publisher;
+package com.bkrc.bkrcv3.outbox.publisher;
 
-import com.bkrc.bkrcv3.common.dataserializer.DataSerializer;
-import com.bkrc.bkrcv3.common.event.payload.EventPayload;
-import com.bkrc.bkrcv3.notification.outbox.NotificationOutbox;
-import com.bkrc.bkrcv3.notification.outbox.NotificationOutboxEvent;
-import com.bkrc.bkrcv3.notification.outbox.NotificationOutboxRepository;
-import lombok.Data;
+import com.bkrc.bkrcv3.outbox.outbox.Outbox;
+import com.bkrc.bkrcv3.outbox.outbox.OutboxEvent;
+import com.bkrc.bkrcv3.outbox.outbox.OutboxRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
-
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class NotificationProducer {
+public class OutboxProducer {
 
-    private final NotificationOutboxRepository outboxRepository;
+    private final OutboxRepository outboxRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private static final int MAX_RETRY = 3;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleOutboxEvent(NotificationOutboxEvent outboxEvent) {
-        NotificationOutbox outbox = outboxEvent.getOutbox();
+    public void handleOutboxEvent(OutboxEvent outboxEvent) {
+        Outbox outbox = outboxEvent.getOutbox();
 
         if (outbox.getRetryCount() >= MAX_RETRY) {
             log.error("[Outbox] 최대 재시도 초과 outboxId={}", outbox.getOutboxId());
@@ -37,24 +30,12 @@ public class NotificationProducer {
 
         sendToKafka(outbox);
     }
-//    @Scheduled(fixedDelay = 5000)
-    @Transactional
-//    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void publish() {
-        List<NotificationOutbox> pendingList =
-                outboxRepository.findByStatus(NotificationOutbox.OutboxStatus.PENDING);
 
-        if (pendingList.isEmpty()) return;
-
-        pendingList.stream()
-                .filter(outbox -> outbox.getRetryCount() < MAX_RETRY)
-                .forEach(this::sendToKafka);
-    }
-
-    private void sendToKafka(NotificationOutbox outbox) {
+    private void sendToKafka(Outbox outbox) {
         try {
             kafkaTemplate.send(
                     outbox.getEventType().getTopic(),
+                            outbox.getShardKey(),
                             outbox.getPayload())
                     .whenComplete((result, ex) -> {
                         if (ex != null) {
@@ -69,7 +50,7 @@ public class NotificationProducer {
                         }
                     });
         } catch (Exception e) {
-            log.error("[NotificationProducer sendToKafka error! = {}]", e.getMessage(), e);
+            log.error("[OutboxProducer sendToKafka error! = {}]", e.getMessage(), e);
             outbox.markAsFailed();
         }
     }

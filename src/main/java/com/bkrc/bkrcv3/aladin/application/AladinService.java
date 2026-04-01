@@ -137,6 +137,10 @@ public class AladinService {
             return saved;
     }
 
+    public AladinBook getAladinBook(Integer itemId) {
+        return aladinBookRepository.findById(itemId).orElseThrow(() -> new RuntimeException(String.valueOf(itemId) + "는 조회되지 않는 상품번호입니다."));
+    }
+
     /** 기준일(1년 전) yyyyMMdd */
     private int anchorDateYyyyMMdd() {
         int result = Integer.parseInt(
