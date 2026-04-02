@@ -17,8 +17,7 @@ public class OutboxConsumer {
 
     @KafkaListener( topics = {
             EventType.Topic.MEMBER_JOIN,
-            EventType.Topic.MEMBER_MODIFY,
-            EventType.Topic.BOOK_LIKE
+            EventType.Topic.MEMBER_MODIFY
     })
     public void listen(String message) {
         Event<EventPayload> event = Event.fromJson(message);
