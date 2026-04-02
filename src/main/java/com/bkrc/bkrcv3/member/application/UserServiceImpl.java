@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<Member> getAllMembers() {
-        return List.of();
+        return memberRepository.findAll();
     }
 
     @Override

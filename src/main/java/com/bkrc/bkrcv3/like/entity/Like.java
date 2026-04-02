@@ -8,7 +8,14 @@ import org.springframework.data.annotation.CreatedDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "like_book")
+@Table(name = "like_book",
+        uniqueConstraints = {
+        @UniqueConstraint(
+                name = "uk_like_book_item_login",
+                columnNames = {"item_id", "login_id"}
+        )
+    }
+)
 @Getter
 public class Like extends BaseEntity {
     @Id
