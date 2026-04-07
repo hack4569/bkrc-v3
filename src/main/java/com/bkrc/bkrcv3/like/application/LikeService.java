@@ -3,6 +3,7 @@ package com.bkrc.bkrcv3.like.application;
 import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.common.event.EventType;
 import com.bkrc.bkrcv3.common.event.payload.BookLikeEventPayload;
+import com.bkrc.bkrcv3.exception.UserException;
 import com.bkrc.bkrcv3.like.entity.Like;
 import com.bkrc.bkrcv3.like.entity.LikeCount;
 import com.bkrc.bkrcv3.outbox.outbox.Outbox;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -31,7 +33,7 @@ public class LikeService {
     @Transactional
     public Like like(Like like){
         if (likeRepository.findByItemIdAndLoginId(like.getItemId(), like.getLoginId()).isPresent() ) {
-            throw new RuntimeException("이미 좋아요 처리 되었습니다.");
+            throw new UserException("이미 좋아요 처리 되었습니다.", HttpStatus.BAD_REQUEST);
         }
 
         Like result = likeRepository.save(like);

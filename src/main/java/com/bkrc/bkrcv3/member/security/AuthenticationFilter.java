@@ -1,5 +1,6 @@
 package com.bkrc.bkrcv3.member.security;
 
+import com.bkrc.bkrcv3.exception.UserException;
 import com.bkrc.bkrcv3.member.application.UserService;
 import com.bkrc.bkrcv3.member.application.request.LoginForm;
 import com.bkrc.bkrcv3.member.dto.MemberDto;
@@ -12,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -54,7 +56,7 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
             );
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UserException(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 

@@ -4,11 +4,11 @@ import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
 import com.bkrc.bkrcv3.aladin.application.response.AladinResponse;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
-import com.bkrc.bkrcv3.aladin.entity.AladinException;
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import com.bkrc.bkrcv3.exception.BusinessException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -47,7 +47,7 @@ public class AladinClient {
             return response.getBody();
         } catch (Exception e) {
             log.error("[알라딘] 에러 메세지 파싱 에러 errorMessage={}", e.getMessage(), e);
-            throw new AladinException("파싱에러");
+            throw new BusinessException("파싱에러", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -60,7 +60,7 @@ public class AladinClient {
     //책 상세 조회
     public AladinBook bookDetail(AladinRequest aladinRequest) {
         var aladinBooks = this.getApi(AladinConstants.ITEM_LOOKUP, aladinRequest).getItem();
-        if (aladinBooks.isEmpty()) throw new AladinException("상품조회시 데이터가 없습니다.");
+        if (aladinBooks.isEmpty()) throw new BusinessException("데이터가 없습니다.", HttpStatus.SERVICE_UNAVAILABLE);
 
         var aladinbook = aladinBooks.get(0);
         //코멘트 세팅
