@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- 로그 파일 저장 경로 -->
+    <property name="LOG_PATH" value="./logs"/>
+    <property name="LOG_FILE" value="bkrc"/>
+
+    <!-- ==================== -->
+    <!-- 1. 콘솔 출력          -->
+    <!-- ==================== -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n
+            </pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ==================== -->
+    <!-- 2. 파일 출력          -->
+    <!-- ==================== -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${LOG_FILE}.log</file>
+
+        <!-- 날짜별로 파일 분리, 30일 보관 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${LOG_FILE}.%d{yyyy-MM-dd_HH-mm}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>         <!-- 30일 보관 -->
+            <totalSizeCap>3GB</totalSizeCap>    <!-- 전체 최대 3GB -->
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+            </pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ==================== -->
+    <!-- 3. Logstash 전송      -->
+    <!-- ==================== -->
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>localhost:5044</destination>   <!-- Logstash 주소 -->
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- 추가 필드 설정 -->
+            <customFields>{"app":"bkrc", "env":"local"}</customFields>
+        </encoder>
+        <!-- 비동기 처리 — 로그 전송이 성능에 영향 안 줌 -->
+        <keepAliveDuration>5 minutes</keepAliveDuration>
+    </appender>
+
+    <!-- ==================== -->
+    <!-- 4. 비동기 래퍼        -->
+    <!-- ==================== -->
+    <!-- 파일 로깅 비동기 처리 -->
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold> <!-- 큐 꽉 차도 버리지 않음 -->
+    </appender>
+
+    <!-- Logstash 비동기 처리 -->
+    <appender name="ASYNC_LOGSTASH" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="LOGSTASH"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+        <appender-ref ref="LOGSTASH" />
+    </root>
+</configuration>
