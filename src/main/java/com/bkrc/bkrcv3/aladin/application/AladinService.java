@@ -17,6 +17,7 @@ import com.bkrc.bkrcv3.member.application.UserServiceImpl;
 import com.bkrc.bkrcv3.member.application.response.RecommendView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.micrometer.core.instrument.Counter;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,8 @@ public class AladinService {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
     private final AladinMapper aladinMapper;
-
+    private final Counter cacheHitCounter;
+    private final Counter cacheMissCounter;
 
 
     @RateLimiter(name = "aladin", fallbackMethod = "getApiFallback")
@@ -83,11 +85,15 @@ public class AladinService {
         try {
             String cached = redisTemplate.opsForValue().get(CACHE_KEY_ALL_BOOKS);
             var result = objectMapper.readValue(cached, AladinBookPageResponse.class);
+            cacheHitCounter.increment();
             if (result.getCount() > 0) return result;
         } catch (Exception e) {
             log.warn("[알라딘] 캐시 조회 실패, DB에서 조회합니다. key={}", CACHE_KEY_ALL_BOOKS, e);
         }
+
+        cacheMissCounter.increment();
         var response = findAllFromDb();
+
         try {
             String json = objectMapper.writeValueAsString(response);
             redisTemplate.opsForValue().set(CACHE_KEY_ALL_BOOKS, json, CACHE_TTL);

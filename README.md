@@ -67,44 +67,100 @@ JWT 기반 인증/인가, Redis 캐시, Outbox 패턴 기반 Kafka 이벤트 알
 flowchart TD
     Client([클라이언트])
 
-    Client --> JWTFilter{JWT 인증 필터\nJwtAuthorizationFilter}
+    %% ── 인증 진입점 ──────────────────────────────
+    Client -->|POST /login| LoginFilter
 
-    JWTFilter -->|POST /v1/member\n회원가입/수정 허용| MemberAPI
-    JWTFilter -->|JWT 유효| AladinController
-    JWTFilter -->|JWT 없음 / 만료| Error401[401 Unauthorized]
-
-    subgraph MemberAPI[회원 API - UserController]
-        Register[POST /v1/member\n회원가입]
-        Modify[PUT /v1/member/:loginId\n회원정보 수정]
+    subgraph Auth[인증 - Spring Security]
+        LoginFilter[AuthenticationFilter\n자격증명 파싱]
+        LoginFilter --> LoadUser[UserServiceImpl\nloadUserByUsername]
+        LoadUser --> BCrypt{BCrypt\n비밀번호 검증}
+        BCrypt -->|일치| JwtIssue[JWT 발급\nHS256 · 10일]
+        BCrypt -->|불일치| E401A[401 Unauthorized]
+        JwtIssue --> JwtResponse[Authorization: Bearer token]
     end
 
-    Register -->|@Transactional| OutboxJoin[(NotificationOutbox\nMEMBER_JOIN PENDING 저장)]
-    Modify -->|@Transactional| OutboxModify[(NotificationOutbox\nMEMBER_MODIFY PENDING 저장)]
+    %% ── JWT 필터 ─────────────────────────────────
+    Client -->|이후 요청| JWTFilter{JwtAuthorizationFilter\nJWT 검증}
+    JWTFilter -->|유효| Router{엔드포인트 라우팅}
+    JWTFilter -->|만료/없음| E401B[401 Unauthorized]
 
-    subgraph AladinController[AladinController]
-        Books[GET /v1/aladin/books\n전체 도서 조회]
-        RecommendUser[GET /v1/aladin/books/recommend/user\n사용자 맞춤 추천]
+    %% ── 회원 API ──────────────────────────────────
+    Router -->|POST /v1/member| Register
+    Router -->|PUT /v1/member/:loginId| Modify
+
+    subgraph MemberAPI[회원 관리 - UserController]
+        Register[회원가입\n중복ID · 비밀번호 확인 · BCrypt]
+        Modify[회원정보 수정\n기존 비밀번호 검증]
     end
 
-    Books -->|캐시 HIT| Redis[(Redis TTL 24h)]
-    Books -->|캐시 MISS| MySQL[(MySQL DB)]
-    MySQL --> Redis
+    Register -->|@Transactional\nMember 저장 + Outbox PENDING| OutboxJoin[(Outbox\nMEMBER_JOIN)]
+    Modify -->|@Transactional\nMember 저장 + Outbox PENDING| OutboxModify[(Outbox\nMEMBER_MODIFY)]
 
-    RecommendUser --> Redis
-    RecommendUser --> HistoryDB[(History DB\n히스토리 필터링)]
+    %% ── 도서 API ──────────────────────────────────
+    Router -->|GET /v1/aladin/books| Books
+    Router -->|GET /v1/aladin/books/recommend/user| RecommendUser
 
-subgraph OutboxFlow[Outbox + Kafka 알람 - AFTER_COMMIT]
-Producer[NotificationProducer\nAFTER_COMMIT → Kafka 발행]
-Consumer[NotificationConsumer\nmember_join / member_modify]
-Handler[EventHandler\nMemberJoin / MemberModify]
-end
+    subgraph AladinAPI[도서 - AladinController]
+        Books[전체 도서 조회]
+        RecommendUser[사용자 맞춤 추천]
+    end
 
-OutboxJoin --> Producer
-OutboxModify --> Producer
-Producer -->|발행 성공| Consumer
-Producer -->|발행 실패| Failed[(FAILED\n5분마다 재처리)]
-Failed --> Producer
-Consumer --> Handler
-Handler --> Alarm[알람 발송]
+    Books -->|캐시 HIT| RedisBooks[(Redis\naladin:books:all · TTL 24h)]
+    Books -->|캐시 MISS| MySQL[(MySQL\nAladinBook + BookComment)]
+    MySQL -->|결과 캐싱| RedisBooks
+
+    RecommendUser --> AladinAPI_External[Aladin 외부 API\nResilience4j Rate Limiter\n1000req/30s]
+    RecommendUser --> HistoryDB[(MySQL\nHistory 조회)]
+    AladinAPI_External --> Filter[필터링\n① 이미 본 책 제외\n② 허용 카테고리\n③ 출간일 90일 이내]
+    HistoryDB --> Filter
+    Filter --> RecommendResult[추천 도서 목록 반환]
+
+    %% ── 좋아요 API ────────────────────────────────
+    Router -->|POST /v1/like/:itemId| LikeController
+
+    subgraph LikeAPI[좋아요 - LikeController]
+        LikeController[좋아요 처리]
+        LikeController --> LikeSave[(MySQL\nLike + LikeCount 저장)]
+        LikeController --> OutboxLike[(Outbox\nBOOK_LIKE PENDING)]
+    end
+
+    %% ── 핫북 API ──────────────────────────────────
+    Router -->|GET /v1/hot-articles/articles/date/:date| HotBookAPI
+
+    subgraph HotBookAPI[실시간 랭킹 - HotBookController]
+        HotBookController[날짜별 인기 도서 조회\nTop 10]
+        HotBookController --> RedisRanking[(Redis Sorted Set\nhot:books:yyyyMMdd · TTL 10일)]
+    end
+
+    %% ── Outbox + Kafka 이벤트 흐름 ────────────────
+    subgraph OutboxFlow[Outbox + Kafka 이벤트 파이프라인]
+        OutboxProducer[OutboxProducer\n@TransactionalEventListener AFTER_COMMIT\nPENDING → Kafka 발행]
+        KafkaBroker[[Kafka Broker\nmember_join\nmember_modify\nbook_like]]
+        OutboxConsumer[OutboxConsumer\nKafka Listener]
+        OutboxService[OutboxService\n이벤트 타입별 라우팅]
+        MemberJoinHandler[MemberJoinEventHandler]
+        MemberModifyHandler[MemberModifyEventHandler]
+        LikeHandler[LikeEventHandler\nRedis 좋아요 수 갱신]
+    end
+
+    OutboxJoin --> OutboxProducer
+    OutboxModify --> OutboxProducer
+    OutboxLike --> OutboxProducer
+
+    OutboxProducer -->|발행 성공 → PUBLISHED| KafkaBroker
+    OutboxProducer -->|발행 실패 → FAILED\n최대 3회 재시도| OutboxProducer
+
+    KafkaBroker --> OutboxConsumer
+    OutboxConsumer --> OutboxService
+    OutboxService --> MemberJoinHandler
+    OutboxService --> MemberModifyHandler
+    OutboxService --> LikeHandler
+
+    %% ── HotBook 이벤트 처리 ───────────────────────
+    KafkaBroker -->|book_like| HotBookConsumer[HotBookConsumer\nKafka Listener]
+    HotBookConsumer --> HotBookCalculator[HotBookCalculator\n점수 계산]
+    HotBookCalculator -->|파이프라인 업서트| RedisRanking
+
+    LikeHandler --> RedisLike[(Redis\n좋아요 수 · TTL 자정까지)]
 ```
 
