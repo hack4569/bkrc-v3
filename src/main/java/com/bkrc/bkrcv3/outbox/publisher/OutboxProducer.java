@@ -3,6 +3,7 @@ package com.bkrc.bkrcv3.outbox.publisher;
 import com.bkrc.bkrcv3.outbox.Outbox;
 import com.bkrc.bkrcv3.outbox.OutboxEvent;
 import com.bkrc.bkrcv3.outbox.OutboxRepository;
+import com.bkrc.bkrcv3.outbox.OutboxStatusUpdater;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class OutboxProducer {
 
     private final OutboxRepository outboxRepository;
+    private final OutboxStatusUpdater outboxStatusUpdater;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private static final int MAX_RETRY = 3;
 
@@ -39,20 +41,19 @@ public class OutboxProducer {
                             outbox.getPayload())
                     .whenComplete((result, ex) -> {
                         if (ex != null) {
-                            outbox.markAsFailed();
+                            outboxStatusUpdater.markAsFailed(outbox.getOutboxId());
                             log.error("[Outbox] 발행 실패 eventType={} outboxId={}",
                                     outbox.getEventType(), outbox.getOutboxId());
                         } else {
-                            outbox.markAsPublished();
                             log.info("[Outbox] 발행 성공 eventType={} outboxId={}",
                                     outbox.getEventType(), outbox.getOutboxId());
-                            outboxRepository.delete(outbox);
+                            outboxStatusUpdater.delete(outbox.getOutboxId());
                         }
                     });
         } catch (Exception e) {
             log.error("[OutboxProducer sendToKafka error! = {}]", e.getMessage(), e);
-            outbox.markAsFailed();
+            outboxStatusUpdater.markAsFailed(outbox.getOutboxId());
         }
-        outboxRepository.save(outbox);
+
     }
 }

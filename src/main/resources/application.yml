@@ -57,3 +57,17 @@ resilience4j:
         limitForPeriod: 1000        # 한 주기당 허용 요청 수
         limitRefreshPeriod: 30s   # 주기 (1분)
         timeoutDuration: 5s       # 허용될 때까지 기다리는 시간
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus, metrics
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: bkrc  # 메트릭에 앱 이름 태그 추가
