@@ -5,11 +5,11 @@ import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.common.event.EventType;
 import com.bkrc.bkrcv3.common.event.payload.MemberJoinEventPayload;
 import com.bkrc.bkrcv3.common.event.payload.MemberModifyEventPayload;
+import com.bkrc.bkrcv3.exception.UserException;
 import com.bkrc.bkrcv3.member.application.request.MemberModifyRequest;
 import com.bkrc.bkrcv3.member.application.request.MemberRegisterRequest;
 import com.bkrc.bkrcv3.member.dto.MemberDto;
 import com.bkrc.bkrcv3.member.entity.Member;
-import com.bkrc.bkrcv3.member.entity.MemberException;
 import com.bkrc.bkrcv3.member.entity.PasswordEncoder;
 import com.bkrc.bkrcv3.outbox.outbox.Outbox;
 import com.bkrc.bkrcv3.outbox.outbox.OutboxEvent;
@@ -17,6 +17,7 @@ import com.bkrc.bkrcv3.outbox.outbox.OutboxRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -60,13 +61,13 @@ public class UserServiceImpl implements UserService {
 
     private void checkPwd(String pwd, String pwdChk) {
         if (!pwd.equals(pwdChk)) {
-            throw new MemberException("비밀번호가 일치하지 않습니다.");
+            throw new UserException("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
     }
 
     private void checkDuplicateId(MemberRegisterRequest request) {
         if (memberRepository.findMemberByLoginId(request.loginId()).isPresent()) {
-            throw new MemberException("이미 등록된 사용자 입니다.");
+            throw new UserException("이미 등록된 사용자 입니다.", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -74,7 +75,7 @@ public class UserServiceImpl implements UserService {
     public MemberDto getMemberByLoginId(String loginId) {
         var member = memberRepository.findMemberByLoginId(loginId);
         if (!member.isPresent()) {
-            throw new MemberException("해당 아이디를 찾을 수 없습니다.");
+            throw new UserException("해당 아이디를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST);
         }
         MemberDto result = objectMapper.convertValue(member.get(), MemberDto.class);
         return result;
@@ -98,7 +99,7 @@ public class UserServiceImpl implements UserService {
     public Member modifyMember(String loginId, MemberModifyRequest request) {
         var member = memberRepository.findMemberByLoginId(loginId).orElseThrow( () -> new UsernameNotFoundException(loginId));
         if (!member.checkPassword(request.originPassword(), passwordEncoder)) {
-            throw new MemberException("비밀번호가 일치하지 않습니다.");
+            throw new UserException("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
         this.checkPwd(request.newPassword(), request.newPasswordCheck());
         var updatedMember = Member.register(request.loginId(), request.newPassword(), passwordEncoder);

@@ -7,8 +7,12 @@ import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookPageResponse;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
 import com.bkrc.bkrcv3.aladin.client.AladinClient;
+import com.bkrc.bkrcv3.aladin.entity.AladinBook;
+import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
+import com.bkrc.bkrcv3.aladin.entity.Category;
 import com.bkrc.bkrcv3.aladin.entity.*;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
+import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.history.application.HistoryService;
 import com.bkrc.bkrcv3.history.entity.History;
 import com.bkrc.bkrcv3.member.application.UserServiceImpl;
@@ -19,6 +23,7 @@ import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -156,7 +161,7 @@ public class AladinService {
         }
 
         var aladinBooks = this.findAll();
-        if (ObjectUtils.isEmpty(aladinBooks)) throw new AladinException("더이상 추천드릴 책이 없습니다.");
+        if (ObjectUtils.isEmpty(aladinBooks)) throw new BusinessException("더이상 추천드릴 책이 없습니다.", HttpStatus.SERVICE_UNAVAILABLE);
 
         var aladinDomainList = this.findAll(aladinBooks);
         var filteredBooks = this.filterForUser(aladinDomainList, request.getHistories());
