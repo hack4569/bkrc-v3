@@ -1,15 +1,13 @@
 package com.bkrc.bkrcv3.aladin.application;
 
+import com.bkrc.bkrcv3.ai.Ai;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendForUserRequest;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendSaveRequest;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookPageResponse;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
 import com.bkrc.bkrcv3.aladin.client.AladinClient;
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
-import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
-import com.bkrc.bkrcv3.aladin.entity.AladinException;
-import com.bkrc.bkrcv3.aladin.entity.Category;
+import com.bkrc.bkrcv3.aladin.entity.*;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
 import com.bkrc.bkrcv3.history.application.HistoryService;
 import com.bkrc.bkrcv3.history.entity.History;
@@ -43,10 +41,9 @@ public class AladinService {
 
     private static final String CACHE_KEY_ALL_BOOKS = "aladin:books:all";
     private static final Duration CACHE_TTL = Duration.ofHours(24);
-    private final UserServiceImpl userServiceImpl;
     private final AladinClient aladinClient;
+    private final Ai ai;
     private final AladinBookRepository aladinBookRepository;
-    private final BookCommentRepository bookCommentRepository;
     private final HistoryService historyService;
     private final CategoryService categoryService;
     private final StringRedisTemplate redisTemplate;
@@ -119,6 +116,8 @@ public class AladinService {
             //순차처리
             aladinBooks.forEach( aladinBook -> {
                 var aladinDetail = aladinClient.bookDetail(AladinRequest.create(aladinBook.getIsbn13()));
+                //코멘트 세팅
+                aladinDetail.settingBookCommentList(ai);
                 aladinDetailList.add(aladinDetail);
             });
 //            List<CompletableFuture<AladinBook>> futures = aladinBooks.stream().map(book -> aladinClient.bookDetailAsync(book.getIsbn13())).toList();

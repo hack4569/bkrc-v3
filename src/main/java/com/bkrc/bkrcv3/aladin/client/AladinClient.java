@@ -63,8 +63,7 @@ public class AladinClient {
         if (aladinBooks.isEmpty()) throw new AladinException("상품조회시 데이터가 없습니다.");
 
         var aladinbook = aladinBooks.get(0);
-        //코멘트 세팅
-        aladinbook.settingBookCommentList();
+
         return aladinbook;
     }
 }

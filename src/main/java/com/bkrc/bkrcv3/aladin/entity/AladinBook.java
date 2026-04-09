@@ -1,5 +1,6 @@
 package com.bkrc.bkrcv3.aladin.entity;
 
+import com.bkrc.bkrcv3.ai.Ai;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -62,13 +63,13 @@ public class AladinBook {
     @OneToMany(mappedBy = "aladinBook", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<BookComment> bookCommentList;
 
-    public void settingBookCommentList() {
+    public void settingBookCommentList(Ai ai) {
         List<BookComment> bookCommentList = new ArrayList<>();
 
         //책소개
-        this.setUserBookDesc(bookCommentList);
+        this.setUserBookDesc(ai, bookCommentList);
         //편집자 추천
-        this.setUserMdRecommend(bookCommentList);
+        this.setUserMdRecommend(ai, bookCommentList);
         //책 속에서
         this.setUserPhrase(bookCommentList);
         //목차
@@ -106,19 +107,23 @@ public class AladinBook {
         return originStr.replaceAll("<[^>]*>", "");
     }
 
-    private void setUserMdRecommend(List<BookComment> bookCommentList) {
+    private void setUserMdRecommend(Ai ai, List<BookComment> bookCommentList) {
         List<MdRecommend> mdRecommendList = this.getSubInfo().getMdRecommendList();
         if (!ObjectUtils.isEmpty(mdRecommendList)) {
             for (MdRecommend mdRecommend : mdRecommendList) {
-                this.filterDescription(mdRecommend.getComment(), bookCommentList, "mdRecommend");
+                this.filterDescriptionByAi(ai, mdRecommend.getComment(), bookCommentList, "mdRecommend");
             }
         }
     }
 
-    private void setUserBookDesc(List<BookComment> bookCommentList) {
+    private void filterDescriptionByAi(Ai ai, String comment, List<BookComment> bookCommentList, String type) {
+
+    }
+
+    private void setUserBookDesc(Ai ai, List<BookComment> bookCommentList) {
         String fullDescription = StringUtils.hasText(this.getFullDescription()) ? this.getFullDescription() : this.getFullDescription2();
         if (StringUtils.hasText(fullDescription)) {
-            this.filterDescription(fullDescription, bookCommentList, "description");
+            this.filterDescriptionByAi(ai, fullDescription, bookCommentList, "description");
         }
     }
 
