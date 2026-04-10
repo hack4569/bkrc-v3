@@ -14,39 +14,4 @@ public class AladinMapper {
     public AladinBookResponse toResponse(AladinBook book) {
         return book == null ? null : AladinBookResponse.from(book);
     }
-
-    public AladinBook toEntity(AladinBookResponse response) {
-        if (response == null) {
-            return null;
-        }
-        AladinBook book = new AladinBook();
-        book.setItemId(response.getItemId());
-        book.setTitle(response.getTitle());
-        book.setLink(response.getLink());
-        book.setAuthor(response.getAuthor());
-        book.setPubDate(response.getPubDate());
-        book.setDescription(response.getDescription());
-        book.setIsbn(response.getIsbn());
-        book.setIsbn13(response.getIsbn13());
-        book.setPriceSales(response.getPriceSales());
-        book.setPriceStandard(response.getPriceStandard());
-        book.setMallType(response.getMallType());
-        book.setStockStatus(response.getStockStatus());
-        book.setMileage(response.getMileage());
-        book.setCover(response.getCover());
-        book.setCategoryId(response.getCategoryId());
-        book.setCategoryName(response.getCategoryName());
-        book.setPublisher(response.getPublisher());
-        book.setSalesPoint(response.getSalesPoint());
-        book.setAdult(response.getAdult());
-        book.setFixedPrice(response.getFixedPrice());
-        book.setCustomerReviewRank(response.getCustomerReviewRank());
-        book.setBestRank(response.getBestRank());
-        book.setSubInfo(response.getSubInfo());
-        book.setFullDescription(response.getFullDescription());
-        book.setFullDescription2(response.getFullDescription2());
-        book.setToc(response.getToc());
-        book.setBookCommentList(response.getBookCommentList());
-        return book;
-    }
 }

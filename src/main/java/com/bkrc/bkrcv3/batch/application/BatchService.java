@@ -25,7 +25,7 @@ public class BatchService {
     private final AladinService aladinService;
 
     //@SchedulerLock(name = "recommendScheduler", lockAtMostFor = "10m", lockAtLeastFor = "1m")
-    //@Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 10 11 * * *", zone = "Asia/Seoul")
     public void recommendScheduler() {
             List<AladinBook> aladinBookList = new ArrayList<>();
             List<AladinBook> successList = new ArrayList<>();

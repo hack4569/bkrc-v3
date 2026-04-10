@@ -17,4 +17,10 @@ public class GptRequest {
     @Builder.Default
     private String model = "gpt-4o-mini";
     private List<GptMessage> messages;
+
+    public static GptRequest create(final List<GptMessage> messages) {
+        GptRequest request = new GptRequest();
+        request.messages = messages;
+        return request;
+    }
 }

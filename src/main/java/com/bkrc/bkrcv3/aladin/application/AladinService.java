@@ -102,7 +102,7 @@ public class AladinService {
     public List<AladinBook> findAll(AladinBookPageResponse aladinBookPageResponse) {
         if (aladinBookPageResponse.getCount() == 0) return null;
         return aladinBookPageResponse.getAladinBookResponseList().stream()
-                .map(aladinMapper::toEntity)
+                .map(AladinBook::toEntity)
                 .toList();
     }
 

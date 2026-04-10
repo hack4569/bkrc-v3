@@ -26,8 +26,7 @@ class GptClientTest {
                 new GptMessage("assistant", "{'result':['인간은 패배하도록 만들어지지 않았다. 인간은 파괴될 수는 있어도 패배하지는 않는다.','지금은 생각할 때가 아니다. 지금은 해야 할 때다']}"),
                 new GptMessage("user", "사랑의 기술")
         );
-        GptRequest gptRequest = GptRequest.builder()
-                        .messages(msgs).build();
+        GptRequest gptRequest = GptRequest.create(msgs);
         GptResponse response = gptClient.getChatResponse(gptRequest);
         System.out.println(response.getChoices());
     }

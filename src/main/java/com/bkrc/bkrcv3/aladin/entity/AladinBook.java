@@ -1,12 +1,15 @@
 package com.bkrc.bkrcv3.aladin.entity;
 
 import com.bkrc.bkrcv3.ai.Ai;
+import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -16,11 +19,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Slf4j
 @Table(name="aladin_book")
 public class AladinBook {
 
@@ -63,6 +66,43 @@ public class AladinBook {
     @OneToMany(mappedBy = "aladinBook", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<BookComment> bookCommentList;
 
+    public static AladinBook toEntity(AladinBookResponse response) {
+        if (response == null) {
+            return null;
+        }
+
+        AladinBook book = new AladinBook();
+        book.itemId = response.getItemId();
+        book.title = response.getTitle();
+        book.link = response.getLink();
+        book.author = response.getAuthor();
+        book.pubDate = response.getPubDate();
+        book.description = response.getDescription();
+        book.isbn = response.getIsbn();
+        book.isbn13 = response.getIsbn13();
+        book.priceSales = response.getPriceSales();
+        book.priceStandard = response.getPriceStandard();
+        book.mallType = response.getMallType();
+        book.stockStatus = response.getStockStatus();
+        book.mileage = response.getMileage();
+        book.cover = response.getCover();
+        book.categoryId = response.getCategoryId();
+        book.categoryName = response.getCategoryName();
+        book.publisher = response.getPublisher();
+        book.salesPoint = response.getSalesPoint();
+        book.adult = response.getAdult();
+        book.fixedPrice = response.getFixedPrice();
+        book.customerReviewRank = response.getCustomerReviewRank();
+        book.bestRank = response.getBestRank();
+        book.subInfo = response.getSubInfo();
+        book.fullDescription = response.getFullDescription();
+        book.fullDescription2 = response.getFullDescription2();
+        book.toc = response.getToc();
+        book.bookCommentList = response.getBookCommentList();
+
+        return book;
+    }
+
     public void settingBookCommentList(Ai ai) {
         List<BookComment> bookCommentList = new ArrayList<>();
 
@@ -70,12 +110,28 @@ public class AladinBook {
         this.setUserBookDesc(ai, bookCommentList);
         //편집자 추천
         this.setUserMdRecommend(ai, bookCommentList);
+        //ai 추천
+        this.setAiRecommend(ai, bookCommentList);
         //책 속에서
         this.setUserPhrase(bookCommentList);
         //목차
         this.setUserToc(bookCommentList);
         bookCommentList.forEach(i -> i.setAladinBook(this));
         this.bookCommentList = bookCommentList;
+    }
+
+    private void setAiRecommend(Ai ai, List<BookComment> bookCommentList) {
+        List<String> recommendations = ai.getRecommend(this.getTitle());
+        if (!CollectionUtils.isEmpty(recommendations)) {
+            String aiRecommend = "";
+            if (recommendations.size() > 1) {
+                aiRecommend += recommendations.stream().collect(Collectors.joining("<br>"));
+            } else {
+                aiRecommend = recommendations.get(0);
+            }
+            log.info("AladinBook aiRecommend: " + aiRecommend);
+            bookCommentList.add(BookComment.create(aiRecommend, "aiRecommend"));
+        }
     }
 
     /** 허용된 카테고리 집합에 포함되는지 (도메인 규칙) */
@@ -117,11 +173,11 @@ public class AladinBook {
     }
 
     private void filterDescriptionByAi(Ai ai, String comment, List<BookComment> bookCommentList, String type) {
-
+        bookCommentList.add(BookComment.create(ai.filteringContent(comment), type));
     }
 
     private void setUserBookDesc(Ai ai, List<BookComment> bookCommentList) {
-        String fullDescription = StringUtils.hasText(this.getFullDescription()) ? this.getFullDescription() : this.getFullDescription2();
+        String fullDescription = StringUtils.hasText(this.getFullDescription2()) ? this.getFullDescription2() : this.getFullDescription();
         if (StringUtils.hasText(fullDescription)) {
             this.filterDescriptionByAi(ai, fullDescription, bookCommentList, "description");
         }
