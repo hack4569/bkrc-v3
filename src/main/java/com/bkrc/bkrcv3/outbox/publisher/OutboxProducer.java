@@ -46,12 +46,13 @@ public class OutboxProducer {
                             outbox.markAsPublished();
                             log.info("[Outbox] 발행 성공 eventType={} outboxId={}",
                                     outbox.getEventType(), outbox.getOutboxId());
-                            //outboxRepository.delete(outbox);
+                            outboxRepository.delete(outbox);
                         }
                     });
         } catch (Exception e) {
             log.error("[OutboxProducer sendToKafka error! = {}]", e.getMessage(), e);
             outbox.markAsFailed();
         }
+        outboxRepository.save(outbox);
     }
 }

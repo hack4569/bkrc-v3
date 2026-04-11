@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class OutboxConsumer {
+public class EmailConsumer {
     private final EmailService emailService;
 
     @KafkaListener( topics = {
