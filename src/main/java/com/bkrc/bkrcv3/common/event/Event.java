@@ -1,7 +1,7 @@
 package com.bkrc.bkrcv3.common.event;
 
 import com.bkrc.bkrcv3.common.dataserializer.DataSerializer;
-import com.bkrc.bkrcv3.common.event.payload.EventPayload;
+import com.bkrc.bkrcv3.required.EventPayload;
 import lombok.Getter;
 
 @Getter

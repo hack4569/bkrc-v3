@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.bkrc'
 version = '0.0.1-SNAPSHOT'
-description = 'bkrc-v3'
+description = 'bkrc-v4'
 
 java {
     toolchain {

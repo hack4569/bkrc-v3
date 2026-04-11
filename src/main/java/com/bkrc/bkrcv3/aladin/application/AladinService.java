@@ -1,6 +1,6 @@
 package com.bkrc.bkrcv3.aladin.application;
 
-import com.bkrc.bkrcv3.ai.Ai;
+import com.bkrc.bkrcv3.required.Ai;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendForUserRequest;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendSaveRequest;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
@@ -10,12 +10,10 @@ import com.bkrc.bkrcv3.aladin.client.AladinClient;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
 import com.bkrc.bkrcv3.aladin.entity.Category;
-import com.bkrc.bkrcv3.aladin.entity.*;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
 import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.history.application.HistoryService;
 import com.bkrc.bkrcv3.history.entity.History;
-import com.bkrc.bkrcv3.member.application.UserServiceImpl;
 import com.bkrc.bkrcv3.member.application.response.RecommendView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;

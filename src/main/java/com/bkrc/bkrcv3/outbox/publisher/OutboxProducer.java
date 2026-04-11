@@ -1,8 +1,8 @@
 package com.bkrc.bkrcv3.outbox.publisher;
 
-import com.bkrc.bkrcv3.outbox.outbox.Outbox;
-import com.bkrc.bkrcv3.outbox.outbox.OutboxEvent;
-import com.bkrc.bkrcv3.outbox.outbox.OutboxRepository;
+import com.bkrc.bkrcv3.outbox.Outbox;
+import com.bkrc.bkrcv3.outbox.OutboxEvent;
+import com.bkrc.bkrcv3.outbox.OutboxRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -46,7 +46,7 @@ public class OutboxProducer {
                             outbox.markAsPublished();
                             log.info("[Outbox] 발행 성공 eventType={} outboxId={}",
                                     outbox.getEventType(), outbox.getOutboxId());
-                            outboxRepository.delete(outbox);
+                            //outboxRepository.delete(outbox);
                         }
                     });
         } catch (Exception e) {

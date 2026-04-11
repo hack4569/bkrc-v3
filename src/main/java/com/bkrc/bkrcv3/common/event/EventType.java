@@ -1,9 +1,9 @@
 package com.bkrc.bkrcv3.common.event;
 
-import com.bkrc.bkrcv3.common.event.payload.BookLikeEventPayload;
-import com.bkrc.bkrcv3.common.event.payload.EventPayload;
-import com.bkrc.bkrcv3.common.event.payload.MemberJoinEventPayload;
-import com.bkrc.bkrcv3.common.event.payload.MemberModifyEventPayload;
+import com.bkrc.bkrcv3.adapter.payload.BookLikeEventPayload;
+import com.bkrc.bkrcv3.required.EventPayload;
+import com.bkrc.bkrcv3.adapter.payload.MemberJoinEventPayload;
+import com.bkrc.bkrcv3.adapter.payload.MemberModifyEventPayload;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

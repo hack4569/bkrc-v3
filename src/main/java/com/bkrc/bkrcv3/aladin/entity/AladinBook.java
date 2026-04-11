@@ -1,13 +1,12 @@
 package com.bkrc.bkrcv3.aladin.entity;
 
-import com.bkrc.bkrcv3.ai.Ai;
+import com.bkrc.bkrcv3.required.Ai;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;

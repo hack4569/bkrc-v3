@@ -1,9 +1,10 @@
 package com.bkrc.bkrcv3.hotbook.application;
 
+import com.bkrc.bkrcv3.required.HotBookEventHandler;
 import com.bkrc.bkrcv3.aladin.application.AladinService;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
 import com.bkrc.bkrcv3.common.event.Event;
-import com.bkrc.bkrcv3.common.event.payload.EventPayload;
+import com.bkrc.bkrcv3.required.EventPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
