@@ -15,7 +15,7 @@ import java.util.List;
 public class HotBookController {
     private final HotBookService hotBookService;
 
-    @GetMapping("/v1/hot-articles/articles/date/{dateStr}")
+    @GetMapping("/v1/hot-books/books/date/{dateStr}")
     public List<AladinBookResponse> readAll(
             @PathVariable("dateStr") String dateStr
     ) {

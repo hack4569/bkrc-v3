@@ -56,7 +56,7 @@ JWT 기반 인증/인가, Redis 캐시, Outbox 패턴 기반 Kafka 이벤트 처
 
 ### 좋아요 & 실시간 인기 도서 (`like`, `hotbook`)
 - `POST /v1/like/{itemId}` 좋아요 — 중복 방지, LikeCount 집계, Outbox 이벤트 발행
-- `GET /v1/hot-articles/articles/date/{dateStr}` 날짜별 인기 도서 조회
+- `GET /v1/hot-books/books/date/{dateStr}` 날짜별 인기 도서 조회
 - Kafka `book_like` 토픽 → `HotBookConsumer` → Redis Sorted Set 갱신
 - 점수 계산: `좋아요 수 × 3`, 상위 10개 유지, TTL 10일
 
@@ -127,7 +127,7 @@ OutboxProducer
   └── 발행 실패 ──▶ FAILED 상태 저장 (OutboxStatusUpdater, REQUIRES_NEW)
                     재처리 대기
 
-GET /v1/hot-articles/articles/date/{dateStr}
+GET /v1/hot-books/books/date/{dateStr}
     │
     ▼
 Redis ZREVRANGE ──▶ 상위 10개 bookId 조회 ──▶ 도서 상세 조회 후 응답
