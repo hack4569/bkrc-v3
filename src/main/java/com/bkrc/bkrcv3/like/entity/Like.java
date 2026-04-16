@@ -19,15 +19,15 @@ import java.time.LocalDateTime;
 @Getter
 public class Like extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long likeId;
     @Column(nullable = false)
     private Integer itemId;
     @Column(nullable = false)
     private String loginId;
 
-    public static Like create(int itemId, String loginId) {
+    public static Like create(Long id, int itemId, String loginId) {
         Like like = new Like();
+        like.likeId = id;
         like.loginId = loginId;
         like.itemId = itemId;
         return like;

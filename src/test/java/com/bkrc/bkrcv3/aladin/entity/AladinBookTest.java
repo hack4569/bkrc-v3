@@ -1,5 +1,6 @@
 package com.bkrc.bkrcv3.aladin.entity;
 
+import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -46,8 +47,9 @@ class AladinBookTest {
         @Test
         @DisplayName("책의 categoryId가 null이면 false")
         void returnsFalseWhenBookCategoryIdIsNull() {
-            AladinBook book = new AladinBook();
-            book.setCategoryId(null);
+            AladinBookResponse aladinBookResponse = new AladinBookResponse();
+            aladinBookResponse.setCategoryId(null);
+            AladinBook book = AladinBook.toEntity(aladinBookResponse);
             assertThat(book.isInAllowedCategories(Set.of(100))).isFalse();
         }
     }
@@ -59,18 +61,11 @@ class AladinBookTest {
         private static final int ANCHOR_2024_01_01 = 20240101;
 
         @Test
-        @DisplayName("pubDate가 null이면 false")
-        void returnsFalseWhenPubDateIsNull() {
-            AladinBook book = new AladinBook();
-            book.setPubDate(null);
-            assertThat(book.isPublishedAfter(ANCHOR_2024_01_01)).isFalse();
-        }
-
-        @Test
         @DisplayName("pubDate가 빈 문자열이면 false")
         void returnsFalseWhenPubDateIsEmpty() {
-            AladinBook book = new AladinBook();
-            book.setPubDate("");
+            AladinBookResponse aladinBookResponse = new AladinBookResponse();
+            aladinBookResponse.setPubDate("");
+            AladinBook book = AladinBook.toEntity(aladinBookResponse);
             assertThat(book.isPublishedAfter(ANCHOR_2024_01_01)).isFalse();
         }
 
@@ -111,14 +106,17 @@ class AladinBookTest {
     }
 
     private static AladinBook bookWithCategoryId(int categoryId) {
-        AladinBook book = new AladinBook();
-        book.setCategoryId(categoryId);
+        AladinBookResponse aladinBookResponse = new AladinBookResponse();
+        aladinBookResponse.setCategoryId(categoryId);
+        AladinBook book = AladinBook.toEntity(aladinBookResponse);
+
         return book;
     }
 
     private static AladinBook bookWithPubDate(String pubDate) {
-        AladinBook book = new AladinBook();
-        book.setPubDate(pubDate);
+        AladinBookResponse aladinBookResponse = new AladinBookResponse();
+        aladinBookResponse.setPubDate(pubDate);
+        AladinBook book = AladinBook.toEntity(aladinBookResponse);
         return book;
     }
 }

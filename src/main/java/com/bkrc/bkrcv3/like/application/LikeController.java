@@ -1,5 +1,6 @@
 package com.bkrc.bkrcv3.like.application;
 
+import com.bkrc.bkrcv3.common.shared.Snowflake;
 import com.bkrc.bkrcv3.like.application.response.LikeResponse;
 import com.bkrc.bkrcv3.like.entity.Like;
 import lombok.RequiredArgsConstructor;
@@ -18,11 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class LikeController {
     private final LikeService likeService;
-
+    private Snowflake snowflake = new Snowflake();
     @PostMapping("/v1/like/{itemId}")
     public LikeResponse likeAction(@AuthenticationPrincipal String loginId, @PathVariable("itemId") int itemId) {
 
-        Like likeResult = likeService.like(Like.create(itemId, loginId));
+        Like likeResult = likeService.like(Like.create(snowflake.nextId(), itemId, loginId));
         return LikeResponse.from(likeResult);
     }
 }

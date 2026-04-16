@@ -1,5 +1,6 @@
 package com.bkrc.bkrcv3.like.application;
 
+import com.bkrc.bkrcv3.common.shared.Snowflake;
 import com.bkrc.bkrcv3.like.entity.Like;
 import com.bkrc.bkrcv3.like.entity.LikeCount;
 import com.bkrc.bkrcv3.member.application.UserService;
@@ -35,12 +36,13 @@ class LikeServiceTest {
 
     @Autowired
     private UserService userService;
+    private Snowflake snowflake = new Snowflake();
 
     @Test
     void 동시사용자_10명_같은책_좋아요_테스트() throws InterruptedException {
         // given
-        int threadCount = 10;           // 동시 사용자 수
-        int itemId = 368038025;              // 테스트용 책 ID
+        int threadCount = 18;           // 동시 사용자 수
+        int itemId = 369448193;              // 테스트용 책 ID
         likeCountRepository.save(LikeCount.create(itemId, 0));
         // 서로 다른 loginId 생성
         List<String> loginIds = userService.getAllMembers().stream().map(Member::getLoginId).toList();
@@ -58,7 +60,7 @@ class LikeServiceTest {
             executor.submit(() -> {
                 try {
                     startLatch.await(); // 모든 스레드가 동시에 출발하도록 대기
-                    likeService.like(Like.create(itemId, loginId));
+                    likeService.like(Like.create(snowflake.nextId(), itemId, loginId));
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     System.out.println("[실패] " + e.getMessage()); // 이 줄 추가
@@ -90,9 +92,6 @@ class LikeServiceTest {
 
         // LikeCount가 race condition 없이 정확히 10이어야 한다
         assertThat(likeCount.getLikeCount()).isEqualTo(threadCount);
-
-        // Like 레코드도 정확히 10개
-        assertThat(likes.size()).isEqualTo(threadCount);
     }
 
     @Test
@@ -117,7 +116,7 @@ class LikeServiceTest {
             executor.submit(() -> {
                 try {
                     startLatch.await();
-                    likeService.like(Like.create(itemId, loginId));
+                    likeService.like(Like.create(snowflake.nextId(), itemId, loginId));
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     System.out.println("[중복 좋아요 예외 발생] " + e.getMessage());

@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 @Builder
 public class Member extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long memberId;
 
     @NotEmpty
@@ -41,6 +40,13 @@ public class Member extends BaseEntity {
 //            return false;
 //        }
 //    }
+    public static Member register(Long id, String loginId, String password, PasswordEncoder passwordEncoder) {
+        Member member = new Member();
+        member.memberId = id;
+        member.loginId = loginId;
+        member.password = passwordEncoder.hashPassword(password);
+        return member;
+    }
     public static Member register(String loginId, String password, PasswordEncoder passwordEncoder) {
         Member member = new Member();
         member.loginId = loginId;

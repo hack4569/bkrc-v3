@@ -5,6 +5,7 @@ import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.common.event.EventType;
 import com.bkrc.bkrcv3.adapter.payload.MemberJoinEventPayload;
 import com.bkrc.bkrcv3.adapter.payload.MemberModifyEventPayload;
+import com.bkrc.bkrcv3.common.shared.Snowflake;
 import com.bkrc.bkrcv3.exception.UserException;
 import com.bkrc.bkrcv3.member.application.request.MemberModifyRequest;
 import com.bkrc.bkrcv3.member.application.request.MemberRegisterRequest;
@@ -35,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private final ObjectMapper objectMapper;
     private final OutboxRepository outboxRepository; // 추가
     private final ApplicationEventPublisher eventPublisher;
+    private Snowflake snowflake = new Snowflake();
 
     @Override
     @Transactional
@@ -42,7 +44,7 @@ public class UserServiceImpl implements UserService {
         checkDuplicateId(request);
         checkPwd(request.password(), request.passwordCheck());
 
-        var member = Member.register(request.loginId(), request.password(), passwordEncoder);
+        var member = Member.register(snowflake.nextId(), request.loginId(), request.password(), passwordEncoder);
         var savedMember = memberRepository.save(member);
 
         Outbox outbox = outboxRepository.save(Outbox.of(
