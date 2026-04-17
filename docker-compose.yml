@@ -104,4 +104,5 @@ volumes:
   elasticsearch-data:
   prometheus-data:
   grafana-data:
+  redis-data:
 
