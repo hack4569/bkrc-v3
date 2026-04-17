@@ -30,7 +30,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'io.jsonwebtoken:jjwt:0.12.3'
     implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
-
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
     // Kafka 추가
     implementation 'org.springframework.kafka:spring-kafka'
 

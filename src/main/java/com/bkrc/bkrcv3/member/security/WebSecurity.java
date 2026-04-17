@@ -13,6 +13,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -28,19 +33,18 @@ public class WebSecurity {
 //        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
 //    }
 
-    @PostConstruct
-    public void init() {
-        System.out.println("🔥 WebSecurity Bean 생성됨");
-    }
 
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
-        System.out.println("🔥 SecurityFilterChain 생성됨");
         AuthenticationManagerBuilder authenticationManagerBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.userDetailsService(userService).passwordEncoder(bCryptPasswordEncoder);
 
         AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
+
+        http.requiresChannel(channel ->
+                channel.anyRequest().requiresSecure()  // HTTPS 강제
+        );
 
         http.csrf( (csrf) -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
@@ -53,6 +57,23 @@ public class WebSecurity {
                         .frameOptions((frameOptions) -> frameOptions.sameOrigin()));
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of(
+                "http://localhost:3000",          // 개발
+                "https://your-domain.com"         // 운영
+        ));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("token")); // JWT 응답 헤더 노출
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     private JwtAuthorizationFilter getJwtAuthorizationFilter() {
