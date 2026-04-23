@@ -42,16 +42,12 @@ public class WebSecurity {
 
         AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
 
-        http.requiresChannel(channel ->
-                channel.anyRequest().requiresSecure()  // HTTPS 강제
-        );
-
         http.csrf( (csrf) -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
                 )
                 .authenticationManager(authenticationManager)
-                .addFilterBefore(getJwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
+//                .addFilterBefore(getJwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilter(getAuthenticationFilter(authenticationManager))
                 .headers((headers) -> headers
                         .frameOptions((frameOptions) -> frameOptions.sameOrigin()));

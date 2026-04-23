@@ -18,13 +18,12 @@ public class OutboxProducer {
 
     private final OutboxStatusUpdater outboxStatusUpdater;
     private final RabbitTemplate rabbitTemplate;
-    private static final int MAX_RETRY = 3;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOutboxEvent(OutboxEvent outboxEvent) {
         Outbox outbox = outboxEvent.getOutbox();
 
-        rabbitTemplate.convertAndSend(RabbitMQConfig.NOTIFICATION_DIRECT_EXCHANGE, RabbitMQConfig.JOIN_ROUTING_KEY, outbox.getPayload());
+        rabbitTemplate.convertAndSend(RabbitMQConfig.NOTIFICATION_DIRECT_EXCHANGE, outbox.getRoutingKey(), outbox.getPayload());
         outboxStatusUpdater.delete(outbox.getOutboxId());
     }
 }
