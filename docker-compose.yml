@@ -11,7 +11,16 @@ services:
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
-
+  rabbitmq:
+    image: rabbitmq:4.0-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guestuser      # ← 이 값
+      RABBITMQ_DEFAULT_PASS: guestuser      # ← 이 값
   logstash:
     image: docker.elastic.co/logstash/logstash:8.11.0
     container_name: logstash

@@ -1,5 +1,6 @@
 package com.bkrc.bkrcv3.adapter.eventhandler;
 
+import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.required.EmailEventHandler;
 import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.common.event.EventType;

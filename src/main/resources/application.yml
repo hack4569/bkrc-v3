@@ -1,3 +1,6 @@
+server:
+  port: 8080
+
 spring:
   data:
     redis:
@@ -10,6 +13,7 @@ spring:
     password: guestuser
     listener:
       simple:
+        acknowledge-mode: auto
         retry:
           enabled: true # 재시도 활성화
           initial-interval: 1000 # 첫 재시도 대기 시간 1초

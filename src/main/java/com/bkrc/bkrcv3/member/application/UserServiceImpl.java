@@ -101,24 +101,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public Member modifyMember(String loginId, MemberModifyRequest request) {
         var member = memberRepository.findMemberByLoginId(loginId).orElseThrow( () -> new UsernameNotFoundException(loginId));
         if (!member.checkPassword(request.originPassword(), passwordEncoder)) {
             throw new UserException("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
         this.checkPwd(request.newPassword(), request.newPasswordCheck());
-        var updatedMember = Member.register(request.loginId(), request.newPassword(), passwordEncoder);
-        var modifiedMember = memberRepository.save(updatedMember);
-        outboxRepository.save(Outbox.of(
+        member.modify(request.newPassword(), passwordEncoder);
+        var modifiedMember = memberRepository.save(member);
+        Outbox outbox = outboxRepository.save(Outbox.of(
                 EventType.MEMBER_MODIFY,
                 RabbitMQConfig.MODIFY_ROUTING_KEY,
-                DataSerializer.serialize(
-                        MemberModifyEventPayload.builder()
-                                .loginId(modifiedMember.getLoginId())
-                                .updated(modifiedMember.getUpdated())
-                                .build()
+                Event.of(EventType.MEMBER_MODIFY,MemberModifyEventPayload.builder()
+                        .loginId(modifiedMember.getLoginId())
+                        .updated(modifiedMember.getUpdated())
+                        .build()).toJson()
                 )
-        ));
+        );
+        eventPublisher.publishEvent(OutboxEvent.of(outbox));
         return modifiedMember;
     }
 

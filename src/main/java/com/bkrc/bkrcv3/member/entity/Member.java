@@ -49,9 +49,12 @@ public class Member extends BaseEntity {
     }
     public static Member register(String loginId, String password, PasswordEncoder passwordEncoder) {
         Member member = new Member();
-        member.loginId = loginId;
-        member.password = passwordEncoder.hashPassword(password);
+
         return member;
+    }
+
+    public void modify(String password, PasswordEncoder passwordEncoder) {
+        this.password = passwordEncoder.hashPassword(password);
     }
 
     public static Member registerForModify(String loginId, String password, PasswordEncoder passwordEncoder) {

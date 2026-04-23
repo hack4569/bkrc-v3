@@ -12,11 +12,6 @@ public class OutboxStatusUpdater {
     private final OutboxRepository outboxRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markAsFailed(Long outboxId) {
-        outboxRepository.findById(outboxId).ifPresent(Outbox::markAsFailed);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void delete(Long outboxId) {
         outboxRepository.deleteById(outboxId);
     }
