@@ -1,4 +1,14 @@
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: bkrc-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: book_recommend
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
   # ELK 스택 추가
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
@@ -93,4 +103,4 @@ volumes:
   prometheus-data:
   grafana-data:
   redis-data:
-
+  mysql-data:
