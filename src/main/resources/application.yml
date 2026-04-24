@@ -29,7 +29,7 @@ spring:
       max-lifetime: 1800000        # 커넥션 최대 수명 30분 (ms)
       pool-name: bkrc-pool
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/book_recommend?serverTimezone=UTC&useUnicode=true&charaterEncoding=utf-8
+    url: jdbc:mysql://bkrc-mysql:3306/book_recommend?serverTimezone=UTC&useUnicode=true&charaterEncoding=utf-8
     username: root
     password: ${DB_PASSWORD}
   # JPA config
