@@ -39,7 +39,7 @@ public class RabbitMQConfig {
     // Dead Letter Exchange
     @Bean
     public DirectExchange deadLetterExchange() {
-        return new DirectExchange(NOTIFICATION_DIRECT_DLX);
+        return new DirectExchange(DEAD_DIRECT_EXCHANGE);
     }
 
     // 원래 큐 설정

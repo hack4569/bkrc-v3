@@ -9,8 +9,8 @@ spring:
   rabbitmq:
     host: localhost
     port: 5672
-    username: guestuser
-    password: guestuser
+    username: ${RABBITMQ_NAME}
+    password: ${RABBITMQ_PW}
     listener:
       simple:
         acknowledge-mode: auto
