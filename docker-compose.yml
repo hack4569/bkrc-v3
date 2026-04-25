@@ -9,18 +9,6 @@ services:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-  # ELK 스택 추가
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
-    container_name: elasticsearch
-    ports:
-      - "9200:9200"
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false  # 로컬 개발 시 보안 비활성화
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-    volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
   rabbitmq:
     image: rabbitmq:4.0-management
     container_name: rabbitmq
@@ -31,28 +19,7 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guestuser      # ← 이 값
       RABBITMQ_DEFAULT_PASS: guestuser      # ← 이 값
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.11.0
-    container_name: logstash
-    ports:
-      - "5044:5044"   # Spring Boot → Logstash
-      - "9600:9600"   # Logstash 모니터링
-    environment:
-      - LS_JAVA_OPTS=-Xms256m -Xmx256m
-    volumes:
-      - ./logstash/pipeline:/usr/share/logstash/pipeline
-    depends_on:
-      - elasticsearch
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.11.0
-    container_name: kibana
-    ports:
-      - "5601:5601"   # Kibana UI
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    depends_on:
-      - elasticsearch
   # Prometheus — 메트릭 수집
   prometheus:
     image: prom/prometheus:latest
@@ -99,7 +66,6 @@ networks:
     driver: bridge
 
 volumes:
-  elasticsearch-data:
   prometheus-data:
   grafana-data:
   redis-data:
