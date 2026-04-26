@@ -7,9 +7,12 @@ import com.bkrc.bkrcv3.member.application.response.MemberRegisterResponse;
 import com.bkrc.bkrcv3.member.entity.PasswordEncoder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ProblemDetail;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +29,10 @@ public class UserController {
     @Operation(summary = "회원 가입", description = "새로운 회원을 등록합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "회원 가입 성공"),
-            @ApiResponse(responseCode = "400", description = "입력값 유효성 검사 실패")
+            @ApiResponse(responseCode = "400", description = """
+                    USER_ALREADY_EXISTS: 이미 등록된 사용자 입니다.
+                    USER_NOT_EQUALS_PW: 비밀번호가 일치하지 않습니다.""",
+                    content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
     @PostMapping("/v1/member")
     public MemberRegisterResponse register(@RequestBody @Valid MemberRegisterRequest request) {
@@ -38,7 +44,10 @@ public class UserController {
     @Operation(summary = "회원 정보 수정", description = "비밀번호를 변경합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "수정 성공"),
-            @ApiResponse(responseCode = "400", description = "입력값 유효성 검사 실패")
+            @ApiResponse(responseCode = "400", description = "USER_NOT_EQUALS_PW: 비밀번호가 일치하지 않습니다.",
+                    content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "USER_NOT_FOUND: 해당 아이디를 찾을 수 없습니다.",
+                    content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
     @PutMapping("/v1/member/{loginId}")
     public MemberModifyResponse update(

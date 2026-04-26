@@ -5,8 +5,12 @@ import com.bkrc.bkrcv3.like.application.response.LikeResponse;
 import com.bkrc.bkrcv3.like.entity.Like;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ProblemDetail;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,7 +32,11 @@ public class LikeController {
 
     @Operation(summary = "도서 좋아요 / 취소",
             description = "도서에 좋아요를 누르거나, 이미 좋아요 상태라면 취소합니다. JWT 인증이 필요합니다.")
-    @ApiResponse(responseCode = "200", description = "좋아요 처리 성공")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "좋아요 처리 성공"),
+            @ApiResponse(responseCode = "400", description = "LIKE_ALREADY_EXISTS: 이미 좋아요 처리 되었습니다.",
+                    content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    })
     @PostMapping("/v1/like/{itemId}")
     public LikeResponse likeAction(
             @Parameter(hidden = true) @AuthenticationPrincipal String loginId,

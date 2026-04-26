@@ -9,8 +9,12 @@ import com.bkrc.bkrcv3.history.entity.History;
 import com.bkrc.bkrcv3.member.application.response.RecommendView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ProblemDetail;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,7 +36,11 @@ public class AladinController {
 
     @Operation(summary = "사용자 맞춤 도서 추천 조회",
             description = "로그인된 사용자의 열람 이력과 카테고리 설정을 기반으로 추천 도서 목록을 반환합니다.")
-    @ApiResponse(responseCode = "200", description = "추천 도서 목록 반환 성공")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "추천 도서 목록 반환 성공"),
+            @ApiResponse(responseCode = "404", description = "ALADIN_NOT_FOUND: 책 정보를 찾을 수 없습니다.",
+                    content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    })
     @GetMapping("/v1/aladin/books/recommend/user")
     public List<RecommendView> getRecommendbooksForUser(
             @Parameter(hidden = true) @AuthenticationPrincipal String loginId,
