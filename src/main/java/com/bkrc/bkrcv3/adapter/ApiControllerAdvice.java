@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Slf4j
 public class ApiControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(BusinessException.class)
-    public ProblemDetail handleException(AladinRecommendException e) {
+    public ProblemDetail handleException(BusinessException e) {
         log.error("[ERROR Class : {}] " + e.getClass() + " ERROR MSG : {}", e.getMessage());
         return getProblemDetail(e.getErrorCode().getStatus(), e);
     }

@@ -1,6 +1,7 @@
 package com.bkrc.bkrcv3.aladin.application;
 
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
+import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.required.Ai;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendForUserRequest;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendSaveRequest;
@@ -145,7 +146,8 @@ public class AladinService {
     }
 
     public AladinBook getAladinBook(Integer itemId) {
-        return aladinBookRepository.findById(itemId).orElseThrow(() -> new RuntimeException(String.valueOf(itemId) + "는 조회되지 않는 상품번호입니다."));
+        log.error("Error itemId: {}", itemId);
+        return aladinBookRepository.findById(itemId).orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
     }
 
     /** 기준일(1년 전) yyyyMMdd */
@@ -164,7 +166,7 @@ public class AladinService {
         }
 
         var aladinBooks = this.findAll();
-        if (ObjectUtils.isEmpty(aladinBooks)) throw new AladinRecommendException(ErrorCode.ALADIN_NOT_FOUND);
+        if (ObjectUtils.isEmpty(aladinBooks)) throw new BusinessException(ErrorCode.ALADIN_NOT_FOUND);
 
         var aladinDomainList = this.findAll(aladinBooks);
         var filteredBooks = this.filterForUser(aladinDomainList, request.getHistories());

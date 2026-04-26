@@ -11,9 +11,10 @@ import com.bkrc.bkrcv3.outbox.OutboxEvent;
 import com.bkrc.bkrcv3.outbox.OutboxRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import com.bkrc.bkrcv3.common.shared.ErrorCode;
+import com.bkrc.bkrcv3.exception.BusinessException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -32,7 +33,7 @@ public class LikeService {
     @Transactional
     public Like like(Like like){
         if (likeRepository.findByItemIdAndLoginId(like.getItemId(), like.getLoginId()).isPresent() ) {
-            throw new UserException("이미 좋아요 처리 되었습니다.", HttpStatus.BAD_REQUEST);
+            throw new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS);
         }
 
         Like result = likeRepository.save(like);

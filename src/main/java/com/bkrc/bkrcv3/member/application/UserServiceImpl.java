@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -72,7 +71,7 @@ public class UserServiceImpl implements UserService {
 
     private void checkDuplicateId(MemberRegisterRequest request) {
         if (memberRepository.findMemberByLoginId(request.loginId()).isPresent()) {
-            throw new UserException("이미 등록된 사용자 입니다.", HttpStatus.BAD_REQUEST);
+            throw new BusinessException(ErrorCode.USER_ALREADY_EXISTS);
         }
     }
 
@@ -80,7 +79,7 @@ public class UserServiceImpl implements UserService {
     public MemberDto getMemberByLoginId(String loginId) {
         var member = memberRepository.findMemberByLoginId(loginId);
         if (!member.isPresent()) {
-            throw new UserException("해당 아이디를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST);
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
         MemberDto result = objectMapper.convertValue(member.get(), MemberDto.class);
         return result;
@@ -105,7 +104,7 @@ public class UserServiceImpl implements UserService {
     public Member modifyMember(String loginId, MemberModifyRequest request) {
         var member = memberRepository.findMemberByLoginId(loginId).orElseThrow( () -> new UsernameNotFoundException(loginId));
         if (!member.checkPassword(request.originPassword(), passwordEncoder)) {
-            throw new UserException("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
+            throw new BusinessException(ErrorCode.USER_NOT_EQUALS_PW);
         }
         this.checkPwd(request.newPassword(), request.newPasswordCheck());
         member.modify(request.newPassword(), passwordEncoder);
