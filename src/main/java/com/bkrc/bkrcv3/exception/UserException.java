@@ -5,13 +5,13 @@ import org.springframework.http.HttpStatus;
 
 /**
  * 4** 에러
- */
-@Getter
-public class UserException extends RuntimeException {
-    private HttpStatus status;
+ @Getter
+ public class UserException extends RuntimeException {
+ private HttpStatus status;
 
-    public UserException(String message, HttpStatus status) {
-        super(message);
-        this.status = status;
-    }
-}
+ public UserException(String message, HttpStatus status) {
+ super(message);
+ this.status = status;
+ }
+ }
+ */

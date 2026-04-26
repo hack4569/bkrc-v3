@@ -1,5 +1,7 @@
 package com.bkrc.bkrcv3.aladin.application;
 
+import com.bkrc.bkrcv3.aladin.entity.AladinRecommendException;
+import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.required.Ai;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendForUserRequest;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendSaveRequest;
@@ -165,7 +167,7 @@ public class AladinService {
         }
 
         var aladinBooks = this.findAll();
-        if (ObjectUtils.isEmpty(aladinBooks)) throw new BusinessException("더이상 추천드릴 책이 없습니다.", HttpStatus.SERVICE_UNAVAILABLE);
+        if (ObjectUtils.isEmpty(aladinBooks)) throw new AladinRecommendException(ErrorCode.ALADIN_NOT_FOUND);
 
         var aladinDomainList = this.findAll(aladinBooks);
         var filteredBooks = this.filterForUser(aladinDomainList, request.getHistories());
@@ -241,7 +243,6 @@ public class AladinService {
 
     private List<AladinBook> showError(Throwable t) {
         log.warn("[알라딘] 요청 제한 또는 타임아웃 msg={}", t.getMessage(), t);
-        //throw new AladinException("일시적으로 요청이 제한되었습니다.");
         return List.of();
     }
 }

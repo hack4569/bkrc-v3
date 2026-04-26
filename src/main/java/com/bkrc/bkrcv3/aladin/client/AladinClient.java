@@ -3,7 +3,9 @@ package com.bkrc.bkrcv3.aladin.client;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
 import com.bkrc.bkrcv3.aladin.application.response.AladinResponse;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
+import com.bkrc.bkrcv3.aladin.entity.AladinClientException;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
+import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.exception.BusinessException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +49,7 @@ public class AladinClient {
             return response.getBody();
         } catch (Exception e) {
             log.error("[알라딘] 에러 메세지 파싱 에러 errorMessage={}", e.getMessage(), e);
-            throw new BusinessException("파싱에러", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new AladinClientException(ErrorCode.ALADIN_CLIENT_ERROR);
         }
     }
 

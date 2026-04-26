@@ -1,7 +1,8 @@
 package com.bkrc.bkrcv3.adapter;
 
+import com.bkrc.bkrcv3.aladin.entity.AladinClientException;
+import com.bkrc.bkrcv3.aladin.entity.AladinRecommendException;
 import com.bkrc.bkrcv3.exception.BusinessException;
-import com.bkrc.bkrcv3.exception.UserException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -14,6 +15,12 @@ import java.time.LocalDateTime;
 @ControllerAdvice
 @Slf4j
 public class ApiControllerAdvice extends ResponseEntityExceptionHandler {
+    @ExceptionHandler({AladinRecommendException.class, AladinClientException.class})
+    public ProblemDetail handleException(AladinRecommendException e) {
+        log.error("[ERROR Class : {}] " + e.getClass() + " ERROR MSG : {}", e.getMessage());
+        return getProblemDetail(e.getErrorCode().getStatus(), e);
+    }
+
     /**
      * 4** 에러
      * @param userException
@@ -40,25 +47,6 @@ public class ApiControllerAdvice extends ResponseEntityExceptionHandler {
     public ProblemDetail handleException(Exception exception) {
         return getProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, exception);
     }
-
-//    @Override
-//    protected ResponseEntity<Object> handleMethodArgumentNotValid(
-//            MethodArgumentNotValidException ex,
-//            HttpHeaders headers,
-//            HttpStatusCode status,
-//            WebRequest request) {
-//
-//        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-//                HttpStatus.BAD_REQUEST,
-//                "요청 데이터 검증에 실패했습니다."
-//        );
-//        problemDetail.setProperty("timestamp", LocalDateTime.now());
-//        problemDetail.setProperty("errors", ex.getBindingResult().getFieldErrors().stream()
-//                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-//                .toList());
-//
-//        return ResponseEntity.badRequest().body(problemDetail);
-//    }
 
     private static ProblemDetail getProblemDetail(HttpStatus status, Exception exception) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, exception.getMessage());
