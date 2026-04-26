@@ -27,7 +27,7 @@ public class AladinController {
     private final AladinService aladinService;
 
     @Operation(summary = "사용자 맞춤 도서 추천 조회",
-            description = "로그인된 사용자의 열람 이력과 카테고리 설정을 기반으로 추천 도서 목록을 반환합니다.")
+            description = "로그인된 사용자의 열람 이력을 기반으로 추천 도서 목록을 반환합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "추천 도서 목록 반환 성공"),
             @ApiResponse(responseCode = "404", description = "ALADIN_NOT_FOUND: 책 정보를 찾을 수 없습니다.",

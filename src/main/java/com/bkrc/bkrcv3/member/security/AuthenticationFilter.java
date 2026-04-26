@@ -81,6 +81,6 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
                 .compact();
 
         res.addHeader("token", token);
-        res.addHeader("userId", memberDto.getLoginId());
+        res.addHeader("loginId", memberDto.getLoginId());
     }
 }
