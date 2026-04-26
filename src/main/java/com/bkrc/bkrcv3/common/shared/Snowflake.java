@@ -1,5 +1,6 @@
 package com.bkrc.bkrcv3.common.shared;
 
+import com.bkrc.bkrcv3.exception.BusinessException;
 import java.util.random.RandomGenerator;
 
 public class Snowflake {
@@ -22,7 +23,7 @@ public class Snowflake {
 		long currentTimeMillis = System.currentTimeMillis();
 
 		if (currentTimeMillis < lastTimeMillis) {
-			throw new IllegalStateException("Invalid Time");
+			throw new BusinessException(ErrorCode.INVALID_TIME);
 		}
 
 		if (currentTimeMillis == lastTimeMillis) {

@@ -45,10 +45,11 @@ public class WebSecurity {
         http.csrf( (csrf) -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/v1/like/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .authenticationManager(authenticationManager)
-//                .addFilterBefore(getJwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(getJwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilter(getAuthenticationFilter(authenticationManager))
                 .headers((headers) -> headers
                         .frameOptions((frameOptions) -> frameOptions.sameOrigin()));

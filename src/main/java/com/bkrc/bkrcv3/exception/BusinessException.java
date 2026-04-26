@@ -1,17 +1,17 @@
 package com.bkrc.bkrcv3.exception;
 
+import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import lombok.Getter;
-import org.springframework.http.HttpStatus;
 
 /**
  * 5** 에러
  */
 @Getter
 public class BusinessException extends RuntimeException {
-    private HttpStatus status;
+    private final ErrorCode errorCode;
 
-    public BusinessException(String message, HttpStatus status) {
-        super(message);
-        this.status = status;
+    public BusinessException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.errorCode = errorCode;
     }
 }

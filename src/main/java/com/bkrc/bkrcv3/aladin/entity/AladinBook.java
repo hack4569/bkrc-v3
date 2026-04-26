@@ -3,6 +3,7 @@ package com.bkrc.bkrcv3.aladin.entity;
 import com.bkrc.bkrcv3.required.Ai;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Schema(description = "알라딘 도서 엔티티")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,42 +28,68 @@ import java.util.stream.Collectors;
 @Table(name="aladin_book")
 public class AladinBook {
 
+    @Schema(description = "도서 고유 ID (알라딘 itemId)", example = "123456789")
     @Id
     private Integer itemId;
+    @Schema(description = "도서 제목", example = "Clean Code")
     private String title;
+    @Schema(description = "도서 상세 페이지 링크")
     private String link;
+    @Schema(description = "저자", example = "로버트 C. 마틴")
     private String author;
+    @Schema(description = "출판일 (yyyy-MM-dd)", example = "2013-12-24")
     private String pubDate;
+    @Schema(description = "도서 소개 (HTML 포함 가능)")
     @Column(columnDefinition = "TEXT")
     private String description;
+    @Schema(description = "ISBN-10", example = "8966260959")
     private String isbn;
+    @Schema(description = "ISBN-13", example = "9788966260959")
     private String isbn13;
+    @Schema(description = "판매가", example = "26100")
     private Integer priceSales;
+    @Schema(description = "정가", example = "29000")
     private Integer priceStandard;
+    @Schema(description = "판매 유형 (BOOK 등)", example = "BOOK")
     private String mallType;
+    @Schema(description = "재고 상태", example = "")
     private String stockStatus;
+    @Schema(description = "마일리지", example = "1450")
     private Integer mileage;
+    @Schema(description = "도서 커버 이미지 URL")
     private String cover;
+    @Schema(description = "카테고리 ID", example = "2105")
     private Integer categoryId;
+    @Schema(description = "카테고리명", example = "국내도서>컴퓨터/인터넷")
     private String categoryName;
+    @Schema(description = "출판사", example = "인사이트")
     private String publisher;
+    @Schema(description = "판매 포인트 (판매량 지표)", example = "120000")
     private Integer salesPoint;
+    @Schema(description = "성인 도서 여부", example = "false")
     private Boolean adult;
+    @Schema(description = "정가 판매 여부", example = "true")
     private Boolean fixedPrice;
+    @Schema(description = "고객 평점 (10점 만점)", example = "9")
     private Integer customerReviewRank;
+    @Schema(description = "베스트셀러 순위 (임시 데이터, DB 미저장)", example = "1")
     @Transient
     private Integer bestRank;
 
+    @Schema(description = "부가 정보 (목차, 추천사 등, DB 미저장)")
     @Transient
     private SubInfo subInfo;
-    //프리미엄
+    @Schema(description = "전체 소개글 (DB 미저장)")
     @Transient
     private String fullDescription;
+    @Schema(description = "전체 소개글 2 (DB 미저장)")
     @Transient
     private String fullDescription2;
     //    @OneToMany(mappedBy = "aladinBook", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 //    public List<Review> reviewList;
+    @Schema(description = "목차")
     private String toc;
+    @Schema(description = "AI/MD 추천 코멘트 목록")
     @OneToMany(mappedBy = "aladinBook", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<BookComment> bookCommentList;
 

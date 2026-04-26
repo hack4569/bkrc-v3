@@ -1,5 +1,7 @@
 package com.bkrc.bkrcv3.aladin.application;
 
+import com.bkrc.bkrcv3.common.shared.ErrorCode;
+import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.required.Ai;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendForUserRequest;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendSaveRequest;
@@ -11,7 +13,6 @@ import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
 import com.bkrc.bkrcv3.aladin.entity.Category;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
-import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.history.application.HistoryService;
 import com.bkrc.bkrcv3.history.entity.History;
 import com.bkrc.bkrcv3.member.application.response.RecommendView;
@@ -22,7 +23,6 @@ import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -146,7 +146,8 @@ public class AladinService {
     }
 
     public AladinBook getAladinBook(Integer itemId) {
-        return aladinBookRepository.findById(itemId).orElseThrow(() -> new RuntimeException(String.valueOf(itemId) + "는 조회되지 않는 상품번호입니다."));
+        log.error("Error itemId: {}", itemId);
+        return aladinBookRepository.findById(itemId).orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
     }
 
     /** 기준일(1년 전) yyyyMMdd */
@@ -165,7 +166,7 @@ public class AladinService {
         }
 
         var aladinBooks = this.findAll();
-        if (ObjectUtils.isEmpty(aladinBooks)) throw new BusinessException("더이상 추천드릴 책이 없습니다.", HttpStatus.SERVICE_UNAVAILABLE);
+        if (ObjectUtils.isEmpty(aladinBooks)) throw new BusinessException(ErrorCode.ALADIN_NOT_FOUND);
 
         var aladinDomainList = this.findAll(aladinBooks);
         var filteredBooks = this.filterForUser(aladinDomainList, request.getHistories());
@@ -241,7 +242,6 @@ public class AladinService {
 
     private List<AladinBook> showError(Throwable t) {
         log.warn("[알라딘] 요청 제한 또는 타임아웃 msg={}", t.getMessage(), t);
-        //throw new AladinException("일시적으로 요청이 제한되었습니다.");
         return List.of();
     }
 }
