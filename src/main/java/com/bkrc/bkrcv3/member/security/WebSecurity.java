@@ -43,6 +43,7 @@ public class WebSecurity {
         AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
 
         http.csrf( (csrf) -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
                 )
@@ -58,10 +59,12 @@ public class WebSecurity {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-                "http://localhost:3000",          // 개발
-                "https://your-domain.com"         // 운영
-        ));
+        config.setAllowedOriginPatterns(List.of("*"));
+//        config.setAllowedOrigins(List.of(
+//                "http://localhost:63342",
+//                "http://localhost:3000",          // 개발
+//                "https://your-domain.com"         // 운영
+//        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("token")); // JWT 응답 헤더 노출

@@ -41,6 +41,7 @@ dependencies {
     // Actuator — 메트릭 엔드포인트 노출
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
 // Micrometer Prometheus — 메트릭을 Prometheus 형식으로 변환
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
