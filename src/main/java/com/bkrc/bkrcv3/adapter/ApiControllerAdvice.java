@@ -20,8 +20,9 @@ public class ApiControllerAdvice extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ProblemDetail handleException(Exception exception) {
-        return getProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, exception);
+    public ProblemDetail handleException(Exception e) {
+        log.error("[ERROR Class : {}] " + e.getClass() + " ERROR MSG : {}", e.getMessage(), e);
+        return getProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, e);
     }
 
     private static ProblemDetail getProblemDetail(HttpStatus status, Exception exception) {

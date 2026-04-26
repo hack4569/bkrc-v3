@@ -45,6 +45,7 @@ public class WebSecurity {
         http.csrf( (csrf) -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/v1/like/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .authenticationManager(authenticationManager)
