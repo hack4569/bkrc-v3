@@ -1,13 +1,13 @@
 package com.bkrc.bkrcv3.member.application;
 
-import com.bkrc.bkrcv3.common.dataserializer.DataSerializer;
 import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.common.event.EventType;
 import com.bkrc.bkrcv3.adapter.payload.MemberJoinEventPayload;
 import com.bkrc.bkrcv3.adapter.payload.MemberModifyEventPayload;
+import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.common.shared.Snowflake;
 import com.bkrc.bkrcv3.config.RabbitMQConfig;
-import com.bkrc.bkrcv3.exception.UserException;
+import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.member.application.request.MemberModifyRequest;
 import com.bkrc.bkrcv3.member.application.request.MemberRegisterRequest;
 import com.bkrc.bkrcv3.member.dto.MemberDto;
@@ -66,7 +66,7 @@ public class UserServiceImpl implements UserService {
 
     private void checkPwd(String pwd, String pwdChk) {
         if (!pwd.equals(pwdChk)) {
-            throw new UserException("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
+            throw new BusinessException(ErrorCode.USER_NOT_EQUALS_PW);
         }
     }
 

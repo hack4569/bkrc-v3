@@ -1,6 +1,6 @@
 package com.bkrc.bkrcv3.member.security;
 
-import com.bkrc.bkrcv3.exception.UserException;
+import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.member.application.UserService;
 import com.bkrc.bkrcv3.member.application.request.LoginForm;
 import com.bkrc.bkrcv3.member.dto.MemberDto;
@@ -56,7 +56,7 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
             );
 
         } catch (IOException e) {
-            throw new UserException(e.getMessage(), HttpStatus.BAD_REQUEST);
+            throw new BusinessException();
         }
     }
 

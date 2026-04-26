@@ -3,7 +3,6 @@ package com.bkrc.bkrcv3.aladin.client;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
 import com.bkrc.bkrcv3.aladin.application.response.AladinResponse;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
-import com.bkrc.bkrcv3.aladin.entity.AladinClientException;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.exception.BusinessException;
@@ -62,7 +61,7 @@ public class AladinClient {
     //책 상세 조회
     public AladinBook bookDetail(AladinRequest aladinRequest) {
         var aladinBooks = this.getApi(AladinConstants.ITEM_LOOKUP, aladinRequest).getItem();
-        if (aladinBooks.isEmpty()) throw new BusinessException("데이터가 없습니다.", HttpStatus.SERVICE_UNAVAILABLE);
+        if (aladinBooks.isEmpty()) throw new BusinessException(ErrorCode.ALADIN_NOT_READY);
 
         var aladinbook = aladinBooks.get(0);
 

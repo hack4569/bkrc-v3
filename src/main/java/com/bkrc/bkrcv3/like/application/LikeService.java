@@ -4,7 +4,6 @@ import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.common.event.EventType;
 import com.bkrc.bkrcv3.adapter.payload.BookLikeEventPayload;
 import com.bkrc.bkrcv3.config.RabbitMQConfig;
-import com.bkrc.bkrcv3.exception.UserException;
 import com.bkrc.bkrcv3.like.entity.Like;
 import com.bkrc.bkrcv3.like.entity.LikeCount;
 import com.bkrc.bkrcv3.outbox.Outbox;

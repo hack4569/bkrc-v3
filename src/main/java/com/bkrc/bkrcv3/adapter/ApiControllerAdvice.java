@@ -1,7 +1,5 @@
 package com.bkrc.bkrcv3.adapter;
 
-import com.bkrc.bkrcv3.aladin.entity.AladinClientException;
-import com.bkrc.bkrcv3.aladin.entity.AladinRecommendException;
 import com.bkrc.bkrcv3.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -15,32 +13,10 @@ import java.time.LocalDateTime;
 @ControllerAdvice
 @Slf4j
 public class ApiControllerAdvice extends ResponseEntityExceptionHandler {
-    @ExceptionHandler({AladinRecommendException.class, AladinClientException.class})
+    @ExceptionHandler(BusinessException.class)
     public ProblemDetail handleException(AladinRecommendException e) {
         log.error("[ERROR Class : {}] " + e.getClass() + " ERROR MSG : {}", e.getMessage());
         return getProblemDetail(e.getErrorCode().getStatus(), e);
-    }
-
-    /**
-     * 4** 에러
-     * @param userException
-     * @return
-     */
-    @ExceptionHandler(UserException.class)
-    public ProblemDetail handleException(UserException userException) {
-        log.error("[4** ERROR] " + userException.getClass() + " ERROR MSG : {}", userException.getMessage());
-        return getProblemDetail(userException.getStatus(), userException);
-    }
-
-    /**
-     * 5** 에러
-     * @param businessException
-     * @return
-     */
-    @ExceptionHandler(BusinessException.class)
-    public ProblemDetail handleException(BusinessException businessException) {
-        log.error("[5** ERROR] " + businessException.getClass() + " ERROR MSG : {}", businessException.getMessage(), businessException);
-        return getProblemDetail(businessException.getStatus(), businessException);
     }
 
     @ExceptionHandler(Exception.class)
