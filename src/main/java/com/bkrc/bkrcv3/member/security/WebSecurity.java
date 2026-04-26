@@ -49,7 +49,7 @@ public class WebSecurity {
                         .anyRequest().permitAll()
                 )
                 .authenticationManager(authenticationManager)
-//                .addFilterBefore(getJwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(getJwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilter(getAuthenticationFilter(authenticationManager))
                 .headers((headers) -> headers
                         .frameOptions((frameOptions) -> frameOptions.sameOrigin()));
