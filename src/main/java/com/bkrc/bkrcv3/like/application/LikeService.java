@@ -50,6 +50,7 @@ public class LikeService {
         likeCountRepository.save(myLikeCount);
         Outbox outbox = outboxRepository.save(Outbox.of(
                 EventType.BOOK_LIKE,
+                RabbitMQConfig.HOTBOOK_DIRECT_EXCHANGE,
                 RabbitMQConfig.LIKE_ROUTING_KEY,
                 Event.of(EventType.BOOK_LIKE,
                         BookLikeEventPayload.builder()

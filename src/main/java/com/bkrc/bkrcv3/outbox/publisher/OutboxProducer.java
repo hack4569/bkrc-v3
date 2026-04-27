@@ -23,7 +23,7 @@ public class OutboxProducer {
     public void handleOutboxEvent(OutboxEvent outboxEvent) {
         Outbox outbox = outboxEvent.getOutbox();
 
-        rabbitTemplate.convertAndSend(RabbitMQConfig.NOTIFICATION_DIRECT_EXCHANGE, outbox.getRoutingKey(), outbox.getPayload());
+        rabbitTemplate.convertAndSend(outbox.getExchange(), outbox.getRoutingKey(), outbox.getPayload());
         outboxStatusUpdater.delete(outbox.getOutboxId());
     }
 }

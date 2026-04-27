@@ -51,6 +51,7 @@ public class UserServiceImpl implements UserService {
 
         Outbox outbox = outboxRepository.save(Outbox.of(
                 EventType.MEMBER_JOIN,
+                RabbitMQConfig.NOTIFICATION_DIRECT_EXCHANGE,
                 RabbitMQConfig.JOIN_ROUTING_KEY,
                 Event.of(EventType.MEMBER_JOIN,MemberJoinEventPayload.builder()
                         .loginId(savedMember.getLoginId())
@@ -111,6 +112,7 @@ public class UserServiceImpl implements UserService {
         var modifiedMember = memberRepository.save(member);
         Outbox outbox = outboxRepository.save(Outbox.of(
                 EventType.MEMBER_MODIFY,
+                RabbitMQConfig.NOTIFICATION_DIRECT_EXCHANGE,
                 RabbitMQConfig.MODIFY_ROUTING_KEY,
                 Event.of(EventType.MEMBER_MODIFY,MemberModifyEventPayload.builder()
                         .loginId(modifiedMember.getLoginId())
