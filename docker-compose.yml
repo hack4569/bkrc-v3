@@ -1,4 +1,15 @@
 services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    restart: unless-stopped
+    ports:
+      - "8090:8080"      # 웹 UI
+      - "50000:50000"    # 에이전트 연결용
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker in Docker
+    user: root  # docker.sock 접근용
   mysql:
     image: mysql:8.0
     container_name: bkrc-mysql
@@ -70,3 +81,4 @@ volumes:
   grafana-data:
   redis-data:
   mysql-data:
+  jenkins_home:
