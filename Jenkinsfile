@@ -1,4 +1,3 @@
-// Jenkinsfile
 pipeline {
     agent any
 
@@ -10,6 +9,18 @@ pipeline {
             }
         }
     }
+    
+    stage('Test') {
+        steps {
+            sh './gradlew test'
+        }
+        post {
+            always {
+                junit '**/build/test-results/test/*.xml'
+            }
+        }
+    }
+
     post {
         success {
             echo '✅ 빌드 & 테스트 성공'
