@@ -7,6 +7,8 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # ← 추가
     depends_on:
       - rabbitmq
       - redis
