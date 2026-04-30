@@ -1,5 +1,7 @@
 package com.bkrc.bkrcv3.member.entity;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Component;
 
@@ -17,5 +19,9 @@ public class PasswordEncoder {
     public boolean checkPassword(String plainTextPassword, String hashedPassword) {
         // BCrypt.checkpw()를 사용하여 비밀번호가 일치하는지 확인
         return BCrypt.checkpw(plainTextPassword, hashedPassword);
+    }
+
+    public boolean matches(@NotBlank String password, @NotEmpty String encryptedPassword) {
+        return BCrypt.checkpw(password, encryptedPassword);
     }
 }

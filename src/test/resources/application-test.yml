@@ -16,8 +16,6 @@ spring:
     redis:
       host: localhost
       port: 6370  # 실제 Redis 없이 테스트 → StringRedisTemplate은 Mock 처리
-  kafka:
-    bootstrap-servers: localhost:9092
 
 token:
   expiration-time: 86400000

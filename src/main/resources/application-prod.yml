@@ -1,0 +1,5 @@
+spring:
+  # JPA config
+  jpa:
+    hibernate:
+      ddl-auto: validate

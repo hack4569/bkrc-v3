@@ -1,4 +1,17 @@
 services:
+  bkrc: # ← Spring Boot 서비스 추가
+    build: .                                 # Dockerfile 위치
+    container_name: bkrc
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    depends_on:
+      - rabbitmq
+      - redis
+    networks:
+      - bkrc-network
   jenkins:
     image: jenkins/jenkins:lts
     container_name: jenkins
@@ -30,7 +43,8 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guestuser      # ← 이 값
       RABBITMQ_DEFAULT_PASS: guestuser      # ← 이 값
-
+    networks:                                # ← 추가
+      - bkrc-network
   # Prometheus — 메트릭 수집
   prometheus:
     image: prom/prometheus:latest
@@ -71,6 +85,8 @@ services:
     volumes:
       - redis-data:/data
     restart: always
+    networks:
+      - bkrc-network
 
 networks:
   bkrc-network:

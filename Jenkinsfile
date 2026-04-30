@@ -2,6 +2,13 @@ pipeline {
     agent any
 
     stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'master',
+                    url: 'https://github.com/hack4569/bkrc-v3.git',
+                    credentialsId: 'github-credentials'  // ID와 일치
+            }
+        }
         stage('Build') {
             steps {
                 sh 'chmod +x ./gradlew'
@@ -16,6 +23,11 @@ pipeline {
                 always {
                     junit '**/build/test-results/test/*.xml'
                 }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh 'docker compose up -d --build bkrc'
             }
         }
     }
