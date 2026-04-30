@@ -1,0 +1,3 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/book_recommend?serverTimezone=UTC&useUnicode=true&charaterEncoding=utf-8
