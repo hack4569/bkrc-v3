@@ -3,3 +3,5 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+  datasource:
+    url: jdbc:mysql://bkrc-mysql:3306/book_recommend
