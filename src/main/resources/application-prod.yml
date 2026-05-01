@@ -5,3 +5,8 @@ spring:
       ddl-auto: validate
   datasource:
     url: jdbc:mysql://host.docker.internal:3306/book_recommend?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8
+  rabbitmq:
+    host: rabbitmq        # ← 추가 (컨테이너 이름)
+    port: 5672
+    username: guestuser
+    password: guestuser
