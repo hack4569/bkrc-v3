@@ -1,4 +1,8 @@
 spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
   datasource:
     driver-class-name: org.h2.Driver
     url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
@@ -12,10 +16,6 @@ spring:
         format_sql: true
     show-sql: true
     database-platform: org.hibernate.dialect.H2Dialect
-  data:
-    redis:
-      host: localhost
-      port: 6370  # 실제 Redis 없이 테스트 → StringRedisTemplate은 Mock 처리
 
 token:
   expiration-time: 86400000
