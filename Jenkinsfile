@@ -27,7 +27,12 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                sh 'docker-compose up -d --build bkrc'
+                withCredentials([file(credentialsId: 'bkrc-env-file', variable: 'ENV_FILE')]) {
+                    sh '''
+                        cp $ENV_FILE .env
+                        docker-compose up -d --build bkrc
+                    '''
+                }
             }
         }
     }
