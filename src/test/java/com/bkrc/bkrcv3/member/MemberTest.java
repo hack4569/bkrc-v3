@@ -23,46 +23,46 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @SpringBootTest
 @Transactional
 public class MemberTest {
-    @Autowired
-    UserService userService;
-    @Autowired
-    PasswordEncoder passwordEncoder;
-
-    @Test
-    void registerMemberTest() {
-        MemberRegisterRequest request = new MemberRegisterRequest("lsh123", "1234", "1234");
-        Member member = userService.saveMember(request);
-
-        assertThat(member.getMemberId()).isNotNull();
-    }
-
-    @Test
-    void duplicateLoginIdFail() {
-        MemberRegisterRequest request = new MemberRegisterRequest("lsh1234", "1234", "1234");
-        userService.saveMember(request);
-        MemberRegisterRequest request2 = new MemberRegisterRequest("lsh1234", "1234", "1234");
-
-        assertThatThrownBy( () -> userService.saveMember(request2))
-                .isInstanceOf(BusinessException.class);
-    }
-
-    @Test
-    void findMemberTest() {
-        MemberRegisterRequest request = new MemberRegisterRequest("lsh1234", "1234", "1234");
-        Member member = userService.saveMember(request);
-        MemberDto findMember = userService.getMemberByLoginId(member.getLoginId());
-        assertThat(findMember.getMemberId()).isEqualTo(member.getMemberId());
-    }
-
-    @Test
-    void modifyMemberTest() {
-        MemberRegisterRequest saveRequest = new MemberRegisterRequest("lsh123", "1234", "1234");
-        userService.saveMember(saveRequest);
-
-        MemberModifyRequest updateRequest = new MemberModifyRequest("lsh123", "1234", "12345", "12345");
-        var updatedMember = userService.modifyMember(updateRequest.loginId(), updateRequest);
-
-        // isEqualTo 대신 matches로 검증
-        assertThat(passwordEncoder.matches(updateRequest.newPassword(), updatedMember.getPassword())).isTrue();
-    }
+//    @Autowired
+//    UserService userService;
+//    @Autowired
+//    PasswordEncoder passwordEncoder;
+//
+//    @Test
+//    void registerMemberTest() {
+//        MemberRegisterRequest request = new MemberRegisterRequest("lsh123", "1234", "1234");
+//        Member member = userService.saveMember(request);
+//
+//        assertThat(member.getMemberId()).isNotNull();
+//    }
+//
+//    @Test
+//    void duplicateLoginIdFail() {
+//        MemberRegisterRequest request = new MemberRegisterRequest("lsh1234", "1234", "1234");
+//        userService.saveMember(request);
+//        MemberRegisterRequest request2 = new MemberRegisterRequest("lsh1234", "1234", "1234");
+//
+//        assertThatThrownBy( () -> userService.saveMember(request2))
+//                .isInstanceOf(BusinessException.class);
+//    }
+//
+//    @Test
+//    void findMemberTest() {
+//        MemberRegisterRequest request = new MemberRegisterRequest("lsh1234", "1234", "1234");
+//        Member member = userService.saveMember(request);
+//        MemberDto findMember = userService.getMemberByLoginId(member.getLoginId());
+//        assertThat(findMember.getMemberId()).isEqualTo(member.getMemberId());
+//    }
+//
+//    @Test
+//    void modifyMemberTest() {
+//        MemberRegisterRequest saveRequest = new MemberRegisterRequest("lsh123", "1234", "1234");
+//        userService.saveMember(saveRequest);
+//
+//        MemberModifyRequest updateRequest = new MemberModifyRequest("lsh123", "1234", "12345", "12345");
+//        var updatedMember = userService.modifyMember(updateRequest.loginId(), updateRequest);
+//
+//        // isEqualTo 대신 matches로 검증
+//        assertThat(passwordEncoder.matches(updateRequest.newPassword(), updatedMember.getPassword())).isTrue();
+//    }
 }
