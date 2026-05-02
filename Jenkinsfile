@@ -30,7 +30,7 @@ pipeline {
                 withCredentials([file(credentialsId: 'bkrc-env-file', variable: 'ENV_FILE')]) {
                     sh '''
                         cp $ENV_FILE .env
-                        docker-compose up -d --build bkrc
+                        docker-compose up -d --build --no-deps bkrc
                     '''
                 }
             }
