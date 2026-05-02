@@ -27,7 +27,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                sh 'docker compose up d --build bkrc'
+                sh 'docker-compose up -d --build bkrc'
             }
         }
     }
