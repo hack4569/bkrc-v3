@@ -1,5 +1,6 @@
 package com.bkrc.bkrcv3.member;
 
+import com.bkrc.bkrcv3.config.TestConfig;
 import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.member.application.UserService;
 import com.bkrc.bkrcv3.member.application.request.MemberModifyRequest;
@@ -10,12 +11,14 @@ import com.bkrc.bkrcv3.member.entity.PasswordEncoder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@Import(TestConfig.class)
 @ActiveProfiles("test")
 @SpringBootTest
 @Transactional
