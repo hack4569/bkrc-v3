@@ -29,11 +29,11 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'bkrc-env-file', variable: 'ENV_FILE')]) {
                     sh '''
-                            cp $ENV_FILE .env
-                            docker-compose stop bkrc
-                            docker-compose rm -f bkrc
-                            docker-compose up -d --build --no-deps bkrc
-                        '''
+                        cp $ENV_FILE .env
+                        docker stop bkrc || true
+                        docker rm bkrc || true
+                        docker-compose up -d --build --no-deps bkrc
+                    '''
                 }
             }
         }
