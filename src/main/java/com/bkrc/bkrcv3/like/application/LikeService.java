@@ -1,23 +1,22 @@
 package com.bkrc.bkrcv3.like.application;
 
+import com.bkrc.bkrcv3.adapter.payload.BookLikeEventPayload;
 import com.bkrc.bkrcv3.aladin.application.AladinService;
 import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.common.event.EventType;
-import com.bkrc.bkrcv3.adapter.payload.BookLikeEventPayload;
+import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.config.RabbitMQConfig;
+import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.like.entity.Like;
 import com.bkrc.bkrcv3.like.entity.LikeCount;
-import com.bkrc.bkrcv3.member.application.UserServiceImpl;
 import com.bkrc.bkrcv3.outbox.Outbox;
 import com.bkrc.bkrcv3.outbox.OutboxEvent;
 import com.bkrc.bkrcv3.outbox.OutboxRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import com.bkrc.bkrcv3.common.shared.ErrorCode;
-import com.bkrc.bkrcv3.exception.BusinessException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 
@@ -31,7 +30,6 @@ public class LikeService {
     private final StringRedisTemplate redisTemplate;
     private static final String KEY_FORMAT = "hot-book::book::%s::like-count";
     private final LikeCountRepository likeCountRepository;
-    private final UserServiceImpl userServiceImpl;
     private final AladinService aladinService;
 
     @Transactional

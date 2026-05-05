@@ -37,7 +37,6 @@ public class UserServiceImpl implements UserService {
     private final ObjectMapper objectMapper;
     private final OutboxRepository outboxRepository; // 추가
     private final ApplicationEventPublisher eventPublisher;
-    private final RabbitTemplate rabbitTemplate;
     private Snowflake snowflake = new Snowflake();
 
     @Override

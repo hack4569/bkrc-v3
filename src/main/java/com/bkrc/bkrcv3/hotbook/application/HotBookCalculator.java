@@ -5,6 +5,8 @@ import com.bkrc.bkrcv3.like.application.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class HotBookCalculator {
@@ -12,8 +14,6 @@ public class HotBookCalculator {
 
     private static final long ARTICLE_LIKE_COUNT_WEIGHT = 3;
     public long calculate(Integer bookId) {
-        Long bookLikeCount = likeService.read(bookId);
-
-        return bookLikeCount * ARTICLE_LIKE_COUNT_WEIGHT;
+        return Optional.ofNullable(likeService.read(bookId)).orElse(0L) * ARTICLE_LIKE_COUNT_WEIGHT;
     }
 }

@@ -146,7 +146,6 @@ public class AladinService {
     }
 
     public AladinBook getAladinBook(Integer itemId) {
-        log.error("Error itemId: {}", itemId);
         return aladinBookRepository.findById(itemId).orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
     }
 

@@ -15,8 +15,6 @@ import java.time.LocalDateTime;
 @Table(name="MEMBER")
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Member extends BaseEntity {
     @Schema(description = "회원 고유 ID (Snowflake)")
     @Id
@@ -57,11 +55,6 @@ public class Member extends BaseEntity {
         member.memberId = id;
         member.loginId = loginId;
         member.password = passwordEncoder.hashPassword(password);
-        return member;
-    }
-    public static Member register(String loginId, String password, PasswordEncoder passwordEncoder) {
-        Member member = new Member();
-
         return member;
     }
 
