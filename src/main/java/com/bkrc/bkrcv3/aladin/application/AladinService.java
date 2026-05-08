@@ -58,7 +58,7 @@ public class AladinService {
 
 
     @RateLimiter(name = "aladin", fallbackMethod = "getApiFallback")
-    public List<AladinBook> getBooksForRecommend(AladinRequest aladinRequest, List<AladinBookResponse> registeredBooks) {
+    public List<AladinBook> getBooksForRecommend(AladinRequest aladinRequest, List<AladinBookResponse> registeredBooks)     {
 
         Set<Integer> registeredBookItemIds;
         if (!CollectionUtils.isEmpty(registeredBooks)) {
@@ -72,13 +72,16 @@ public class AladinService {
         Set<Integer> allowedCategoryIds = categoryService.findAcceptedCategories().stream()
                 .map(Category::getCid)
                 .collect(Collectors.toCollection(HashSet::new));
-        int anchorYyyyMMdd = anchorDateYyyyMMdd();
         List<AladinBook> filtered = newAladinBooks.stream()
                 .filter(book -> book.isInAllowedCategories(allowedCategoryIds))
-                .filter(book -> book.isPublishedAfter(anchorYyyyMMdd))
+                .filter(book -> book.isPublishedAfter())
                 .toList();
         return filtered;
 
+    }
+
+    public List<AladinBook> getAladinItemList(AladinRequest aladinRequest) {
+        return aladinClient.getApi(AladinConstants.ITEM_LIST, aladinRequest).getItem();
     }
 
     public AladinBookPageResponse findAll() {
@@ -110,7 +113,7 @@ public class AladinService {
                 .toList();
     }
 
-    private AladinBookPageResponse findAllFromDb() {
+    public AladinBookPageResponse findAllFromDb() {
         var aladinBooks = aladinBookRepository.findAllWithBookComments();
         return AladinBookPageResponse.of(
                 aladinBooks.stream().map(aladinMapper::toResponse).toList(),
@@ -124,10 +127,7 @@ public class AladinService {
         if (CollectionUtils.isEmpty(aladinBooks)) return List.of();
             //순차처리
             aladinBooks.forEach( aladinBook -> {
-                var aladinDetail = aladinClient.bookDetail(AladinRequest.create(aladinBook.getIsbn13()));
-                //코멘트 세팅
-                aladinDetail.settingBookCommentList(ai);
-                aladinDetailList.add(aladinDetail);
+                aladinDetailList.add(settingAladinDetail(aladinBook.getIsbn13()));
             });
 //            List<CompletableFuture<AladinBook>> futures = aladinBooks.stream().map(book -> aladinClient.bookDetailAsync(book.getIsbn13())).toList();
 //            List<AladinBook> aladinDetailList = futures.stream()
@@ -145,19 +145,18 @@ public class AladinService {
             return saved;
     }
 
+    public AladinBook settingAladinDetail(String isbn13) {
+        var aladinDetail = aladinClient.bookDetail(AladinRequest.create(isbn13));
+        //코멘트 세팅
+        aladinDetail.settingBookCommentList(ai);
+        return aladinDetail;
+    }
+
     public AladinBook getAladinBook(Integer itemId) {
         return aladinBookRepository.findById(itemId).orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
     }
 
-    /** 기준일(1년 전) yyyyMMdd */
-    private int anchorDateYyyyMMdd() {
-        int result = Integer.parseInt(
-                LocalDate.now()
-                        .minusYears(1)
-                        .format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-        );
-        return result;
-    }
+
 
     public List<RecommendView> getRecommendBooksForUser(@Nullable String loginId, AladinRecommendForUserRequest request) {
         if (!StringUtils.isEmpty(loginId)) {

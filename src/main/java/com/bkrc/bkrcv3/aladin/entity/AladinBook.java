@@ -13,6 +13,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -170,10 +172,15 @@ public class AladinBook {
     }
 
     /** 기준일(yyyyMMdd) 이후 출간된 책인지 (도메인 규칙) */
-    public boolean isPublishedAfter(int anchorDateYyyyMMdd) {
+    public boolean isPublishedAfter() {
         if (pubDate == null || pubDate.isEmpty()) {
             return false;
         }
+        int anchorDateYyyyMMdd = Integer.parseInt(
+                LocalDate.now()
+                        .minusYears(1)
+                        .format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+        );
         try {
             int bookDate = Integer.parseInt(pubDate.replaceAll("[^0-9]", "").substring(0, 8));
             return bookDate >= anchorDateYyyyMMdd;

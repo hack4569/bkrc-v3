@@ -2,6 +2,11 @@ server:
   port: 8080
 
 spring:
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: always
   data:
     redis:
       host: localhost
@@ -21,6 +26,10 @@ spring:
           max-interval: 1000 #최 시도간 최대 대기시간
         default-requeue-rejected: false # 재시도 실패 시 자동으로 DLQ로 이동
   datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/book_recommend?serverTimezone=UTC&useUnicode=true&charaterEncoding=utf-8
+    username: root
+    password: ${DB_PASSWORD}
     hikari:
       maximum-pool-size: 16        # 최대 커넥션 수
       minimum-idle: 5              # 최소 유지 커넥션 수
@@ -28,10 +37,7 @@ spring:
       idle-timeout: 600000         # 놀고있는 커넥션 10분 후 반납 (ms)
       max-lifetime: 1800000        # 커넥션 최대 수명 30분 (ms)
       pool-name: bkrc-pool
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/book_recommend?serverTimezone=UTC&useUnicode=true&charaterEncoding=utf-8
-    username: root
-    password: ${DB_PASSWORD}
+
   # JPA config
   jpa:
     show-sql: true

@@ -34,6 +34,9 @@ dependencies {
     implementation 'org.springframework.retry:spring-retry'
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
 
+    implementation 'org.springframework.batch:spring-batch-integration'
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+
     runtimeOnly 'com.mysql:mysql-connector-j'
 
     implementation 'ch.qos.logback:logback-classic'
