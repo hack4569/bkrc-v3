@@ -153,10 +153,8 @@ public class AladinService {
     }
 
     public AladinBook getAladinBook(Integer itemId) {
-        return aladinBookRepository.findById(itemId).orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
+        return aladinBookRepository.findById(itemId).orElse(null);
     }
-
-
 
     public List<RecommendView> getRecommendBooksForUser(@Nullable String loginId, AladinRecommendForUserRequest request) {
         if (!StringUtils.isEmpty(loginId)) {

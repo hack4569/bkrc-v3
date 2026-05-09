@@ -1,12 +1,8 @@
 package com.bkrc.bkrcv3.batch;
 
 import com.bkrc.bkrcv3.aladin.application.AladinService;
-import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendSaveRequest;
-import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -14,14 +10,8 @@ import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,8 +23,8 @@ public class BatchService {
     private final JobExplorer jobExplorer;
     private final AladinService aladinService;
 
-    @Scheduled(cron = "* * * * * *", zone = "Asia/Seoul")
-    public void recommendScheduler() {
+    @Scheduled(cron = "* 43 11 * * *", zone = "Asia/Seoul")
+    public void recommendScheduler() throws Exception{
         if (isJobRunning()) {
             System.out.println("이전 실행이 아직 진행 중입니다. 건너뜁니다.");
             return;

@@ -34,7 +34,7 @@ public class AladinBatchConfig {
 
     @Bean
     public Job aladinRecommendJob(Step aladinBooksFetchStep, Step refreshCacheStep) {
-        return new JobBuilder("aladinBooksFetchStep", jobRepository)
+        return new JobBuilder("aladinRecommendJob", jobRepository)
                 .start(aladinBooksFetchStep)
                 .next(refreshCacheStep)
                 .build();

@@ -37,13 +37,6 @@ public class AladinApiItemReader implements ItemReader<AladinBook>, ItemStream {
         this.emptyCount = executionContext.getInt(EMPTY_COUNT_KEY, 0);
     }
 
-    // ItemStream 구현 — chunk 커밋 시마다 호출
-    @Override
-    public void update(ExecutionContext executionContext) {
-        // 현재 page를 저장 → DB(BATCH_STEP_EXECUTION_CONTEXT)에 기록
-        executionContext.putInt(PAGE_KEY, page);
-        executionContext.putInt(EMPTY_COUNT_KEY, emptyCount);
-    }
 
     @Override
     public void close() {}
@@ -68,6 +61,7 @@ public class AladinApiItemReader implements ItemReader<AladinBook>, ItemStream {
             emptyCount = 0;
             buffer.addAll(aladinItemList);
         }
+        executionContext.putInt(PAGE_KEY, page);
         return buffer.poll();
     }
 

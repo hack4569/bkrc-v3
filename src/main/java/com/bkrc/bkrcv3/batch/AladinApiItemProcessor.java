@@ -22,11 +22,14 @@ import java.util.stream.Collectors;
 public class AladinApiItemProcessor implements ItemProcessor<AladinBook, AladinBook>, ItemStream {
 
     private final AladinService aladinService;
+    private final AladinBookRepository aladinBookRepository;
     private final CategoryService categoryService;
     private Set<Integer> allowedCategoryIds; // 캐싱
+    private Set<String> registeredIsbn13s;
     // Step 시작 시 한 번만 조회
     @Override
     public void open(ExecutionContext executionContext) {
+        this.registeredIsbn13s = aladinBookRepository.findAllIsbn13s();
         this.allowedCategoryIds = categoryService.findAcceptedCategories().stream()
                 .map(Category::getCid)
                 .collect(Collectors.toSet());
@@ -34,9 +37,7 @@ public class AladinApiItemProcessor implements ItemProcessor<AladinBook, AladinB
 
     @Override
     public AladinBook process(AladinBook item) {
-        // 이미 DB에 있는 책이면 null → Chunk에서 skip됨
-        boolean newBookFlag = ObjectUtils.isEmpty(aladinService.getAladinBook(item.getItemId()));
-        if (!newBookFlag) return null;
+        if (registeredIsbn13s.contains(item.getIsbn13())) return null;
         if (!item.isInAllowedCategories(this.allowedCategoryIds)) return null;
         // 3. 1년 이내 출판된 책이 아니면 skip
         if (!item.isPublishedAfter()) return null;

@@ -173,17 +173,15 @@ public class AladinBook {
 
     /** 기준일(yyyyMMdd) 이후 출간된 책인지 (도메인 규칙) */
     public boolean isPublishedAfter() {
-        if (pubDate == null || pubDate.isEmpty()) {
+        if (!StringUtils.hasText(pubDate)) {
             return false;
         }
-        int anchorDateYyyyMMdd = Integer.parseInt(
-                LocalDate.now()
-                        .minusYears(1)
-                        .format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-        );
         try {
-            int bookDate = Integer.parseInt(pubDate.replaceAll("[^0-9]", "").substring(0, 8));
-            return bookDate >= anchorDateYyyyMMdd;
+            LocalDate pubLocalDate = LocalDate.parse(
+                    pubDate.replaceAll("[^0-9]", "").substring(0, 8),
+                    DateTimeFormatter.ofPattern("yyyyMMdd")
+            );
+            return pubLocalDate.isBefore(LocalDate.now().minusYears(1));
         } catch (Exception e) {
             return false;
         }
