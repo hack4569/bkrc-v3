@@ -3,6 +3,7 @@ package com.bkrc.bkrcv3.aladin.application.response;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.BookComment;
 import com.bkrc.bkrcv3.aladin.entity.SubInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import lombok.Setter;
 
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "알라딘 도서 응답 DTO")
 @Setter
 @Getter

@@ -1,8 +1,5 @@
 package com.bkrc.bkrcv3.config;
 
-import com.bkrc.bkrcv3.aladin.application.AladinBookRepository;
-import com.bkrc.bkrcv3.aladin.application.AladinService;
-import com.bkrc.bkrcv3.aladin.client.AladinClient;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
 import com.bkrc.bkrcv3.batch.AladinApiItemProcessor;
@@ -13,10 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 @RequiredArgsConstructor
@@ -28,9 +25,6 @@ public class AladinBatchConfig {
     private final AladinApiItemProcessor aladinApiItemProcessor;
     private final AladinApiItemWriter aladinApiItemWriter;
     private final RefreshCacheTasklet refreshCacheTasklet;
-    private final AladinClient aladinClient;
-    private final AladinBookRepository aladinBookRepository;
-    private final AladinService aladinService;
 
     @Bean
     public Job aladinRecommendJob(Step aladinBooksFetchStep, Step refreshCacheStep) {
@@ -49,7 +43,7 @@ public class AladinBatchConfig {
 
     @Bean
     public Step aladinBooksFetchStep() {
-        return new StepBuilder("fetchAladinBooksStep", jobRepository)
+        return new StepBuilder("aladinBooksFetchStep", jobRepository)
                 .<AladinBook, AladinBook>chunk(AladinConstants.ITEM_LIST_PAGE, transactionManager)
                 .reader(aladinApiItemReader)
                 .processor(aladinApiItemProcessor)

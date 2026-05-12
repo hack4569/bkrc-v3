@@ -18,50 +18,25 @@ import java.util.Queue;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class AladinApiItemReader implements ItemReader<AladinBook>, ItemStream {
+public class AladinApiItemReader implements ItemReader<AladinBook> {
     private final AladinService aladinService;
     private int page;
-    private int emptyCount;
-    private static final int MAX_EMPTY = 20;
-    private static final String PAGE_KEY = "aladin.reader.page";
-    private static final String EMPTY_COUNT_KEY = "aladin.reader.emptyCount";
-
     private Queue<AladinBook> buffer = new LinkedList<>();
-    private ExecutionContext executionContext;
-    // ItemStream 구현 — Step 시작 시 호출
-    @Override
-    public void open(ExecutionContext executionContext) {
-        this.executionContext = executionContext;
-        // 재시작 시 저장된 page 복원, 최초 실행이면 1
-        this.page = executionContext.getInt(PAGE_KEY, 1);
-        this.emptyCount = executionContext.getInt(EMPTY_COUNT_KEY, 0);
-    }
-
-
-    @Override
-    public void close() {}
 
     @Override
     public AladinBook read() throws Exception {
         while (buffer.isEmpty()) {
-            if (emptyCount >= MAX_EMPTY) {
-                return null;
-            }
             List<AladinBook> aladinItemList = aladinService.getAladinItemList(
                     AladinRequest.builder()
                             .querytype(QueryType.BEST_SELLER.getQueryType())
                             .start(page).build()
             );
-            page++;
 
-            if (CollectionUtils.isEmpty(aladinItemList)) {
-                emptyCount++;
-                continue;
-            }
-            emptyCount = 0;
+            if (CollectionUtils.isEmpty(aladinItemList)) return null;
             buffer.addAll(aladinItemList);
+            page++;
         }
-        executionContext.putInt(PAGE_KEY, page);
+
         return buffer.poll();
     }
 
