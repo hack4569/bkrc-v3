@@ -1,11 +1,14 @@
 package com.bkrc.bkrcv3.config;
 
+import com.bkrc.bkrcv3.member.MemberTestFixture;
 import net.javacrumbs.shedlock.core.LockProvider;
 import org.mockito.Mockito;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Scope;
+import org.springframework.core.env.Environment;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
@@ -31,4 +34,9 @@ public class TestConfig {
         return mock(RedisConnectionFactory.class);
     }
 
+    @Bean
+    @Scope("prototype")
+    MemberTestFixture memberTestFixture(Environment environment) {
+        return MemberTestFixture.create(environment);
+    }
 }

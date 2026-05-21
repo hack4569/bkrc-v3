@@ -2,11 +2,14 @@ package com.bkrc.bkrcv3.member.application.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
 @Schema(description = "로그인 요청")
 @Data
+@AllArgsConstructor
 public class LoginForm {
     @Schema(description = "로그인 ID", example = "user123")
     @NotEmpty

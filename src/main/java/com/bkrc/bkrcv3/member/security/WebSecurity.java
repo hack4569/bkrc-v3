@@ -1,6 +1,7 @@
 package com.bkrc.bkrcv3.member.security;
 
 import com.bkrc.bkrcv3.member.application.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +27,7 @@ public class WebSecurity {
     private final UserService userService;
     private final Environment env;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+    private final ObjectMapper objectMapper;
 
 //    public WebSecurity(Environment env, UserService userService, BCryptPasswordEncoder bCryptPasswordEncoder) {
 //        this.env = env;
@@ -81,7 +83,7 @@ public class WebSecurity {
     }
 
     private AuthenticationFilter getAuthenticationFilter(AuthenticationManager authenticationManager) throws Exception {
-        AuthenticationFilter authenticationFilter = new AuthenticationFilter(authenticationManager, userService, env);
+        AuthenticationFilter authenticationFilter = new AuthenticationFilter(authenticationManager, userService, env, objectMapper);
         authenticationFilter.setAuthenticationManager(authenticationManager);
 
         return authenticationFilter;

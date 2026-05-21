@@ -32,9 +32,9 @@ public class MemberTest {
                 pw
         );
 
-             ResponseEntity<Void> response = client.postForEntity("/v1/member", request, Void.class);
+        ResponseEntity<Void> response = client.postForEntity("/v1/member", request, Void.class);
 
-            assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
     }
 
     @Test
