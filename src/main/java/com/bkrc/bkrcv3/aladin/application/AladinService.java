@@ -1,8 +1,5 @@
 package com.bkrc.bkrcv3.aladin.application;
 
-import com.bkrc.bkrcv3.common.shared.ErrorCode;
-import com.bkrc.bkrcv3.exception.BusinessException;
-import com.bkrc.bkrcv3.required.Ai;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendForUserRequest;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendSaveRequest;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
@@ -13,9 +10,12 @@ import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
 import com.bkrc.bkrcv3.aladin.entity.Category;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
+import com.bkrc.bkrcv3.common.shared.ErrorCode;
+import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.history.application.HistoryService;
 import com.bkrc.bkrcv3.history.entity.History;
 import com.bkrc.bkrcv3.member.application.response.RecommendView;
+import com.bkrc.bkrcv3.required.Ai;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.micrometer.core.instrument.Counter;
@@ -29,13 +29,10 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service
@@ -164,8 +161,8 @@ public class AladinService {
         var aladinBooks = this.findAll();
         if (ObjectUtils.isEmpty(aladinBooks)) throw new BusinessException(ErrorCode.ALADIN_NOT_FOUND);
 
-        var aladinDomainList = this.findAll(aladinBooks);
-        var filteredBooks = this.filterForUser(aladinDomainList, request.getHistories());
+        var aladinBookList = this.findAll(aladinBooks);
+        var filteredBooks = this.filterForUser(aladinBookList, request.getHistories());
 
         if (ObjectUtils.isEmpty(filteredBooks)) {
             historyService.deleteHistoryByLoginId(loginId);
@@ -197,7 +194,7 @@ public class AladinService {
     public List<AladinBook> filterForUser(List<AladinBook> aladinBooks, List<History> historyList) {
         if (ObjectUtils.isEmpty(aladinBooks)) return null;
         aladinBooks = aladinBooks.stream()
-                .filter(this.historyFilter(historyList))
+                .filter(AladinBook.historyFilter(historyList))
                 .toList();
         return aladinBooks;
     }
@@ -210,21 +207,6 @@ public class AladinService {
         } catch (Exception e) {
             log.warn("[알라딘] 캐시 저장 실패. key={}", CACHE_KEY_ALL_BOOKS, e);
         }
-    }
-
-    private Predicate historyFilter(List<History> histories) {
-        // 히스토리에 없는 책을 필터링하는 Predicate
-        if (ObjectUtils.isEmpty(histories)) return book -> true;
-
-        // 히스토리에 없는 책을 필터링하는 Predicate
-        Predicate<AladinBook> historyFilter = book -> {
-
-            return histories.stream().noneMatch(history ->
-                    book.getItemId() == history.getItemId() &&
-                            LocalDate.now().isEqual(history.getCreated().toLocalDate())
-            );
-        };
-        return historyFilter;
     }
 
     // fallback: 제한 걸렸거나 대기 시간 초과 시 호출 (선택)

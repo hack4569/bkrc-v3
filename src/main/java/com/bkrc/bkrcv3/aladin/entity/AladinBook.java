@@ -1,5 +1,6 @@
 package com.bkrc.bkrcv3.aladin.entity;
 
+import com.bkrc.bkrcv3.history.entity.History;
 import com.bkrc.bkrcv3.required.Ai;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -189,6 +191,21 @@ public class AladinBook {
         }
     }
 
+    /** 히스토리에 없는 책을 필터링하는 Predicate (도메인 규칙) */
+    public static Predicate historyFilter(List<History> histories) {
+        // 히스토리에 없는 책을 필터링하는 Predicate
+        if (ObjectUtils.isEmpty(histories)) return book -> true;
+
+        // 히스토리에 없는 책을 필터링하는 Predicate
+        Predicate<AladinBook> historyFilter = book -> {
+
+            return histories.stream().noneMatch(history ->
+                    book.getItemId() == history.getItemId() &&
+                            !LocalDate.now().isEqual(history.getCreated().toLocalDate())
+            );
+        };
+        return historyFilter;
+    }
     /** HTML 태그 제거 (도메인 내부 유틸) */
     private static String stripHtmlTags(String originStr) {
         if (originStr == null || originStr.isEmpty()) {

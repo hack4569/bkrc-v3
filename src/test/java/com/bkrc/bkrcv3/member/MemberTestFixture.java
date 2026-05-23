@@ -4,6 +4,7 @@ import com.bkrc.bkrcv3.GeneratorForTest;
 import com.bkrc.bkrcv3.member.application.request.LoginForm;
 import com.bkrc.bkrcv3.member.application.request.MemberRegisterRequest;
 import com.bkrc.bkrcv3.member.application.response.LoginResponse;
+import com.bkrc.bkrcv3.member.application.response.MemberRegisterResponse;
 import org.springframework.boot.test.web.client.LocalHostUriTemplateHandler;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -18,16 +19,15 @@ public record MemberTestFixture(TestRestTemplate client) {
         return new MemberTestFixture(client);
     }
 
-    public void createMember(String loginId, String password) {
+    public ResponseEntity<MemberRegisterResponse> createMember(String loginId, String password) {
         MemberRegisterRequest request = new MemberRegisterRequest(
                 loginId,
                 password,
                 password
         );
 
-        client.postForEntity("/v1/member", request, Void.class);
+        return client.postForEntity("/v1/member", request, MemberRegisterResponse.class);
     }
-
     public String loginToken(String loginId, String password) {
         var loginRequest = new LoginForm(loginId, password, false);
         LoginResponse loginResponse = client.postForObject("/login", loginRequest, LoginResponse.class);

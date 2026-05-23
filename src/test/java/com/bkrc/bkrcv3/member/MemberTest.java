@@ -20,20 +20,15 @@ public class MemberTest {
     UserService userService;
     @Autowired
     PasswordEncoder passwordEncoder;
+    @Autowired MemberTestFixture fixture;
 
     @Test
-    void 유효한_요청으로_회원가입_성공(
-            @Autowired TestRestTemplate client
-    ) {
-        String pw = GeneratorForTest.generatePassword();
-        MemberRegisterRequest request = new MemberRegisterRequest(
+    void 유효한_요청으로_회원가입_성공() {
+
+        var response = fixture.createMember(
                 GeneratorForTest.generateLoginId(),
-                pw,
-                pw
+                GeneratorForTest.generatePassword()
         );
-
-        ResponseEntity<Void> response = client.postForEntity("/v1/member", request, Void.class);
-
         assertThat(response.getStatusCode().value()).isEqualTo(200);
     }
 
@@ -76,13 +71,10 @@ public class MemberTest {
             String pw,
             @Autowired TestRestTemplate client
     ) {
-        MemberRegisterRequest request = new MemberRegisterRequest(
+        var response = fixture.createMember(
                 GeneratorForTest.generateLoginId(),
-                pw,
                 pw
         );
-
-        ResponseEntity<Void> response = client.postForEntity("/v1/member", request, Void.class);
 
         assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
@@ -92,33 +84,15 @@ public class MemberTest {
             @Autowired TestRestTemplate client
     ) {
         String loginId = GeneratorForTest.generateLoginId();
-        String pw = GeneratorForTest.generatePassword();
-        MemberRegisterRequest request = new MemberRegisterRequest(
-                loginId,
-                pw,
-                pw
-        );
-
-        userService.saveMember(request);
-
-        ResponseEntity<Void> response = client.postForEntity("/v1/member", request, Void.class);
+        fixture.createMember(loginId, GeneratorForTest.generatePassword());
+        var response = fixture.createMember(loginId, GeneratorForTest.generatePassword());
 
         assertThat(response.getStatusCode().value()).isEqualTo(409);
     }
 
     @Test
-    void 아이디_빈값(
-            @Autowired TestRestTemplate client
-    ) {
-        String pw = GeneratorForTest.generatePassword();
-        MemberRegisterRequest request = new MemberRegisterRequest(
-                "",
-                pw,
-                pw
-        );
-
-        ResponseEntity<Void> response = client.postForEntity("/v1/member", request, Void.class);
-
+    void 아이디_빈값() {
+        var response = fixture.createMember("", GeneratorForTest.generatePassword());
         assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
 }
