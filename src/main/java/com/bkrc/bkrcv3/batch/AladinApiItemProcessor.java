@@ -40,7 +40,7 @@ public class AladinApiItemProcessor implements ItemProcessor<AladinBook, AladinB
         if (registeredIsbn13s.contains(item.getIsbn13())) return null;
         if (!item.isInAllowedCategories(this.allowedCategoryIds)) return null;
         // 3. 1년 이내 출판된 책이 아니면 skip
-        if (!item.isPublishedAfter()) return null;
+        if (!item.publishDateFilter()) return null;
 
         // 알라딘 API로 상세 정보 보강
         AladinBook detail = aladinService.settingAladinDetail(item.getIsbn13());

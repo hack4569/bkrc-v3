@@ -18,7 +18,7 @@ import java.util.List;
 public class RecommendView {
     @Schema(description = "도서 ID (itemId)", example = "123456789")
     private long itemId;
-    @Schema(description = "AI/MD 추천 코멘트 목록")
+    @Schema(description = "슬라이드에 표시할 코멘트 목록. type: description(책소개) / aiRecommend(AI추천) / mdRecommend(편집자추천) / phrase(책속문장) / toc(목차)")
     private List<BookComment> recommendCommentList;
     @Schema(description = "도서 제목", example = "Clean Code")
     private String title;

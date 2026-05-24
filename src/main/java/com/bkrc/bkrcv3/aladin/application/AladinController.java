@@ -5,6 +5,7 @@ import com.bkrc.bkrcv3.aladin.application.response.AladinBookPageResponse;
 import com.bkrc.bkrcv3.member.application.response.RecommendView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,7 +30,14 @@ public class AladinController {
     @Operation(summary = "사용자 맞춤 도서 추천 조회",
             description = "로그인된 사용자의 열람 이력을 기반으로 추천 도서 목록을 반환합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "추천 도서 목록 반환 성공"),
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "추천 도서 목록 반환 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = RecommendView.class))
+                    )
+            ),
             @ApiResponse(responseCode = "404", description = "ALADIN_NOT_FOUND: 책 정보를 찾을 수 없습니다.",
                     content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })

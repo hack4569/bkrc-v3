@@ -71,7 +71,7 @@ public class AladinService {
                 .collect(Collectors.toCollection(HashSet::new));
         List<AladinBook> filtered = newAladinBooks.stream()
                 .filter(book -> book.isInAllowedCategories(allowedCategoryIds))
-                .filter(book -> book.isPublishedAfter())
+                .filter(book -> book.publishDateFilter())
                 .toList();
         return filtered;
 

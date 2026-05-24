@@ -175,8 +175,8 @@ public class AladinBook {
         return categoryId != null && allowedCategoryIds.contains(categoryId);
     }
 
-    /** 기준일(yyyyMMdd) 이후 출간된 책인지 (도메인 규칙) */
-    public boolean isPublishedAfter() {
+    /** 1년전 출간된 책인지 (도메인 규칙) */
+    public boolean publishDateFilter() {
         if (!StringUtils.hasText(pubDate)) {
             return false;
         }
