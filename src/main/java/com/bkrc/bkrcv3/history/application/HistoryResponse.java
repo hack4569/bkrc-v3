@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public class HistoryResponse {
     private Long historyId;
     private String loginId;
-    private int itemId;
+    private Integer itemId;
     private LocalDateTime createdAt;
 
     public static HistoryResponse of(History history) {

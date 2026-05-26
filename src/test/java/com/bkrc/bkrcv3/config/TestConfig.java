@@ -1,5 +1,6 @@
 package com.bkrc.bkrcv3.config;
 
+import com.bkrc.bkrcv3.history.HistoryTestFixture;
 import com.bkrc.bkrcv3.member.MemberTestFixture;
 import net.javacrumbs.shedlock.core.LockProvider;
 import org.mockito.Mockito;
@@ -38,5 +39,11 @@ public class TestConfig {
     @Scope("prototype")
     MemberTestFixture memberTestFixture(Environment environment) {
         return MemberTestFixture.create(environment);
+    }
+
+    @Bean
+    @Scope("prototype")
+    HistoryTestFixture historyTestFixture(Environment environment) {
+        return HistoryTestFixture.create(environment);
     }
 }

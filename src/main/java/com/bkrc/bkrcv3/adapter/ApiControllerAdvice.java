@@ -1,5 +1,6 @@
 package com.bkrc.bkrcv3.adapter;
 
+import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -16,18 +17,19 @@ public class ApiControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ProblemDetail handleException(BusinessException e) {
         log.error("[ERROR Class : {}] " + e.getClass() + " ERROR MSG : {}", e.getMessage());
-        return getProblemDetail(e.getErrorCode().getStatus(), e);
+        return getProblemDetail(e.getErrorCode().getStatus(), e.getErrorCode().getCode(), e);
     }
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleException(Exception e) {
         log.error("[ERROR Class : {}] " + e.getClass() + " ERROR MSG : {}", e.getMessage(), e);
-        return getProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, e);
+        return getProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.SERVER_ERROR.getCode(), e);
     }
 
-    private static ProblemDetail getProblemDetail(HttpStatus status, Exception exception) {
+    private static ProblemDetail getProblemDetail(HttpStatus status, String errorCode, Exception exception) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, exception.getMessage());
 
+        problemDetail.setProperty("errorCode", errorCode);
         problemDetail.setProperty("timestamp", LocalDateTime.now());
         problemDetail.setProperty("exception", exception.getClass().getSimpleName());
 

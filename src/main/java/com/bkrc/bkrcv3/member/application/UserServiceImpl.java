@@ -37,7 +37,7 @@ public class UserServiceImpl implements UserService {
     private final ObjectMapper objectMapper;
     private final OutboxRepository outboxRepository; // 추가
     private final ApplicationEventPublisher eventPublisher;
-    private Snowflake snowflake = new Snowflake();
+    private final Snowflake snowflake;
 
     @Override
     @Transactional

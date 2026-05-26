@@ -5,8 +5,10 @@ import com.bkrc.bkrcv3.aladin.application.AladinService;
 import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.common.event.EventType;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
+import com.bkrc.bkrcv3.common.shared.Snowflake;
 import com.bkrc.bkrcv3.config.RabbitMQConfig;
 import com.bkrc.bkrcv3.exception.BusinessException;
+import com.bkrc.bkrcv3.like.application.response.LikeResponse;
 import com.bkrc.bkrcv3.like.entity.Like;
 import com.bkrc.bkrcv3.like.entity.LikeCount;
 import com.bkrc.bkrcv3.outbox.Outbox;
@@ -31,35 +33,37 @@ public class LikeService {
     private static final String KEY_FORMAT = "hot-book::book::%s::like-count";
     private final LikeCountRepository likeCountRepository;
     private final AladinService aladinService;
+    private final Snowflake snowflake;
 
     @Transactional
-    public Like like(Like like){
-        if (aladinService.getAladinBook(like.getItemId()) == null) {
-            throw new BusinessException(ErrorCode.BOOK_NOT_FOUND);
-        }
-        if (likeRepository.findByItemIdAndLoginId(like.getItemId(), like.getLoginId()).isPresent() ) {
-            throw new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS);
-        }
+    public LikeResponse like(Integer itemId, String loginId) {
+//        if (aladinService.getAladinBook(itemId) == null) {
+//            throw new BusinessException(ErrorCode.BOOK_NOT_FOUND);
+//        }
+//        if (likeRepository.findByItemIdAndLoginId(itemId, loginId).isPresent() ) {
+//            throw new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS);
+//        }
 
-        Like result = likeRepository.save(like);
+        Like result = likeRepository.save(Like.create(snowflake.nextId(), itemId, loginId));
 
-        LikeCount myLikeCount = likeCountRepository.findByItemId(like.getItemId()).orElse(LikeCount.create(like.getItemId(), 0));
+        LikeCount myLikeCount = likeCountRepository.findByItemId(itemId).orElse(LikeCount.create(itemId, 0));
         myLikeCount.increase();
-        likeCountRepository.save(myLikeCount);
+        var likeCount = likeCountRepository.save(myLikeCount);
+
         Outbox outbox = outboxRepository.save(Outbox.of(
                 EventType.BOOK_LIKE,
                 RabbitMQConfig.HOTBOOK_DIRECT_EXCHANGE,
                 RabbitMQConfig.LIKE_ROUTING_KEY,
                 Event.of(EventType.BOOK_LIKE,
                         BookLikeEventPayload.builder()
-                                .loginId(like.getLoginId())
+                                .loginId(loginId)
                                 .bookLikeCount(myLikeCount.getLikeCount())
-                                .bookId(like.getItemId())
+                                .bookId(itemId)
                                 .build()
                         ).toJson()
         ));
         eventPublisher.publishEvent(OutboxEvent.of(outbox));
-        return result;
+        return LikeResponse.from(result, likeCount.getLikeCount());
     }
 
     public void createOrUpdate(Integer bookId, Integer likeCount, Duration ttl) {
@@ -73,5 +77,34 @@ public class LikeService {
 
     private String generateKey(Integer bookId) {
         return KEY_FORMAT.formatted(bookId);
+    }
+
+    @Transactional
+    public void unLike(Integer itemId, String loginId) {
+        Like myLike = likeRepository.findByItemIdAndLoginId(itemId, loginId).orElseThrow(() -> new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS));
+        LikeCount myLikeCount = likeCountRepository.findByItemId(myLike.getItemId()).orElseThrow(()-> new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS));
+        myLikeCount.decrease();
+        var afterLikeCount = likeCountRepository.save(myLikeCount);
+        likeRepository.deleteById(myLike.getLikeId());
+//        Like result = likeRepository.save(Like.create(snowflake.nextId(), itemId, loginId));
+//
+//        LikeCount myLikeCount = likeCountRepository.findByItemId(itemId).orElse(LikeCount.create(itemId, 0));
+//        myLikeCount.increase();
+//        var likeCount = likeCountRepository.save(myLikeCount);
+//
+//        Outbox outbox = outboxRepository.save(Outbox.of(
+//                EventType.BOOK_LIKE,
+//                RabbitMQConfig.HOTBOOK_DIRECT_EXCHANGE,
+//                RabbitMQConfig.LIKE_ROUTING_KEY,
+//                Event.of(EventType.BOOK_LIKE,
+//                        BookLikeEventPayload.builder()
+//                                .loginId(loginId)
+//                                .bookLikeCount(myLikeCount.getLikeCount())
+//                                .bookId(itemId)
+//                                .build()
+//                ).toJson()
+//        ));
+//        eventPublisher.publishEvent(OutboxEvent.of(outbox));
+//        return LikeResponse.from(result, likeCount.getLikeCount());
     }
 }

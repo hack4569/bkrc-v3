@@ -40,9 +40,15 @@ public class LikeController {
     @PostMapping("/v1/like/{itemId}")
     public LikeResponse likeAction(
             @Parameter(hidden = true) @AuthenticationPrincipal String loginId,
-            @Parameter(description = "도서 ID (itemId)", required = true, example = "1") @PathVariable("itemId") int itemId) {
+            @Parameter(description = "도서 ID (itemId)", required = true, example = "1") @PathVariable("itemId") Integer itemId) {
 
-        Like likeResult = likeService.like(Like.create(snowflake.nextId(), itemId, loginId));
-        return LikeResponse.from(likeResult);
+        return likeService.like(itemId, loginId);
+    }
+    @PostMapping("/v1/like/cancel/{itemId}")
+    public void unLikeAction(
+            @Parameter(hidden = true) @AuthenticationPrincipal String loginId,
+            @Parameter(description = "도서 ID (itemId)", required = true, example = "1") @PathVariable("itemId") Integer itemId) {
+
+        likeService.unLike(itemId, loginId);
     }
 }
