@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -47,7 +48,13 @@ public class WebSecurity {
         http.csrf( (csrf) -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/v1/like/**").authenticated()
+                        .requestMatchers(
+                                "/v1/like/**",
+                                "/v1/history/**",
+                                "/v1/recommend/**"
+                                ).authenticated()
+                        .requestMatchers(HttpMethod.GET, "/v1/member/*").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/v1/member/*").authenticated()
                         .anyRequest().permitAll()
                 )
                 .authenticationManager(authenticationManager)
