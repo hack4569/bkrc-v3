@@ -1,13 +1,16 @@
 package com.bkrc.bkrcv3.member.entity;
 
 import com.bkrc.bkrcv3.common.shared.BaseEntity;
+import com.bkrc.bkrcv3.like.entity.Like;
 import com.bkrc.bkrcv3.member.application.request.MemberRegisterRequest;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @Schema(description = "회원 엔티티")
@@ -28,6 +31,11 @@ public class Member extends BaseEntity {
     @Schema(description = "암호화된 비밀번호")
     @NotEmpty
     private String password;
+
+    @JsonIgnore
+    @Schema(description = "회원이 좋아요한 도서 목록")
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Like> myLikes;
 
     @Schema(description = "회원 유형", example = "NORMAL")
     private String memberType;

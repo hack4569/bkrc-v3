@@ -15,4 +15,10 @@ public class OutboxStatusUpdater {
     public void delete(Long outboxId) {
         outboxRepository.deleteById(outboxId);
     }
+
+    public void markFailed(Long outboxId) {
+        outboxRepository.findById(outboxId).ifPresent(outbox -> {
+            outbox.markFailed();  // status = FAILED, retry_count++
+        });
+    }
 }

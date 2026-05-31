@@ -7,6 +7,7 @@ import com.bkrc.bkrcv3.outbox.OutboxStatusUpdater;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -23,7 +24,15 @@ public class OutboxProducer {
     public void handleOutboxEvent(OutboxEvent outboxEvent) {
         Outbox outbox = outboxEvent.getOutbox();
 
-        rabbitTemplate.convertAndSend(outbox.getExchange(), outbox.getRoutingKey(), outbox.getPayload());
-        outboxStatusUpdater.delete(outbox.getOutboxId());
+        CorrelationData correlationData = new CorrelationData(
+                String.valueOf(outbox.getOutboxId())  // outboxId를 키로
+        );
+
+        rabbitTemplate.convertAndSend(
+                outbox.getExchange(),
+                outbox.getRoutingKey(),
+                outbox.getPayload(),
+                correlationData
+        );
     }
 }

@@ -19,6 +19,8 @@ public class Outbox {
     private Long outboxId;
     @Enumerated(EnumType.STRING)
     private EventType eventType;
+    @Enumerated(EnumType.STRING)
+    private OutboxStatus outboxStatus;
     private String exchange;
     private String routingKey;
     private String payload;
@@ -26,8 +28,13 @@ public class Outbox {
     private LocalDateTime publishedAt;
 
     // 정적 팩토리 메서드
-    public static Outbox of(EventType eventType, String exchange, String routingKey, String payload) {
+    public static Outbox of(
+            EventType eventType,
+            String exchange,
+            String routingKey,
+            String payload) {
         Outbox outbox = new Outbox();
+        outbox.outboxStatus = OutboxStatus.PROCESSED;
         outbox.eventType = eventType;
         outbox.exchange = exchange;
         outbox.routingKey = routingKey;
@@ -36,4 +43,8 @@ public class Outbox {
         return outbox;
     }
 
+    public void markFailed() {
+        this.outboxStatus = OutboxStatus.FAILED;
+        this.createdAt = LocalDateTime.now();
+    }
 }

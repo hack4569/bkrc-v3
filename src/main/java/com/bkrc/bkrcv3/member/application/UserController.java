@@ -2,6 +2,7 @@ package com.bkrc.bkrcv3.member.application;
 
 import com.bkrc.bkrcv3.member.application.request.MemberModifyRequest;
 import com.bkrc.bkrcv3.member.application.request.MemberRegisterRequest;
+import com.bkrc.bkrcv3.member.application.response.MemberInfoResponse;
 import com.bkrc.bkrcv3.member.application.response.MemberModifyResponse;
 import com.bkrc.bkrcv3.member.application.response.MemberRegisterResponse;
 import com.bkrc.bkrcv3.member.entity.PasswordEncoder;
@@ -55,5 +56,17 @@ public class UserController {
             @RequestBody @Valid MemberModifyRequest request) {
         var response = userService.modifyMember(loginId, request);
         return MemberModifyResponse.of(response);
+    }
+
+    @Operation(summary = "회원 정보 조회", description = "로그인 ID로 회원 정보를 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "USER_NOT_FOUND: 해당 아이디를 찾을 수 없습니다.",
+                    content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    @GetMapping("/v1/member/{loginId}")
+    public MemberInfoResponse getMemberInfo(
+            @Parameter(description = "로그인 ID", required = true, example = "user123") @PathVariable String loginId) {
+        return userService.getMemberInfo(loginId);
     }
 }

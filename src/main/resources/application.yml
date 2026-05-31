@@ -16,6 +16,7 @@ spring:
     port: 5672
     username: ${RABBITMQ_NAME}
     password: ${RABBITMQ_PW}
+    publisher-confirm-type: correlated
     listener:
       simple:
         acknowledge-mode: auto

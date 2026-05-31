@@ -1,12 +1,11 @@
 package com.bkrc.bkrcv3.like.entity;
 
 import com.bkrc.bkrcv3.common.shared.BaseEntity;
+import com.bkrc.bkrcv3.member.entity.Member;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
-import org.springframework.data.annotation.CreatedDate;
-
-import java.time.LocalDateTime;
 
 @Schema(description = "도서 좋아요 엔티티")
 @Entity
@@ -28,15 +27,20 @@ public class Like extends BaseEntity {
     @Column(nullable = false)
     private Integer itemId;
 
-    @Schema(description = "로그인 ID", example = "user123")
-    @Column(nullable = false)
-    private String loginId;
+//    @Schema(description = "로그인 ID", example = "user123")
+//    @Column(nullable = false)
+//    private String loginId;
 
-    public static Like create(Long id, int itemId, String loginId) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "login_id")
+    @JsonIgnore
+    private Member member;
+
+    public static Like create(Long id, int itemId, Member member) {
         Like like = new Like();
         like.likeId = id;
-        like.loginId = loginId;
         like.itemId = itemId;
+        like.member = member;
         return like;
     }
 }

@@ -1,15 +1,15 @@
 package com.bkrc.bkrcv3.config;
 
+import com.bkrc.bkrcv3.outbox.OutboxStatusUpdater;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.retry.RepublishMessageRecoverer;
-import org.springframework.retry.interceptor.RetryInterceptorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@Slf4j
 public class RabbitMQConfig {
     public static final String JOIN_QUEUE = "joinQueue";
     public static final String MODIFY_QUEUE = "modifyQueue";
@@ -25,6 +25,29 @@ public class RabbitMQConfig {
     public static final String DLQ = "deadLetterQueue";
     public static final String DEAD_LETTER_ROUTING_KEY = "dead.letter";
     public static final String DEAD_DIRECT_EXCHANGE = "deadLetterExchange";
+
+    @Bean
+    public RabbitTemplate rabbitTemplate(
+            ConnectionFactory connectionFactory,
+            OutboxStatusUpdater outboxStatusUpdater) {
+
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+
+        rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
+            if (correlationData == null) return;
+
+            String outboxId = correlationData.getId();
+
+            if (ack) {
+                outboxStatusUpdater.delete(Long.valueOf(outboxId));
+            } else {
+                log.warn("RabbitMQ NACK - outboxId: {}, cause: {}", outboxId, cause);
+                outboxStatusUpdater.markFailed(Long.valueOf(outboxId));
+            }
+        });
+
+        return rabbitTemplate;
+    }
 
     @Bean
     public DirectExchange notificationExchange() {

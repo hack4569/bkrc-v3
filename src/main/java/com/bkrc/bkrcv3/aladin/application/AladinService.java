@@ -29,10 +29,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -221,5 +218,10 @@ public class AladinService {
     private List<AladinBook> showError(Throwable t) {
         log.warn("[알라딘] 요청 제한 또는 타임아웃 msg={}", t.getMessage(), t);
         return List.of();
+    }
+
+    public List<AladinBook> getAladinBooksByItemIds(Collection<Integer> itemIds) {
+        if (CollectionUtils.isEmpty(itemIds)) return List.of();
+        return aladinBookRepository.findAllByItemIdIn(itemIds);
     }
 }
