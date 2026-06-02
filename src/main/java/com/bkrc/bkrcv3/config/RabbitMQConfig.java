@@ -7,9 +7,11 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 @Configuration
 @Slf4j
+@Profile("!test")
 public class RabbitMQConfig {
     public static final String JOIN_QUEUE = "joinQueue";
     public static final String MODIFY_QUEUE = "modifyQueue";
