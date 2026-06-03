@@ -22,49 +22,18 @@
 
 ---
 
-## 🏗 Architecture
-
-### 전체 흐름
-
-```
-[Client]
-   │
-   ▼
-[Spring Boot API]
-   │
-   ├── [MySQL] ─── JPA/Hibernate
-   │
-   ├── [Redis] ─── 캐시 / Hot Book Sorted Set
-   │
-   └── [RabbitMQ] ─── Outbox Pattern
-          │
-          ├── notificationExchange (Direct)
-          │       ├── joinQueue      → 회원가입 이메일 발송
-          │       └── modifyQueue    → 회원정보 수정 이메일 발송
-          │
-          ├── hotbookExchange (Direct)
-          │       └── likeQueue      → Hot Book 점수 갱신
-          │
-          └── deadLetterExchange
-                  └── deadLetterQueue (DLQ) → 실패 메시지 보관
-```
-
----
-
 ## 🚀 주요 기능
 
-### 1. 도서 추천 (알라딘 API + GPT)
-- 알라딘 Open API를 통해 도서 정보를 조회하고 DB/Cache에 저장
-- GPT API를 활용한 사용자 맞춤 도서 추천
-- Resilience4j RateLimiter로 알라딘 API 호출 보호 (30초당 1,000회)
-- Redis 캐시로 응답 속도 최적화 (HIT/MISS 메트릭 수집)
+### 1. 도서 추천 (알라딘 API)
+- 알라딘 Open API를 통해 사용자에게 보여줄 도서 정보를 조회하고 가공 후 DB/Cache에 저장
+- Resilience4j RateLimiter로 알라딘 API 호출 보호
+- Redis 캐시로 응답 속도 최적화
 
 ### 2. Hot Book 랭킹
 - 도서 좋아요 이벤트를 RabbitMQ를 통해 비동기 처리
-- Redis Sorted Set으로 실시간 인기 도서 Top 10 계산 (10일 TTL)
-- ShedLock으로 분산 환경에서 스케줄러 중복 실행 방지
+- Redis Sorted Set으로 실시간 인기 도서 Top 10 계산
 
-### 3. 이메일 알림 (Outbox Pattern)
+### 3. 이메일 알림
 - 회원가입 / 정보 수정 시 이메일 알림 발송
 - Outbox 테이블로 메시지 유실 방지 보장
 - DLQ + 재시도 정책 (3회, 1초 간격)으로 장애 복원력 확보
