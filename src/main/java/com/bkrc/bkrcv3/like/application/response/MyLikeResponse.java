@@ -17,7 +17,7 @@ public record MyLikeResponse(
     public static MyLikeResponse of(Like like, AladinBook book) {
         return new MyLikeResponse(
                 like.getLikeId(),
-                like.getItemId(),
+                book.getItemId(),
                 book.getTitle(),
                 book.getCover(),
                 book.getAuthor(),

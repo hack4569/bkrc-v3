@@ -1,5 +1,6 @@
 package com.bkrc.bkrcv3.like.entity;
 
+import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.common.shared.BaseEntity;
 import com.bkrc.bkrcv3.member.entity.Member;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -23,23 +24,20 @@ public class Like extends BaseEntity {
     @Id
     private Long likeId;
 
-    @Schema(description = "도서 ID (itemId)", example = "123456789")
-    @Column(nullable = false)
-    private Integer itemId;
-
-//    @Schema(description = "로그인 ID", example = "user123")
-//    @Column(nullable = false)
-//    private String loginId;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "login_id")
     @JsonIgnore
     private Member member;
 
-    public static Like create(Long id, int itemId, Member member) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="item_id")
+    @JsonIgnore
+    private AladinBook book;
+
+    public static Like create(Long id, AladinBook book, Member member) {
         Like like = new Like();
         like.likeId = id;
-        like.itemId = itemId;
+        like.book = book;
         like.member = member;
         return like;
     }

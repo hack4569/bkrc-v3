@@ -32,9 +32,8 @@ spring:
     username: root
     password: ${DB_PASSWORD}
     hikari:
-      maximum-pool-size: 16        # 최대 커넥션 수
-      minimum-idle: 5              # 최소 유지 커넥션 수
-      connection-timeout: 3000     # 커넥션 못 얻으면 3초 후 에러 (ms)
+      maximum-pool-size: 5        # 최대 커넥션 수
+      connection-timeout: 5000     # 커넥션 못 얻으면 3초 후 에러 (ms)
       idle-timeout: 600000         # 놀고있는 커넥션 10분 후 반납 (ms)
       max-lifetime: 1800000        # 커넥션 최대 수명 30분 (ms)
       pool-name: bkrc-pool
@@ -84,3 +83,8 @@ management:
   metrics:
     tags:
       application: bkrc  # 메트릭에 앱 이름 태그 추가
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE

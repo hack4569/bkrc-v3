@@ -1,9 +1,11 @@
 package com.bkrc.bkrcv3.aladin.entity;
 
 import com.bkrc.bkrcv3.history.entity.History;
+import com.bkrc.bkrcv3.like.entity.Like;
 import com.bkrc.bkrcv3.required.Ai;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -98,6 +100,11 @@ public class AladinBook {
     @Schema(description = "AI/MD 추천 코멘트 목록")
     @OneToMany(mappedBy = "aladinBook", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<BookComment> bookCommentList;
+
+    @JsonIgnore
+    @Schema(description = "좋아요한 도서 목록")
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Like> bookLikes;
 
     public static AladinBook toEntity(AladinBookResponse response) {
         if (response == null) {

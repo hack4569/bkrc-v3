@@ -9,7 +9,7 @@ public record LikeResponse(
         @Schema(description = "도서 ID (itemId)", example = "123456789") Integer itemId,
         @Schema(description = "like count", example = "1") int likeCount
         ) {
-    public static LikeResponse from(Like likeResult, int likeCount) {
-        return new LikeResponse(likeResult.getItemId(), likeCount);
+    public static LikeResponse from(int itemId, int likeCount) {
+        return new LikeResponse(itemId, likeCount);
     }
 }

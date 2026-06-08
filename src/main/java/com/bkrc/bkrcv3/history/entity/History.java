@@ -36,18 +36,10 @@ public class History extends BaseEntity {
     @Column(nullable = false)
     private String loginId;
 
-    @Schema(description = "회원 엔티티")
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "member_id")
-    private Member member;
-
     @Schema(description = "열람한 도서 ID (itemId)", example = "123456789")
     @Column(nullable = false)
     private Integer itemId;
 
-    public void setMember(Member member) {
-        this.member = member;
-    }
 
     public HistoryResponse of() {
         HistoryResponse historyResponse = new HistoryResponse();

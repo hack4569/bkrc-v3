@@ -1,6 +1,7 @@
 package com.bkrc.bkrcv3.like.application;
 
 import com.bkrc.bkrcv3.adapter.payload.BookLikeEventPayload;
+import com.bkrc.bkrcv3.aladin.application.AladinBookRepository;
 import com.bkrc.bkrcv3.aladin.application.AladinService;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.common.event.Event;
@@ -14,9 +15,11 @@ import com.bkrc.bkrcv3.like.application.response.MyLikeResponse;
 import com.bkrc.bkrcv3.like.entity.Like;
 import com.bkrc.bkrcv3.like.entity.LikeCount;
 import com.bkrc.bkrcv3.member.application.MemberRepository;
+import com.bkrc.bkrcv3.member.entity.Member;
 import com.bkrc.bkrcv3.outbox.Outbox;
 import com.bkrc.bkrcv3.outbox.OutboxEvent;
 import com.bkrc.bkrcv3.outbox.OutboxRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -41,20 +44,21 @@ public class LikeService {
     private static final String KEY_FORMAT = "hot-book::book::%s::like-count";
     private final LikeCountRepository likeCountRepository;
     private final AladinService aladinService;
+    private final AladinBookRepository aladinBookRepository;
     private final Snowflake snowflake;
     private final MemberRepository memberRepository;
+    private final EntityManager em;
 
     @Transactional
     public LikeResponse like(Integer itemId, String loginId) {
-//        if (aladinService.getAladinBook(itemId) == null) {
-//            throw new BusinessException(ErrorCode.BOOK_NOT_FOUND);
-//        }
-//        if (likeRepository.findByItemIdAndLoginId(itemId, loginId).isPresent() ) {
-//            throw new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS);
-//        }
+        if (likeRepository.findByBookItemIdAndMemberLoginId(itemId, loginId).isPresent()) {
+            throw new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS);
+        }
 
-        var member = memberRepository.findMemberByLoginId(loginId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-        Like result = likeRepository.save(Like.create(snowflake.nextId(), itemId, member));
+        AladinBook likeItem = em.getReference(AladinBook.class, itemId);  // SELECT 없음
+        var memberRef = memberRepository.findMemberByLoginId(loginId);
+
+        Like result = likeRepository.save(Like.create(snowflake.nextId(), likeItem, memberRef.get()));
 
         LikeCount myLikeCount = likeCountRepository.findByItemId(itemId).orElse(LikeCount.create(itemId, 0));
         myLikeCount.increase();
@@ -73,7 +77,7 @@ public class LikeService {
                         ).toJson()
         ));
         eventPublisher.publishEvent(OutboxEvent.of(outbox));
-        return LikeResponse.from(result, likeCount.getLikeCount());
+        return LikeResponse.from(itemId, likeCount.getLikeCount());
     }
 
     public void createOrUpdate(Integer bookId, Integer likeCount, Duration ttl) {
@@ -91,11 +95,14 @@ public class LikeService {
 
     @Transactional
     public void unLike(Integer itemId, String loginId) {
-        Like myLike = likeRepository.findByItemIdAndMemberLoginId(itemId, loginId).orElseThrow(() -> new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS));
-        LikeCount myLikeCount = likeCountRepository.findByItemId(myLike.getItemId()).orElseThrow(()-> new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS));
+        var myLike = likeRepository.findByBookItemIdAndMemberLoginId(itemId, loginId);
+        if (myLike.isPresent()) {
+            throw new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS);
+        }
+        LikeCount myLikeCount = likeCountRepository.findByItemId(itemId).orElseThrow(()-> new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS));
         myLikeCount.decrease();
         var afterLikeCount = likeCountRepository.save(myLikeCount);
-        likeRepository.deleteById(myLike.getLikeId());
+        likeRepository.deleteById(myLike.get().getLikeId());
 //        Like result = likeRepository.save(Like.create(snowflake.nextId(), itemId, loginId));
 //
 //        LikeCount myLikeCount = likeCountRepository.findByItemId(itemId).orElse(LikeCount.create(itemId, 0));
@@ -119,15 +126,11 @@ public class LikeService {
     }
     //좋아요 목록 조회
     public List<MyLikeResponse> getMyLikes(String loginId) {
-        List<Like> myLikeList = likeRepository.findByMemberLoginId(loginId);
+        var myLikeList = likeRepository.findByMemberLoginId(loginId);
         if (myLikeList.isEmpty()) return null;
-        List<Integer> itemIds = myLikeList.stream().map(Like::getItemId).toList();
-        Map<Integer, AladinBook> bookMap = aladinService.getAladinBooksByItemIds(itemIds).stream()
-                .collect(Collectors.toMap(AladinBook::getItemId, Function.identity()));
-        return myLikeList.stream()
+        return myLikeList.get().stream()
                 .map(like -> {
-                    AladinBook book = bookMap.get(like.getItemId());
-                    return book == null ? null : MyLikeResponse.of(like, book);
+                    return like == null ? null : MyLikeResponse.of(like, like.getBook());
                 })
                 .filter(Objects::nonNull)
                 .toList();
