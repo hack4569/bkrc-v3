@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class BookLikeEventPayload implements EventPayload {
     private Integer bookId;
-    private String loginId;
+    private Long memberId;
     private LocalDateTime createdAt;
     private Integer bookLikeCount;
 }

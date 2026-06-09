@@ -25,10 +25,9 @@ public class HistoryController {
 
     @PostMapping("/v1/history")
     public void saveHistory(
-            @AuthenticationPrincipal String loginId,
+            @AuthenticationPrincipal Long memberId,
             @RequestParam @NotNull(message = "itemId는 필수입니다.") Integer itemId
     ) {
-
-        historyService.saveHistory(itemId, loginId);
+        historyService.saveHistory(itemId, memberId);
     }
 }

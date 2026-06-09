@@ -50,13 +50,13 @@ public class LikeService {
     private final EntityManager em;
 
     @Transactional
-    public LikeResponse like(Integer itemId, String loginId) {
-        if (likeRepository.findByBookItemIdAndMemberLoginId(itemId, loginId).isPresent()) {
+    public LikeResponse like(Integer itemId, Long memberId) {
+        if (likeRepository.findByBookItemIdAndMemberMemberId(itemId, memberId).isPresent()) {
             throw new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS);
         }
 
-        AladinBook likeItem = em.getReference(AladinBook.class, itemId);  // SELECT 없음
-        var memberRef = memberRepository.findMemberByLoginId(loginId);
+        AladinBook likeItem = em.getReference(AladinBook.class, itemId);
+        var memberRef = memberRepository.findById(memberId);
 
         Like result = likeRepository.save(Like.create(snowflake.nextId(), likeItem, memberRef.get()));
 
@@ -70,7 +70,7 @@ public class LikeService {
                 RabbitMQConfig.LIKE_ROUTING_KEY,
                 Event.of(EventType.BOOK_LIKE,
                         BookLikeEventPayload.builder()
-                                .loginId(loginId)
+                                .memberId(memberId)
                                 .bookLikeCount(myLikeCount.getLikeCount())
                                 .bookId(itemId)
                                 .build()
@@ -94,8 +94,8 @@ public class LikeService {
     }
 
     @Transactional
-    public void unLike(Integer itemId, String loginId) {
-        var myLike = likeRepository.findByBookItemIdAndMemberLoginId(itemId, loginId);
+    public void unLike(Integer itemId, Long memberId) {
+        var myLike = likeRepository.findByBookItemIdAndMemberMemberId(itemId, memberId);
         if (myLike.isPresent()) {
             throw new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS);
         }
@@ -125,8 +125,8 @@ public class LikeService {
 //        return LikeResponse.from(result, likeCount.getLikeCount());
     }
     //좋아요 목록 조회
-    public List<MyLikeResponse> getMyLikes(String loginId) {
-        var myLikeList = likeRepository.findByMemberLoginId(loginId);
+    public List<MyLikeResponse> getMyLikes(Long memberId) {
+        var myLikeList = likeRepository.findByMemberMemberId(memberId);
         if (myLikeList.isEmpty()) return null;
         return myLikeList.get().stream()
                 .map(like -> {

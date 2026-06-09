@@ -17,6 +17,7 @@ import org.springframework.http.ProblemDetail;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "회원 (Member)", description = "회원 가입 및 정보 수정 API")
@@ -50,11 +51,11 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "USER_NOT_FOUND: 해당 아이디를 찾을 수 없습니다.",
                     content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
-    @PutMapping("/v1/member/{loginId}")
+    @PutMapping("/v1/member/me")
     public MemberModifyResponse update(
-            @Parameter(description = "로그인 ID", required = true, example = "user123") @PathVariable String loginId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
             @RequestBody @Valid MemberModifyRequest request) {
-        var response = userService.modifyMember(loginId, request);
+        var response = userService.modifyMember(memberId, request);
         return MemberModifyResponse.of(response);
     }
 
@@ -64,9 +65,9 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "USER_NOT_FOUND: 해당 아이디를 찾을 수 없습니다.",
                     content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
-    @GetMapping("/v1/member/{loginId}")
+    @GetMapping("/v1/member/me")
     public MemberInfoResponse getMemberInfo(
-            @Parameter(description = "로그인 ID", required = true, example = "user123") @PathVariable String loginId) {
-        return userService.getMemberInfo(loginId);
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId) {
+        return userService.getMemberInfo(memberId);
     }
 }

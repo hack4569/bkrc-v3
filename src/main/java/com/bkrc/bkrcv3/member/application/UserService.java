@@ -12,7 +12,7 @@ import java.util.List;
 public interface UserService extends UserDetailsService {
     Member saveMember(MemberRegisterRequest request);
     MemberDto getMemberByLoginId(String loginId);
-    MemberInfoResponse getMemberInfo(String loginId);
-    Member modifyMember(String loginId, MemberModifyRequest request);
+    MemberInfoResponse getMemberInfo(Long memberId);
+    Member modifyMember(Long memberId, MemberModifyRequest request);
     List<Member> getAllMembers();
 }

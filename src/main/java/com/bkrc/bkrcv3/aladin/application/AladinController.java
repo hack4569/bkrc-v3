@@ -43,9 +43,9 @@ public class AladinController {
     })
     @GetMapping("/v1/aladin/books/recommend/user")
     public List<RecommendView> getRecommendbooksForUser(
-            @Parameter(hidden = true) @AuthenticationPrincipal String loginId) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId) {
         AladinRecommendForUserRequest request = new AladinRecommendForUserRequest();
-        List<RecommendView> recommendViewList = aladinService.getRecommendBooksForUser(loginId, request);
+        List<RecommendView> recommendViewList = aladinService.getRecommendBooksForUser(memberId, request);
         return recommendViewList;
     }
 

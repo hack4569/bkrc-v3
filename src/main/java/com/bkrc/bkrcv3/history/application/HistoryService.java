@@ -16,17 +16,17 @@ public class HistoryService {
     private final HistoryRepository historyRepository;
     private final Snowflake snowflake;
 
-    public List<History> getHistoryByLoginId(String loginId) {
-        return historyRepository.findAllByLoginId(loginId).orElse(null);
+    public List<History> getHistoryByMemberId(Long memberId) {
+        return historyRepository.findAllByMemberId(memberId).orElse(null);
     }
 
-    public int deleteHistoryByLoginId(String loginId) {
-        return historyRepository.deleteByLoginId(loginId);
+    public int deleteHistoryByMemberId(Long memberId) {
+        return historyRepository.deleteByMemberId(memberId);
     }
 
-    public void saveHistory(Integer itemId, String loginId) {
+    public void saveHistory(Integer itemId, Long memberId) {
         try {
-            historyRepository.save(History.create(itemId, loginId, snowflake.nextId()));
+            historyRepository.save(History.create(itemId, memberId, snowflake.nextId()));
         } catch (DataIntegrityViolationException de) {
             throw new BusinessException(ErrorCode.HISTORY_ALREADY_EXISTS);
         } catch (Exception ex) {

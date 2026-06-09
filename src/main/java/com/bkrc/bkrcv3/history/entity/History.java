@@ -15,8 +15,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
         name="histories",
         uniqueConstraints = {
                 @UniqueConstraint(
-                        name = "uk_history_item_login",
-                        columnNames = {"login_id", "item_id"}
+                        name = "uk_history_item_member",
+                        columnNames = {"member_id", "item_id"}
                 )
         }
 )
@@ -32,9 +32,9 @@ public class History extends BaseEntity {
     @Column(name = "history_id")
     private Long id;
 
-    @Schema(description = "로그인 ID", example = "user123")
+    @Schema(description = "회원 ID")
     @Column(nullable = false)
-    private String loginId;
+    private Long memberId;
 
     @Schema(description = "열람한 도서 ID (itemId)", example = "123456789")
     @Column(nullable = false)
@@ -44,15 +44,15 @@ public class History extends BaseEntity {
     public HistoryResponse of() {
         HistoryResponse historyResponse = new HistoryResponse();
         historyResponse.setItemId(getItemId());
-        historyResponse.setLoginId(getLoginId());
+        historyResponse.setMemberId(getMemberId());
         historyResponse.setCreatedAt(getCreated());
         return historyResponse;
     }
 
-    public static History create(Integer itemId, String loginId, Long historyId) {
+    public static History create(Integer itemId, Long memberId, Long historyId) {
         History history = new History();
         history.setId(historyId);
-        history.setLoginId(loginId);
+        history.setMemberId(memberId);
         history.setItemId(itemId);
         return history;
     }

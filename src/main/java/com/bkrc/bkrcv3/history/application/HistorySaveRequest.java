@@ -1,4 +1,4 @@
 package com.bkrc.bkrcv3.history.application;
 
-public record HistorySaveRequest(Integer itemId, String loginId) {
+public record HistorySaveRequest(Integer itemId, Long memberId) {
 }

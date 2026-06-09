@@ -9,6 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface LikeRepository extends JpaRepository<Like, Long> {
-    Optional<Like> findByBookItemIdAndMemberLoginId(int itemId, String loginId);
-    Optional<List<Like>> findByMemberLoginId(String loginId);
+    Optional<Like> findByBookItemIdAndMemberMemberId(int itemId, Long memberId);
+    Optional<List<Like>> findByMemberMemberId(Long memberId);
 }

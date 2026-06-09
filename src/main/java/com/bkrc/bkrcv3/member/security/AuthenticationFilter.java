@@ -92,14 +92,13 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         Instant now = Instant.now();
 
         String token = Jwts.builder()
-                .subject(memberDto.getLoginId())
+                .subject(String.valueOf(memberDto.getMemberId()))
                 .expiration(Date.from(now.plusMillis(Long.parseLong(environment.getProperty("token.expiration-time")))))
                 .issuedAt(Date.from(now))
                 .signWith(secretKey)
                 .compact();
 
-        // 로그에 토큰 생성 여부를 남겨 디버깅에 도움을 줌
-        log.info("successfulAuthentication - generated token for loginId={}", memberDto.getLoginId());
+        log.info("successfulAuthentication - generated token for memberId={}", memberDto.getMemberId());
 
         res.setContentType("application/json; charset=UTF-8");
         // 실제 토큰과 로그인 ID를 담은 응답 인스턴스를 반환하도록 수정

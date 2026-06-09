@@ -150,9 +150,9 @@ public class AladinService {
         return aladinBookRepository.findById(itemId).orElse(null);
     }
 
-    public List<RecommendView> getRecommendBooksForUser(@Nullable String loginId, AladinRecommendForUserRequest request) {
-        if (!StringUtils.isEmpty(loginId)) {
-            request.setHistories(historyService.getHistoryByLoginId(loginId));
+    public List<RecommendView> getRecommendBooksForUser(@Nullable Long memberId, AladinRecommendForUserRequest request) {
+        if (memberId != null) {
+            request.setHistories(historyService.getHistoryByMemberId(memberId));
         }
 
         var aladinBooks = this.findAll();
@@ -162,8 +162,8 @@ public class AladinService {
         var filteredBooks = this.filterForUser(aladinBookList, request.getHistories());
 
         if (ObjectUtils.isEmpty(filteredBooks)) {
-            historyService.deleteHistoryByLoginId(loginId);
-            return this.getRecommendBooksForUser(loginId, request);
+            historyService.deleteHistoryByMemberId(memberId);
+            return this.getRecommendBooksForUser(memberId, request);
         }
         return this.showUserData(filteredBooks);
     }

@@ -91,12 +91,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public MemberInfoResponse getMemberInfo(String loginId) {
-        MemberDto myInfo = this.getMemberByLoginId(loginId); // 존재 여부 체크
-        List<MyLikeResponse> myLikeResponse = likeService.getMyLikes(loginId); // 좋아요 존재 여부 체크
+    public MemberInfoResponse getMemberInfo(Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        List<MyLikeResponse> myLikeResponse = likeService.getMyLikes(member.getMemberId());
 
         return MemberInfoResponse.of(
-            myInfo.getLoginId(),
+            member.getLoginId(),
             myLikeResponse
         );
 
@@ -118,8 +118,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Member modifyMember(String loginId, MemberModifyRequest request) {
-        var member = memberRepository.findMemberByLoginId(loginId).orElseThrow( () -> new UsernameNotFoundException(loginId));
+    public Member modifyMember(Long memberId, MemberModifyRequest request) {
+        var member = memberRepository.findById(memberId).orElseThrow( () -> new UsernameNotFoundException(request.loginId()));
         if (!member.checkPassword(request.originPassword(), passwordEncoder)) {
             throw new BusinessException(ErrorCode.USER_NOT_EQUALS_PW);
         }

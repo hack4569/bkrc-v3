@@ -39,16 +39,16 @@ public class LikeController {
     })
     @PostMapping("/v1/like/{itemId}")
     public LikeResponse likeAction(
-            @Parameter(hidden = true) @AuthenticationPrincipal String loginId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
             @Parameter(description = "도서 ID (itemId)", required = true, example = "1") @PathVariable("itemId") Integer itemId) {
 
-        return likeService.like(itemId, loginId);
+        return likeService.like(itemId, memberId);
     }
     @PostMapping("/v1/like/cancel/{itemId}")
     public void unLikeAction(
-            @Parameter(hidden = true) @AuthenticationPrincipal String loginId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
             @Parameter(description = "도서 ID (itemId)", required = true, example = "1") @PathVariable("itemId") Integer itemId) {
 
-        likeService.unLike(itemId, loginId);
+        likeService.unLike(itemId, memberId);
     }
 }

@@ -42,10 +42,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
-            String loginId = claims.getSubject();
-            if (loginId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            String subject = claims.getSubject();
+            if (subject != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                Long memberId = Long.parseLong(subject);
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(loginId, null, List.of());
+                        new UsernamePasswordAuthenticationToken(memberId, null, List.of());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (ExpiredJwtException e) {

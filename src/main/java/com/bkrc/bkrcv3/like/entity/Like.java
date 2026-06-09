@@ -13,8 +13,8 @@ import lombok.Getter;
 @Table(name = "like_book",
         uniqueConstraints = {
         @UniqueConstraint(
-                name = "uk_like_book_item_login",
-                columnNames = {"item_id", "login_id"}
+                name = "uk_like_book_item_member",
+                columnNames = {"item_id", "member_id"}
         )
     }
 )
@@ -25,7 +25,7 @@ public class Like extends BaseEntity {
     private Long likeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "login_id")
+    @JoinColumn(name = "member_id")
     @JsonIgnore
     private Member member;
 
