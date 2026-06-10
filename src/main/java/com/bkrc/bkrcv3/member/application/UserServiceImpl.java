@@ -149,16 +149,16 @@ public class UserServiceImpl implements UserService {
 
         memberRepository.deleteById(memberId);
 
-        Outbox outbox = outboxRepository.save(Outbox.of(
-                EventType.MEMBER_WITHDRAW,
-                RabbitMQConfig.NOTIFICATION_DIRECT_EXCHANGE,
-                RabbitMQConfig.WITHDRAW_ROUTING_KEY,
-                Event.of(EventType.MEMBER_WITHDRAW, MemberWithdrawEventPayload.builder()
-                        .loginId(member.getLoginId())
-                        .withdrawnAt(java.time.LocalDateTime.now())
-                        .build()).toJson()
-        ));
-        eventPublisher.publishEvent(OutboxEvent.of(outbox));
+//        Outbox outbox = outboxRepository.save(Outbox.of(
+//                EventType.MEMBER_WITHDRAW,
+//                RabbitMQConfig.NOTIFICATION_DIRECT_EXCHANGE,
+//                RabbitMQConfig.WITHDRAW_ROUTING_KEY,
+//                Event.of(EventType.MEMBER_WITHDRAW, MemberWithdrawEventPayload.builder()
+//                        .loginId(member.getLoginId())
+//                        .withdrawnAt(java.time.LocalDateTime.now())
+//                        .build()).toJson()
+//        ));
+//        eventPublisher.publishEvent(OutboxEvent.of(outbox));
     }
 
 }
