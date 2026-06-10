@@ -3,6 +3,7 @@ package com.bkrc.bkrcv3.member.application;
 import com.bkrc.bkrcv3.adapter.payload.MemberJoinEventPayload;
 import com.bkrc.bkrcv3.adapter.payload.MemberModifyEventPayload;
 import com.bkrc.bkrcv3.adapter.payload.MemberWithdrawEventPayload;
+import com.bkrc.bkrcv3.history.application.HistoryRepository;
 import com.bkrc.bkrcv3.member.application.request.MemberWithdrawRequest;
 import com.bkrc.bkrcv3.aladin.application.AladinService;
 import com.bkrc.bkrcv3.common.event.Event;
@@ -39,6 +40,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final MemberRepository memberRepository;
+    private final HistoryRepository historyRepository;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
     private final OutboxRepository outboxRepository; // 추가
@@ -146,7 +148,7 @@ public class UserServiceImpl implements UserService {
         if (!member.checkPassword(request.password(), passwordEncoder)) {
             throw new BusinessException(ErrorCode.USER_NOT_EQUALS_PW);
         }
-
+        historyRepository.deleteByMemberId(memberId);
         memberRepository.deleteById(memberId);
 
 //        Outbox outbox = outboxRepository.save(Outbox.of(
