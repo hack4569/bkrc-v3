@@ -4,6 +4,7 @@ import com.bkrc.bkrcv3.adapter.payload.BookLikeEventPayload;
 import com.bkrc.bkrcv3.required.EventPayload;
 import com.bkrc.bkrcv3.adapter.payload.MemberJoinEventPayload;
 import com.bkrc.bkrcv3.adapter.payload.MemberModifyEventPayload;
+import com.bkrc.bkrcv3.adapter.payload.MemberWithdrawEventPayload;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 public enum EventType {
     MEMBER_JOIN(MemberJoinEventPayload.class, Topic.MEMBER_JOIN),
     MEMBER_MODIFY(MemberModifyEventPayload.class, Topic.MEMBER_MODIFY),
+    MEMBER_WITHDRAW(MemberWithdrawEventPayload.class, Topic.MEMBER_WITHDRAW),
     BOOK_LIKE(BookLikeEventPayload.class, Topic.BOOK_LIKE);
 
     private final Class<? extends EventPayload> payloadClass;
@@ -31,6 +33,7 @@ public enum EventType {
     public static class Topic {
         public static final String MEMBER_JOIN = "member_join";
         public static final String MEMBER_MODIFY = "member_modify";
+        public static final String MEMBER_WITHDRAW = "member_withdraw";
         public static final String BOOK_LIKE = "book_like";
         public static final String BOOK_CLICK = "book_click";
     }

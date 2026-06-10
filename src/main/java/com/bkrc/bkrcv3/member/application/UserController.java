@@ -2,6 +2,7 @@ package com.bkrc.bkrcv3.member.application;
 
 import com.bkrc.bkrcv3.member.application.request.MemberModifyRequest;
 import com.bkrc.bkrcv3.member.application.request.MemberRegisterRequest;
+import com.bkrc.bkrcv3.member.application.request.MemberWithdrawRequest;
 import com.bkrc.bkrcv3.member.application.response.MemberInfoResponse;
 import com.bkrc.bkrcv3.member.application.response.MemberModifyResponse;
 import com.bkrc.bkrcv3.member.application.response.MemberRegisterResponse;
@@ -69,5 +70,20 @@ public class UserController {
     public MemberInfoResponse getMemberInfo(
             @Parameter(hidden = true) @AuthenticationPrincipal Long memberId) {
         return userService.getMemberInfo(memberId);
+    }
+
+    @Operation(summary = "회원 탈퇴", description = "현재 비밀번호를 확인 후 회원을 탈퇴합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "탈퇴 성공"),
+            @ApiResponse(responseCode = "400", description = "USER_NOT_EQUALS_PW: 비밀번호가 일치하지 않습니다.",
+                    content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "USER_NOT_FOUND: 해당 아이디를 찾을 수 없습니다.",
+                    content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    @DeleteMapping("/v1/member/me")
+    public void withdraw(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
+            @RequestBody @Valid MemberWithdrawRequest request) {
+        userService.withdrawMember(memberId, request);
     }
 }

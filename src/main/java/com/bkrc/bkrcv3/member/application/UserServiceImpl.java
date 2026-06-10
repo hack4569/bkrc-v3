@@ -2,6 +2,8 @@ package com.bkrc.bkrcv3.member.application;
 
 import com.bkrc.bkrcv3.adapter.payload.MemberJoinEventPayload;
 import com.bkrc.bkrcv3.adapter.payload.MemberModifyEventPayload;
+import com.bkrc.bkrcv3.adapter.payload.MemberWithdrawEventPayload;
+import com.bkrc.bkrcv3.member.application.request.MemberWithdrawRequest;
 import com.bkrc.bkrcv3.aladin.application.AladinService;
 import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.common.event.EventType;
@@ -103,11 +105,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<Member> getAllMembers() {
-        return memberRepository.findAll();
-    }
-
-    @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         var member = memberRepository.findMemberByLoginId(username).orElseThrow( () -> new UsernameNotFoundException(username));
 
@@ -140,9 +137,28 @@ public class UserServiceImpl implements UserService {
         return modifiedMember;
     }
 
-    public String encodePassword(String password) {
-        return passwordEncoder.hashPassword(password);
-    }
+    @Override
+    @Transactional
+    public void withdrawMember(Long memberId, MemberWithdrawRequest request) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
+        if (!member.checkPassword(request.password(), passwordEncoder)) {
+            throw new BusinessException(ErrorCode.USER_NOT_EQUALS_PW);
+        }
+
+        memberRepository.deleteById(memberId);
+
+        Outbox outbox = outboxRepository.save(Outbox.of(
+                EventType.MEMBER_WITHDRAW,
+                RabbitMQConfig.NOTIFICATION_DIRECT_EXCHANGE,
+                RabbitMQConfig.WITHDRAW_ROUTING_KEY,
+                Event.of(EventType.MEMBER_WITHDRAW, MemberWithdrawEventPayload.builder()
+                        .loginId(member.getLoginId())
+                        .withdrawnAt(java.time.LocalDateTime.now())
+                        .build()).toJson()
+        ));
+        eventPublisher.publishEvent(OutboxEvent.of(outbox));
+    }
 
 }

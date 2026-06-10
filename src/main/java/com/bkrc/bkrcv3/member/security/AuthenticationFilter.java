@@ -15,7 +15,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -47,13 +50,14 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest req,
                                                 HttpServletResponse res) throws AuthenticationException {
-        try {
             // 요청 바디를 파싱할 때는 필드로 주입된 ObjectMapper를 사용하고,
             // 실패 시 form 파라미터에서 읽어오는 폴백을 둡니다.
             LoginForm creds = null;
             try {
                 creds = this.objectMapper.readValue(req.getInputStream(), LoginForm.class);
-            } catch (Exception e) {
+            } catch (IOException e) {
+                throw new BadCredentialsException(ErrorCode.AUTHENTICATION_FAILED.getMessage(), e);
+            }catch (Exception e) {
                 // JSON 파싱 실패 시 로그와 함께 form 파라미터에서 값을 꺼내 시도
                 log.debug("attemptAuthentication: failed to parse JSON body, contentType={}; error={}", req.getContentType(), e.toString());
                 String loginId = req.getParameter("loginId");
@@ -72,10 +76,6 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
                             new ArrayList<>()
                     )
             );
-
-        } catch (IOException e) {
-            throw new BusinessException(ErrorCode.AUTHENTICATION_FAILED);
-        }
     }
 
     @Override
@@ -103,5 +103,18 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         res.setContentType("application/json; charset=UTF-8");
         // 실제 토큰과 로그인 ID를 담은 응답 인스턴스를 반환하도록 수정
         objectMapper.writeValue(res.getWriter(), new LoginResponse(token, memberDto.getLoginId()));
+    }
+
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest req, HttpServletResponse res,
+                                              AuthenticationException failed)
+            throws IOException, ServletException {
+        res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        res.setContentType("application/json; charset=UTF-8");
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
+        problem.setDetail(ErrorCode.AUTHENTICATION_FAILED.getMessage());
+
+        objectMapper.writeValue(res.getWriter(), problem);
     }
 }

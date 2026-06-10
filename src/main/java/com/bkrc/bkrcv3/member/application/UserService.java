@@ -2,6 +2,7 @@ package com.bkrc.bkrcv3.member.application;
 
 import com.bkrc.bkrcv3.member.application.request.MemberModifyRequest;
 import com.bkrc.bkrcv3.member.application.request.MemberRegisterRequest;
+import com.bkrc.bkrcv3.member.application.request.MemberWithdrawRequest;
 import com.bkrc.bkrcv3.member.application.response.MemberInfoResponse;
 import com.bkrc.bkrcv3.member.dto.MemberDto;
 import com.bkrc.bkrcv3.member.entity.Member;
@@ -14,5 +15,5 @@ public interface UserService extends UserDetailsService {
     MemberDto getMemberByLoginId(String loginId);
     MemberInfoResponse getMemberInfo(Long memberId);
     Member modifyMember(Long memberId, MemberModifyRequest request);
-    List<Member> getAllMembers();
+    void withdrawMember(Long memberId, MemberWithdrawRequest request);
 }

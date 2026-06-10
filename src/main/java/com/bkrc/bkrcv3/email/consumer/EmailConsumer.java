@@ -21,7 +21,8 @@ public class EmailConsumer {
     @RabbitListener(
         queues = {
                 RabbitMQConfig.JOIN_QUEUE,
-                RabbitMQConfig.MODIFY_QUEUE
+                RabbitMQConfig.MODIFY_QUEUE,
+                RabbitMQConfig.WITHDRAW_QUEUE
         }
     )
     public void listen(String message) {

@@ -15,10 +15,12 @@ import org.springframework.context.annotation.Profile;
 public class RabbitMQConfig {
     public static final String JOIN_QUEUE = "joinQueue";
     public static final String MODIFY_QUEUE = "modifyQueue";
+    public static final String WITHDRAW_QUEUE = "withdrawQueue";
     public static final String LIKE_QUEUE = "likeQueue";
 
     public static final String JOIN_ROUTING_KEY = "member.join";
     public static final String MODIFY_ROUTING_KEY = "member.modify";
+    public static final String WITHDRAW_ROUTING_KEY = "member.withdraw";
     public static final String LIKE_ROUTING_KEY = "hotbook.like";
 
     public static final String NOTIFICATION_DIRECT_EXCHANGE = "notificationExchange";
@@ -85,6 +87,14 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue withdrawQueue() {
+        return QueueBuilder.durable(WITHDRAW_QUEUE)
+                .withArgument("x-dead-letter-exchange", DEAD_DIRECT_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", DEAD_LETTER_ROUTING_KEY)
+                .build();
+    }
+
+    @Bean
     public Queue likeQueue() {
         return QueueBuilder.durable(LIKE_QUEUE)
                 .withArgument("x-dead-letter-exchange", DEAD_DIRECT_EXCHANGE) // DLX 설정
@@ -107,6 +117,11 @@ public class RabbitMQConfig {
     @Bean
     public Binding modifyQueueBinding() {
         return BindingBuilder.bind(modifyQueue()).to(notificationExchange()).with(MODIFY_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding withdrawQueueBinding() {
+        return BindingBuilder.bind(withdrawQueue()).to(notificationExchange()).with(WITHDRAW_ROUTING_KEY);
     }
 
     @Bean
