@@ -96,7 +96,7 @@ public class LikeService {
     @Transactional
     public void unLike(Integer itemId, Long memberId) {
         var myLike = likeRepository.findByBookItemIdAndMemberMemberId(itemId, memberId);
-        if (myLike.isPresent()) {
+        if (myLike.isEmpty()) {
             throw new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS);
         }
         LikeCount myLikeCount = likeCountRepository.findByItemId(itemId).orElseThrow(()-> new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS));
