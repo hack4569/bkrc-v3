@@ -19,12 +19,12 @@ import java.util.*;
 @Component
 public class AladinApiItemReader implements ItemReader<AladinBook> {
     private final AladinService aladinService;
-    private int page;
+    private int page = 1;
     private Queue<AladinBook> buffer = new LinkedList<>();
     private Set<String> seenIsbnSet = new HashSet<>();
 
     @Override
-    public AladinBook read() throws Exception {
+    public AladinBook read() {
         while (buffer.isEmpty()) {
             List<AladinBook> aladinItemList = aladinService.getAladinItemList(
                     AladinRequest.builder()

@@ -22,7 +22,7 @@ public class BatchService {
     private final JobExplorer jobExplorer;
     private final JobOperator jobOperator;
 
-    //@Scheduled(cron = "* * * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul")
     public void recommendScheduler() throws Exception{
         if (isJobRunning()) {
             System.out.println("이전 실행이 아직 진행 중입니다. 건너뜁니다.");
