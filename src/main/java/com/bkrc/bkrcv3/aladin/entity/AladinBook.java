@@ -1,6 +1,7 @@
 package com.bkrc.bkrcv3.aladin.entity;
 
 import com.bkrc.bkrcv3.history.entity.History;
+import java.util.Objects;
 import com.bkrc.bkrcv3.like.entity.Like;
 import com.bkrc.bkrcv3.required.Ai;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
@@ -206,10 +207,10 @@ public class AladinBook {
         // 히스토리에 없는 책을 필터링하는 Predicate
         Predicate<AladinBook> historyFilter = book -> {
 
-            return histories.stream().noneMatch(history ->
-                    book.getItemId() == history.getItemId() &&
+            return !(histories.stream().anyMatch(history ->
+                    Objects.equals(book.getItemId(), history.getItemId()) &&
                             !LocalDate.now().isEqual(history.getCreated().toLocalDate())
-            );
+            ));
         };
         return historyFilter;
     }
