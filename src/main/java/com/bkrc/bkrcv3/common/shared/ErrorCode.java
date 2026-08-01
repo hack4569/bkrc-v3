@@ -21,6 +21,8 @@ public enum ErrorCode {
 
     HISTORY_ALREADY_EXISTS(HttpStatus.CONFLICT, "EH1","이미 등록되었습니다."),
 
+    RECOMMENDATION_NOT_EDITABLE(HttpStatus.CONFLICT, "ER1", "미승인 상태의 추천만 수정할 수 있습니다."),
+
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "EAU1","인증에 실패했습니다."),
     SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "ECM0", "에러가 발생하였습니다."),
     INVALID_TIME(HttpStatus.INTERNAL_SERVER_ERROR, "ECM1", "Invalid Time"),
