@@ -11,7 +11,7 @@ import java.util.Set;
 
 public interface AladinBookRepository extends JpaRepository<AladinBook, Integer> {
 
-    @Query("SELECT DISTINCT a FROM AladinBook a LEFT JOIN FETCH a.bookCommentList ORDER BY a.itemId DESC")
+    @Query("SELECT DISTINCT a FROM AladinBook a LEFT JOIN FETCH a.bookCommentList")
     List<AladinBook> findAllWithBookComments();
 
     @Query("SELECT a.isbn13 FROM AladinBook a")

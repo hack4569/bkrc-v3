@@ -8,6 +8,7 @@ import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
 import com.bkrc.bkrcv3.aladin.client.AladinClient;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
+import com.bkrc.bkrcv3.aladin.entity.BookComment;
 import com.bkrc.bkrcv3.aladin.entity.Category;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
@@ -39,6 +40,14 @@ public class AladinService {
 
     private static final String CACHE_KEY_ALL_BOOKS = "aladin:books:all";
     private static final Duration CACHE_TTL = Duration.ofHours(24);
+    private static final Map<String, Integer> COMMENT_TYPE_ORDER = Map.of(
+            "phrase", 5,
+            "description", 3,
+            "aiRecommend", 2,
+            "mdRecommend", 4,
+            "user", 1,
+            "toc", 6
+    );
     private final AladinClient aladinClient;
     private final Ai ai;
     private final AladinBookRepository aladinBookRepository;
@@ -178,7 +187,7 @@ public class AladinService {
                     .title(book.getTitle())
                     .link(book.getLink())
                     .cover(book.getCover())
-                    .recommendCommentList(book.getBookCommentList())
+                    .recommendCommentList(sortBookComments(book.getBookCommentList()))
                     .author(book.getAuthor())
                     .categoryName(book.getCategoryName())
                     .build();
@@ -186,6 +195,22 @@ public class AladinService {
         }
         return slideRecommendList;
 
+    }
+
+    private List<BookComment> sortBookComments(List<BookComment> comments) {
+        if (CollectionUtils.isEmpty(comments)) {
+            return List.of();
+        }
+
+        return comments.stream()
+                .sorted(Comparator
+                        .comparingInt((BookComment comment) ->
+                                COMMENT_TYPE_ORDER.getOrDefault(comment.getType(), Integer.MAX_VALUE))
+                        .thenComparing(
+                                BookComment::getBookCommentId,
+                                Comparator.nullsLast(Comparator.naturalOrder())
+                        ))
+                .toList();
     }
 
     public List<AladinBook> filterForUser(List<AladinBook> aladinBooks, List<History> historyList) {

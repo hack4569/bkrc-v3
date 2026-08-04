@@ -26,7 +26,7 @@ public class BookComment {
     @Lob
     private String comment;
 
-    @Schema(description = "코멘트 유형 (aiRecommend / mdRecommend / description / toc / phrase)", example = "aiRecommend")
+    @Schema(description = "코멘트 유형 (aiRecommend / mdRecommend / description / toc / phrase / user)", example = "aiRecommend")
     private String type;
 
 //    @Column(name = "item_id", insertable = false, updatable = false)
