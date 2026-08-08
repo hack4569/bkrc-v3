@@ -21,7 +21,7 @@ public class AladinApiItemReader implements ItemReader<AladinBook> {
     private final AladinService aladinService;
     private int page = 1;
     private Queue<AladinBook> buffer = new LinkedList<>();
-    private Set<String> seenIsbnSet = new HashSet<>();
+    private Set<Integer> seenIsbnSet = new HashSet<>();
 
     @Override
     public AladinBook read() {
@@ -37,14 +37,14 @@ public class AladinApiItemReader implements ItemReader<AladinBook> {
 
             // 이번 페이지 isbn이 전부 이미 본 것이면 → 중복 페이지 → 종료
             boolean allDuplicated = aladinItemList.stream()
-                    .map(AladinBook::getIsbn13)
-                    .allMatch(seenIsbnSet::contains);
+                    .map(AladinBook::getItemId)
+                    .anyMatch(seenIsbnSet::contains);
 
             if (allDuplicated) return null;
 
             // 새로운 isbn만 등록하고 buffer에 추가
             aladinItemList.stream()
-                    .filter(book -> seenIsbnSet.add(book.getIsbn13())) // add()가 false면 중복
+                    .filter(book -> seenIsbnSet.add(book.getItemId())) // add()가 false면 중복
                     .forEach(buffer::add);
 
             page++;
