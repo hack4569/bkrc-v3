@@ -2,6 +2,7 @@ package com.bkrc.bkrcv3.aladin.application;
 
 import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendForUserRequest;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookPageResponse;
+import com.bkrc.bkrcv3.aladin.application.response.AladinBookSearchResponse;
 import com.bkrc.bkrcv3.member.application.response.RecommendView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -54,5 +56,15 @@ public class AladinController {
     @GetMapping("/v1/aladin/books")
     public AladinBookPageResponse getAllBooks() {
         return aladinService.findAll();
+    }
+
+    @Operation(summary = "알라딘 도서 검색", description = "검색어로 알라딘 도서 목록을 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "도서 검색 성공")
+    @GetMapping("/v1/aladin/books/search")
+    public List<AladinBookSearchResponse> searchBooks(@RequestParam String query) {
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+        return aladinService.searchBooks(query);
     }
 }

@@ -47,6 +47,7 @@ public class WebSecurity {
                                 ).authenticated()
                         .requestMatchers(HttpMethod.GET, "/v1/member/*").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/v1/member/*").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/v1/aladin/books/search").authenticated()
                         .requestMatchers(HttpMethod.POST, "/v1/aladin/books/recommend/user").authenticated()
                         .requestMatchers(HttpMethod.GET, "/v1/aladin/books/recommend/*").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/v1/aladin/books/recommend/*").authenticated()

@@ -5,6 +5,7 @@ import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendSaveRequest;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookPageResponse;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
+import com.bkrc.bkrcv3.aladin.application.response.AladinBookSearchResponse;
 import com.bkrc.bkrcv3.aladin.client.AladinClient;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
@@ -85,6 +86,26 @@ public class AladinService {
 
     public List<AladinBook> getAladinItemList(AladinRequest aladinRequest) {
         return aladinClient.getApi(AladinConstants.ITEM_LIST, aladinRequest).getItem();
+    }
+
+    public List<AladinBookSearchResponse> searchBooks(String query) {
+        AladinRequest request = AladinRequest.builder()
+                .query(query.trim())
+                .querytype("Keyword")
+                .searchTarget("Book")
+                .maxResults(10)
+                .start(1)
+                .cover("MidBig")
+                .build();
+
+        var response = aladinClient.getApi(AladinConstants.ITEM_SEARCH, request);
+        if (response == null || CollectionUtils.isEmpty(response.getItem())) {
+            return List.of();
+        }
+
+        return response.getItem().stream()
+                .map(AladinBookSearchResponse::from)
+                .toList();
     }
 
     public AladinBookPageResponse findAll() {

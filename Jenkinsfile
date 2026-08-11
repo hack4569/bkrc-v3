@@ -1,6 +1,16 @@
 pipeline {
     agent any
 
+    options {
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(
+            daysToKeepStr: '14',
+            numToKeepStr: '10',
+            artifactDaysToKeepStr: '7',
+            artifactNumToKeepStr: '5'
+        ))
+    }
+
     stages {
         stage('Checkout') {
             steps {
