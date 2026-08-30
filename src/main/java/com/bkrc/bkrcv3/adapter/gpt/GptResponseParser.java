@@ -1,5 +1,6 @@
 package com.bkrc.bkrcv3.adapter.gpt;
 
+import com.bkrc.bkrcv3.required.BookDescriptionSummary;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -29,12 +30,36 @@ public class GptResponseParser {
                 .orElse("");
     }
 
+    public BookDescriptionSummary parseBookDescriptionSummary(String content) {
+        return parse(content, new TypeReference<BookDescriptionSummary>() {})
+                .orElseGet(BookDescriptionSummary::empty);
+    }
+
     private <T> Optional<T> parse(String content, TypeReference<T> typeRef) {
         try {
-            return Optional.ofNullable(objectMapper.readValue(content, typeRef));
+            return Optional.ofNullable(objectMapper.readValue(stripMarkdownCodeFence(content), typeRef));
         } catch (Exception e) {
             log.warn("GPT 응답 파싱 실패 - content: {}, error: {}", content, e.getMessage());
             return Optional.empty();
         }
+    }
+
+    private String stripMarkdownCodeFence(String content) {
+        if (content == null) {
+            return null;
+        }
+
+        String trimmed = content.trim();
+        if (!trimmed.startsWith("```")) {
+            return trimmed;
+        }
+
+        int firstLineEnd = trimmed.indexOf('\n');
+        int closingFence = trimmed.lastIndexOf("```");
+        if (firstLineEnd < 0 || closingFence <= firstLineEnd) {
+            return trimmed;
+        }
+
+        return trimmed.substring(firstLineEnd + 1, closingFence).trim();
     }
 }

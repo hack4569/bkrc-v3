@@ -42,12 +42,13 @@ public class AladinService {
     private static final String CACHE_KEY_ALL_BOOKS = "aladin:books:all";
     private static final Duration CACHE_TTL = Duration.ofHours(24);
     private static final Map<String, Integer> COMMENT_TYPE_ORDER = Map.of(
-            "phrase", 5,
+            "phrase", 6,
             "description", 3,
-            "aiRecommend", 2,
-            "mdRecommend", 4,
+            "descriptionInsight", 2,
+            "aiRecommend", 4,
+            "mdRecommend", 5,
             "user", 1,
-            "toc", 6
+            "toc", 7
     );
     private final AladinClient aladinClient;
     private final Ai ai;

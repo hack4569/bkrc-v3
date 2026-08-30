@@ -238,7 +238,13 @@ public class AladinBook {
     private void setUserBookDesc(Ai ai, List<BookComment> bookCommentList) {
         String fullDescription = StringUtils.hasText(this.getFullDescription2()) ? this.getFullDescription2() : this.getFullDescription();
         if (StringUtils.hasText(fullDescription)) {
-            this.filterDescriptionByAi(ai, fullDescription, bookCommentList, "description");
+            var summary = ai.summarizeDescriptions(fullDescription);
+            if (StringUtils.hasText(summary.overview())) {
+                bookCommentList.add(BookComment.create(summary.overview(), "description"));
+            }
+            if (StringUtils.hasText(summary.insight())) {
+                bookCommentList.add(BookComment.create(summary.insight(), "descriptionInsight"));
+            }
         }
     }
 
