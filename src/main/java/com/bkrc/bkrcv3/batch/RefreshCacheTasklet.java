@@ -20,12 +20,14 @@ public class RefreshCacheTasklet implements Tasklet {
 
     private final AladinService aladinService;
     private final AladinBookRepository aladinBookRepository;
+    private final DiverseBookOrderer diverseBookOrderer;
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
         var all = aladinBookRepository.findAll();
-        aladinService.saveListForRedis(all); // 기존 @CachePut 메서드 재사용
-        log.info("[Batch] 캐시 갱신 완료 count={}", all.size());
+        var diverseBooks = diverseBookOrderer.order(all);
+        aladinService.saveListForRedis(diverseBooks);
+        log.info("[Batch] 장르 분산 캐시 갱신 완료 count={}", diverseBooks.size());
         return RepeatStatus.FINISHED;
     }
 }
