@@ -99,12 +99,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public MemberInfoResponse getMemberInfo(Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-        List<MyLikeResponse> myLikeResponse = likeService.getMyLikes(member.getMemberId());
 
         return MemberInfoResponse.of(
             member.getLoginId(),
-            myLikeResponse,
-            recommendationService.getMyRecommendations(member.getMemberId())
+            likeService.getMyLikes(member),
+            recommendationService.getMyRecommendations(member)
         );
 
     }

@@ -5,11 +5,14 @@ import com.bkrc.bkrcv3.common.shared.Snowflake;
 import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.member.application.MemberRepository;
 import com.bkrc.bkrcv3.member.application.response.MyRecommendationResponse;
+import com.bkrc.bkrcv3.member.entity.Member;
 import com.bkrc.bkrcv3.recommendation.application.request.CreateRecommendationRequest;
 import com.bkrc.bkrcv3.recommendation.entity.BookRecommendation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -20,8 +23,9 @@ public class RecommendationService {
     private final Snowflake snowflake;
 
     @Transactional(readOnly = true)
-    public List<MyRecommendationResponse> getMyRecommendations(Long memberId) {
-        return recommendationRepository.findByMemberMemberIdOrderByCreatedDesc(memberId).stream()
+    public List<MyRecommendationResponse> getMyRecommendations(Member member) {
+        return member.getMyBookRecommendations().stream()
+                .sorted(Comparator.comparing(BookRecommendation::getCreated).reversed())
                 .map(MyRecommendationResponse::from).toList();
     }
 

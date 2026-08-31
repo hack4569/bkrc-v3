@@ -125,10 +125,10 @@ public class LikeService {
 //        return LikeResponse.from(result, likeCount.getLikeCount());
     }
     //좋아요 목록 조회
-    public List<MyLikeResponse> getMyLikes(Long memberId) {
-        var myLikeList = likeRepository.findByMemberMemberId(memberId);
+    public List<MyLikeResponse> getMyLikes(Member member) {
+        var myLikeList = member.getMyLikes();
         if (myLikeList.isEmpty()) return null;
-        return myLikeList.get().stream()
+        return myLikeList.stream()
                 .map(like -> {
                     return like == null ? null : MyLikeResponse.of(like, like.getBook());
                 })
