@@ -16,9 +16,8 @@ public class OutboxStatusUpdater {
         outboxRepository.deleteById(outboxId);
     }
 
-    public void markFailed(Long outboxId) {
-        outboxRepository.findById(outboxId).ifPresent(outbox -> {
-            outbox.markFailed();  // status = FAILED, retry_count++
-        });
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void markFailed(Outbox outbox) {
+        if (outbox != null ) outbox.markFailed();
     }
 }

@@ -34,7 +34,7 @@ public class Outbox {
             String routingKey,
             String payload) {
         Outbox outbox = new Outbox();
-        outbox.outboxStatus = OutboxStatus.PROCESSED;
+        outbox.outboxStatus = OutboxStatus.PENDING;
         outbox.eventType = eventType;
         outbox.exchange = exchange;
         outbox.routingKey = routingKey;
@@ -43,8 +43,12 @@ public class Outbox {
         return outbox;
     }
 
+    public void markPublished() {
+        this.outboxStatus = OutboxStatus.PUBLISHED;
+        this.publishedAt = LocalDateTime.now();
+    }
+
     public void markFailed() {
         this.outboxStatus = OutboxStatus.FAILED;
-        this.createdAt = LocalDateTime.now();
     }
 }

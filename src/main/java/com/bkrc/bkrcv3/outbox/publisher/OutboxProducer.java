@@ -1,6 +1,5 @@
 package com.bkrc.bkrcv3.outbox.publisher;
 
-import com.bkrc.bkrcv3.config.RabbitMQConfig;
 import com.bkrc.bkrcv3.outbox.Outbox;
 import com.bkrc.bkrcv3.outbox.OutboxEvent;
 import com.bkrc.bkrcv3.outbox.OutboxStatusUpdater;
@@ -22,17 +21,28 @@ public class OutboxProducer {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOutboxEvent(OutboxEvent outboxEvent) {
-        Outbox outbox = outboxEvent.getOutbox();
+        publish(outboxEvent.getOutbox());
+    }
 
+    public void publish(Outbox outbox) {
         CorrelationData correlationData = new CorrelationData(
                 String.valueOf(outbox.getOutboxId())  // outboxId를 키로
         );
 
-        rabbitTemplate.convertAndSend(
-                outbox.getExchange(),
-                outbox.getRoutingKey(),
-                outbox.getPayload(),
-                correlationData
-        );
+        try {
+            rabbitTemplate.convertAndSend(
+                    outbox.getExchange(),
+                    outbox.getRoutingKey(),
+                    outbox.getPayload(),
+                    correlationData
+            );
+        } catch (RuntimeException exception) {
+            log.warn("Outbox publish failed - outboxId: {}", outbox.getOutboxId(), exception);
+        }
+    }
+
+    public void publishFinalAttempt(Outbox outbox) {
+        outboxStatusUpdater.markFailed(outbox);
+        publish(outbox);
     }
 }

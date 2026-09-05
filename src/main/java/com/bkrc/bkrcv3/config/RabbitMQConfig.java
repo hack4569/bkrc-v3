@@ -46,7 +46,6 @@ public class RabbitMQConfig {
                 outboxStatusUpdater.delete(Long.valueOf(outboxId));
             } else {
                 log.warn("RabbitMQ NACK - outboxId: {}, cause: {}", outboxId, cause);
-                outboxStatusUpdater.markFailed(Long.valueOf(outboxId));
             }
         });
 
