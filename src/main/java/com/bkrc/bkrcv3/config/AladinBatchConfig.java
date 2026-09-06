@@ -6,6 +6,7 @@ import com.bkrc.bkrcv3.batch.AladinApiItemProcessor;
 import com.bkrc.bkrcv3.batch.AladinApiItemReader;
 import com.bkrc.bkrcv3.batch.AladinApiItemWriter;
 import com.bkrc.bkrcv3.batch.RefreshCacheTasklet;
+import com.bkrc.bkrcv3.exception.AladinClientException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -50,6 +51,7 @@ public class AladinBatchConfig {
                 .writer(aladinApiItemWriter)
                 .faultTolerant()
                 .skip(Exception.class)
+                .noSkip(AladinClientException.class)
                 .skipLimit(50)
                 .build();
     }

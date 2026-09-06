@@ -63,6 +63,16 @@ token:
   secret: ${JWT_SECRET}
 
 resilience4j:
+  circuitbreaker:
+    instances:
+      aladinSearch:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
   ratelimiter:
     instances:
       aladin:

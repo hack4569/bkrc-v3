@@ -4,8 +4,9 @@ import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
 import com.bkrc.bkrcv3.aladin.application.response.AladinResponse;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
-import com.bkrc.bkrcv3.common.shared.ErrorCode;
+import com.bkrc.bkrcv3.exception.AladinClientException;
 import com.bkrc.bkrcv3.exception.BusinessException;
+import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import jakarta.annotation.PostConstruct;
@@ -66,7 +67,7 @@ public class AladinClient {
             return response.getBody();
         } catch (Exception e) {
             log.error("[알라딘] 에러 메세지 파싱 에러 errorMessage={}", e.getMessage(), e);
-            throw new BusinessException(ErrorCode.ALADIN_CLIENT_ERROR);
+            throw new AladinClientException(e);
         }
     }
 
