@@ -28,6 +28,7 @@ public class LikeEventHandler implements HotBookEventHandler<BookLikeEventPayloa
         likeService.createOrUpdate(
             payload.getBookId(),
             payload.getBookLikeCount(),
+            payload.getEventVersion(),
             ttl);
     }
 

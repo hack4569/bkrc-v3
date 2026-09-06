@@ -17,4 +17,5 @@ public class BookLikeEventPayload implements EventPayload {
     private Long memberId;
     private LocalDateTime createdAt;
     private Integer bookLikeCount;
+    private Long eventVersion;
 }
