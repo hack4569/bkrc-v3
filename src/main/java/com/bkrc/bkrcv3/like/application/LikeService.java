@@ -10,6 +10,7 @@ import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.common.shared.Snowflake;
 import com.bkrc.bkrcv3.config.RabbitMQConfig;
 import com.bkrc.bkrcv3.exception.BusinessException;
+import com.bkrc.bkrcv3.exception.MemberNotFoundException;
 import com.bkrc.bkrcv3.like.application.response.LikeResponse;
 import com.bkrc.bkrcv3.like.application.response.MyLikeResponse;
 import com.bkrc.bkrcv3.like.entity.Like;
@@ -66,10 +67,11 @@ public class LikeService {
             throw new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS);
         }
 
-        AladinBook likeItem = aladinService.getAladinBook(itemId);
-        var memberRef = memberRepository.findById(memberId);
+        AladinBook likeItem = aladinBookRepository.findById(itemId).orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException(memberId));
 
-        likeRepository.save(Like.create(snowflake.nextId(), likeItem, memberRef.get()));
+        likeRepository.save(Like.create(snowflake.nextId(), likeItem, member));
 
         LikeCount myLikeCount = likeCountRepository.findByItemId(itemId).orElse(LikeCount.create(itemId, 0));
         myLikeCount.increase();

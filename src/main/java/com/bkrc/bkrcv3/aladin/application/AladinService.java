@@ -208,6 +208,13 @@ public class AladinService {
         }
     }
 
+    public AladinBook settingAladinDetail(String isbn13) {
+        var aladinDetail = aladinClient.bookDetail(AladinRequest.create(isbn13));
+        //코멘트 세팅
+        aladinDetail.settingBookCommentList(ai);
+        return aladinDetail;
+    }
+
     // fallback: 제한 걸렸거나 대기 시간 초과 시 호출 (선택)
     private List<AladinBook> getApiFallback(AladinRequest aladinRequest, List<AladinBookResponse> registeredBooks, Throwable t) {
         return showError(t);
