@@ -22,7 +22,6 @@ const likeSuccesses = new Counter('like_successes');
 const likeFailures = new Counter('like_failures');
 const likeResponseTime = new Trend('like_response_time_ms', true);
 const likeErrorRate = new Rate('like_error_rate');
-const observedLikeCount = new Trend('observed_like_count');
 
 export const options = {
     scenarios: {
@@ -88,16 +87,7 @@ export default function () {
     const success = check(response, {
         '좋아요 응답이 200이다': (res) => res.status === 200,
         '응답 itemId가 일치한다': (res) => parseBody(res)?.itemId === ITEM_ID,
-        '응답 likeCount가 유효하다': (res) => {
-            const count = parseBody(res)?.likeCount;
-            return Number.isInteger(count) && count >= 1 && count <= EXPECTED_REQUESTS;
-        },
     });
-
-    const responseLikeCount = parseBody(response)?.likeCount;
-    if (Number.isInteger(responseLikeCount)) {
-        observedLikeCount.add(responseLikeCount);
-    }
 
     likeErrorRate.add(!success);
     if (success) {
@@ -118,7 +108,6 @@ export function handleSummary(data) {
     const succeeded = value(data, 'like_successes', 'count');
     const failed = value(data, 'like_failures', 'count');
     const dropped = value(data, 'dropped_iterations', 'count');
-    const observedMaxCount = value(data, 'observed_like_count', 'max');
 
     const summary = {
         test: {
@@ -145,11 +134,13 @@ export function handleSummary(data) {
         },
         consistency: {
             expectedLikeCount: EXPECTED_REQUESTS,
-            maxLikeCountObservedInResponse: observedMaxCount,
             allRequestsSent: sent === EXPECTED_REQUESTS && dropped === 0,
             allRequestsSucceeded: succeeded === EXPECTED_REQUESTS && failed === 0,
-            responseCountMatched: observedMaxCount === EXPECTED_REQUESTS,
-            databaseCheck: 'Run load-test/like_consistency_verify.sql',
+            databaseCheck: 'Run load-test/like_consistency_verify.sql after the queue is empty',
+            redisKeys: [
+                `hot-book::book::${ITEM_ID}::like-count`,
+                `hot-book::book::${ITEM_ID}::like-count::version`,
+            ],
         },
     };
 

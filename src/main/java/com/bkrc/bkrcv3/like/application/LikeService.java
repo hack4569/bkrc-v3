@@ -14,7 +14,6 @@ import com.bkrc.bkrcv3.exception.MemberNotFoundException;
 import com.bkrc.bkrcv3.like.application.response.LikeResponse;
 import com.bkrc.bkrcv3.like.application.response.MyLikeResponse;
 import com.bkrc.bkrcv3.like.entity.Like;
-import com.bkrc.bkrcv3.like.entity.LikeCount;
 import com.bkrc.bkrcv3.member.application.MemberRepository;
 import com.bkrc.bkrcv3.member.entity.Member;
 import com.bkrc.bkrcv3.outbox.Outbox;
@@ -29,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -44,7 +44,6 @@ public class LikeService {
     private final ApplicationEventPublisher eventPublisher;
     private final StringRedisTemplate redisTemplate;
     private static final String KEY_FORMAT = "hot-book::book::%s::like-count";
-    private final LikeCountRepository likeCountRepository;
     private final AladinService aladinService;
     private final AladinBookRepository aladinBookRepository;
     private final Snowflake snowflake;
@@ -72,12 +71,8 @@ public class LikeService {
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
 
         likeRepository.save(Like.create(snowflake.nextId(), likeItem, member));
-
-        LikeCount myLikeCount = likeCountRepository.findByItemId(itemId).orElse(LikeCount.create(itemId, 0));
-        myLikeCount.increase();
-        likeCountRepository.save(myLikeCount);
-        publishLikeCountChanged(myLikeCount, memberId);
-        return LikeResponse.from(itemId, myLikeCount.getLikeCount());
+        publishLikeCountChanged(itemId, memberId, 1);
+        return LikeResponse.from(itemId);
     }
 
     public boolean createOrUpdate(Integer bookId, Integer likeCount, Long eventVersion, Duration ttl) {
@@ -111,11 +106,8 @@ public class LikeService {
         if (myLike.isEmpty()) {
             throw new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS);
         }
-        LikeCount myLikeCount = likeCountRepository.findByItemId(itemId).orElseThrow(()-> new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS));
-        myLikeCount.decrease();
-        likeCountRepository.save(myLikeCount);
         likeRepository.deleteById(myLike.get().getLikeId());
-        publishLikeCountChanged(myLikeCount, memberId);
+        publishLikeCountChanged(itemId, memberId, -1);
 //        Like result = likeRepository.save(Like.create(snowflake.nextId(), itemId, loginId));
 //
 //        LikeCount myLikeCount = likeCountRepository.findByItemId(itemId).orElse(LikeCount.create(itemId, 0));
@@ -138,7 +130,7 @@ public class LikeService {
 //        return LikeResponse.from(result, likeCount.getLikeCount());
     }
 
-    private void publishLikeCountChanged(LikeCount likeCount, Long memberId) {
+    private void publishLikeCountChanged(Integer itemId, Long memberId, int delta) {
         Outbox outbox = outboxRepository.save(Outbox.of(
                 EventType.BOOK_LIKE,
                 RabbitMQConfig.HOTBOOK_DIRECT_EXCHANGE,
@@ -146,9 +138,9 @@ public class LikeService {
                 Event.of(EventType.BOOK_LIKE,
                         BookLikeEventPayload.builder()
                                 .memberId(memberId)
-                                .bookLikeCount(likeCount.getLikeCount())
-                                .bookId(likeCount.getItemId())
-                                .eventVersion(likeCount.getEventVersion())
+                                .bookId(itemId)
+                                .delta(delta)
+                                .createdAt(LocalDateTime.now())
                                 .build()
                 ).toJson()
         ));

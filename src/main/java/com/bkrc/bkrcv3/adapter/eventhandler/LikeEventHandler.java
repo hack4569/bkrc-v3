@@ -4,7 +4,7 @@ import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.common.event.EventType;
 import com.bkrc.bkrcv3.adapter.payload.BookLikeEventPayload;
 import com.bkrc.bkrcv3.required.HotBookEventHandler;
-import com.bkrc.bkrcv3.like.application.LikeService;
+import com.bkrc.bkrcv3.like.application.LikeCountEventProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ import java.time.LocalTime;
 @Slf4j
 @RequiredArgsConstructor
 public class LikeEventHandler implements HotBookEventHandler<BookLikeEventPayload> {
-    private final LikeService likeService;
+    private final LikeCountEventProcessor likeCountEventProcessor;
 
     @Override
     public void handle(Event<BookLikeEventPayload> event) {
@@ -25,11 +25,7 @@ public class LikeEventHandler implements HotBookEventHandler<BookLikeEventPayloa
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime midnight = now.plusDays(1).with(LocalTime.MIDNIGHT);
         var ttl = Duration.between(now, midnight);
-        likeService.createOrUpdate(
-            payload.getBookId(),
-            payload.getBookLikeCount(),
-            payload.getEventVersion(),
-            ttl);
+        likeCountEventProcessor.process(payload, ttl);
     }
 
     @Override

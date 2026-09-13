@@ -1,0 +1,34 @@
+{
+  "test": {
+    "itemId": 60471,
+    "targetRequests": 5000,
+    "ratePerSecond": 500,
+    "durationSeconds": 10,
+    "jwtBypassed": false
+  },
+  "requests": {
+    "sent": 5000,
+    "succeeded": 5000,
+    "failed": 0,
+    "dropped": 0,
+    "httpFailureRate": 0
+  },
+  "responseTimeMs": {
+    "average": 502.89,
+    "median": 309.25,
+    "p90": 1435.61,
+    "p95": 1582.21,
+    "p99": 0,
+    "max": 2435.89
+  },
+  "consistency": {
+    "expectedLikeCount": 5000,
+    "allRequestsSent": true,
+    "allRequestsSucceeded": true,
+    "databaseCheck": "Run load-test/like_consistency_verify.sql after the queue is empty",
+    "redisKeys": [
+      "hot-book::book::60471::like-count",
+      "hot-book::book::60471::like-count::version"
+    ]
+  }
+}

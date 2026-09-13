@@ -38,4 +38,8 @@ out/
 
 /logs
 
+# Local load-test data and results
+/load-test/member-ids.json
+/load-test/like-test-PESSIMISTIC-summary.json
+
 .env
