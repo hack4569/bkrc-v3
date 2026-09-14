@@ -11,6 +11,8 @@ import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
 import com.bkrc.bkrcv3.aladin.entity.BookComment;
 import com.bkrc.bkrcv3.aladin.entity.Category;
+import com.bkrc.bkrcv3.aladin.entity.MdRecommend;
+import com.bkrc.bkrcv3.aladin.entity.Phrase;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.exception.AladinClientException;
@@ -211,8 +213,65 @@ public class AladinService {
     public AladinBook settingAladinDetail(String isbn13) {
         var aladinDetail = aladinClient.bookDetail(AladinRequest.create(isbn13));
         //코멘트 세팅
-        aladinDetail.settingBookCommentList(ai);
+        this.filterContentsByAi(aladinDetail);
         return aladinDetail;
+    }
+
+    //ai 적용
+    private void filterContentsByAi(AladinBook aladinDetail) {
+        List<BookComment> bookCommentList = new ArrayList<>();
+
+        String description = aladinDetail.getDescForRecommend();
+        if (StringUtils.hasText(description)) {
+            var summary = ai.summarizeDescriptions(description);
+            if (StringUtils.hasText(summary.overview())) {
+                bookCommentList.add(BookComment.create(summary.overview(), "description"));
+            }
+            if (StringUtils.hasText(summary.insight())) {
+                bookCommentList.add(BookComment.create(summary.insight(), "descriptionInsight"));
+            }
+        }
+
+        List<MdRecommend> mdRecommendList = aladinDetail.getSubInfo().getMdRecommendList();
+        if (!ObjectUtils.isEmpty(mdRecommendList)) {
+            for (MdRecommend mdRecommend : mdRecommendList) {
+                bookCommentList.add(BookComment.create(ai.filteringContent(mdRecommend.getComment()), "mdRecommend"));
+            }
+        }
+
+        List<String> recommendations = ai.getRecommend(aladinDetail.getTitle());
+        if (!CollectionUtils.isEmpty(recommendations)) {
+            bookCommentList.add(BookComment.create(String.join("<br>", recommendations), "aiRecommend"));
+        }
+
+        List<Phrase> phraseList = aladinDetail.getSubInfo().getPhraseList();
+        if (!ObjectUtils.isEmpty(phraseList)) {
+            for (int i = 1; i < phraseList.size(); i++) {
+                String filteredPhrase = stripHtmlTags(phraseList.get(i).getPhrase());
+                if (!StringUtils.hasText(filteredPhrase)) continue;
+
+                String[] phrases = filteredPhrase.split("\\.");
+                StringBuilder phraseContent = new StringBuilder();
+                int phraseCount = Math.min(phrases.length, RcmdConst.paragraphSlide);
+                for (int j = 0; j < phraseCount; j++) {
+                    phraseContent.append(phrases[j]).append(". ");
+                }
+                bookCommentList.add(BookComment.create(phraseContent.toString(), "phrase"));
+            }
+        }
+
+        String toc = aladinDetail.getSubInfo().getToc();
+        if (StringUtils.hasText(toc)) {
+            String filteredToc = toc.replaceAll("<(/)?([pP]*)(\\s[pP]*=[^>]*)?(\\s)*(/)?>", "");
+            bookCommentList.add(BookComment.create(filteredToc, "toc"));
+        }
+
+        aladinDetail.settingBookCommentList(bookCommentList);
+    }
+
+    private String stripHtmlTags(String value) {
+        if (!StringUtils.hasText(value)) return "";
+        return value.replaceAll("<[^>]*>", "");
     }
 
     // fallback: 제한 걸렸거나 대기 시간 초과 시 호출 (선택)

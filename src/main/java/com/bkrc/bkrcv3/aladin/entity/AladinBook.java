@@ -3,9 +3,7 @@ package com.bkrc.bkrcv3.aladin.entity;
 import com.bkrc.bkrcv3.history.entity.History;
 import java.util.Objects;
 import com.bkrc.bkrcv3.like.entity.Like;
-import com.bkrc.bkrcv3.required.Ai;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
-import com.bkrc.bkrcv3.common.constants.RcmdConst;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,19 +11,14 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "알라딘 도서 엔티티")
@@ -33,7 +26,6 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Slf4j
 @Table(name="aladin_book")
 public class AladinBook {
 
@@ -144,35 +136,9 @@ public class AladinBook {
         return book;
     }
 
-    public void settingBookCommentList(Ai ai) {
-        List<BookComment> bookCommentList = new ArrayList<>();
-
-        //책소개
-        this.setUserBookDesc(ai, bookCommentList);
-        //편집자 추천
-        this.setUserMdRecommend(ai, bookCommentList);
-        //ai 추천
-        this.setAiRecommend(ai, bookCommentList);
-        //책 속에서
-        this.setUserPhrase(bookCommentList);
-        //목차
-        this.setUserToc(bookCommentList);
+    public void settingBookCommentList(List<BookComment> bookCommentList) {
         bookCommentList.forEach(i -> i.setAladinBook(this));
         this.bookCommentList = bookCommentList;
-    }
-
-    private void setAiRecommend(Ai ai, List<BookComment> bookCommentList) {
-        List<String> recommendations = ai.getRecommend(this.getTitle());
-        if (!CollectionUtils.isEmpty(recommendations)) {
-            String aiRecommend = "";
-            if (recommendations.size() > 1) {
-                aiRecommend += recommendations.stream().collect(Collectors.joining("<br>"));
-            } else {
-                aiRecommend = recommendations.get(0);
-            }
-            log.info("AladinBook aiRecommend: " + aiRecommend);
-            bookCommentList.add(BookComment.create(aiRecommend, "aiRecommend"));
-        }
     }
 
     /** 허용된 카테고리 집합에 포함되는지 (도메인 규칙) */
@@ -214,70 +180,12 @@ public class AladinBook {
         };
         return historyFilter;
     }
-    /** HTML 태그 제거 (도메인 내부 유틸) */
-    private static String stripHtmlTags(String originStr) {
-        if (originStr == null || originStr.isEmpty()) {
-            return "";
-        }
-        return originStr.replaceAll("<[^>]*>", "");
-    }
-
-    private void setUserMdRecommend(Ai ai, List<BookComment> bookCommentList) {
-        List<MdRecommend> mdRecommendList = this.getSubInfo().getMdRecommendList();
-        if (!ObjectUtils.isEmpty(mdRecommendList)) {
-            for (MdRecommend mdRecommend : mdRecommendList) {
-                this.filterDescriptionByAi(ai, mdRecommend.getComment(), bookCommentList, "mdRecommend");
-            }
-        }
-    }
-
-    private void filterDescriptionByAi(Ai ai, String comment, List<BookComment> bookCommentList, String type) {
-        bookCommentList.add(BookComment.create(ai.filteringContent(comment), type));
-    }
-
-    private void setUserBookDesc(Ai ai, List<BookComment> bookCommentList) {
+    public String getDescForRecommend() {
         String fullDescription = StringUtils.hasText(this.getFullDescription2()) ? this.getFullDescription2() : this.getFullDescription();
         if (StringUtils.hasText(fullDescription)) {
-            var summary = ai.summarizeDescriptions(fullDescription);
-            if (StringUtils.hasText(summary.overview())) {
-                bookCommentList.add(BookComment.create(summary.overview(), "description"));
-            }
-            if (StringUtils.hasText(summary.insight())) {
-                bookCommentList.add(BookComment.create(summary.insight(), "descriptionInsight"));
-            }
+            return fullDescription;
         }
-    }
-
-    private void setUserToc(List<BookComment> bookCommentList) {
-        String toc = this.getSubInfo().getToc();
-        if (StringUtils.hasText(toc)) {
-            toc = toc.replaceAll("<(/)?([pP]*)(\\s[pP]*=[^>]*)?(\\s)*(/)?>", "");
-            bookCommentList.add(BookComment.create(toc, "toc"));
-        }
-    }
-
-    private void setUserPhrase(List<BookComment> bookCommentList) {
-        Phrase phrase;
-        if (!ObjectUtils.isEmpty(this.getSubInfo().getPhraseList())) {
-            int phraseLen = this.getSubInfo().getPhraseList().size();
-            //j==0일 경우 이미지 확률이 높음
-            for (int j = 1; j < phraseLen; j++) {
-
-                phrase = this.getSubInfo().getPhraseList().get(j);
-                String filteredPhrase = stripHtmlTags(phrase.getPhrase());
-                if (!StringUtils.hasText(filteredPhrase)) {
-                    continue;
-                }
-                String[] phraseArr = filteredPhrase.split("\\.");
-                StringBuilder phraseContent = new StringBuilder();
-                int phraseArrLen = phraseArr.length < RcmdConst.paragraphSlide ? phraseArr.length : RcmdConst.paragraphSlide;
-                for (int k = 0; k < phraseArrLen; k++) {
-                    phraseContent.append(phraseArr[k])
-                            .append(". ");
-                }
-                bookCommentList.add(BookComment.create(phraseContent.toString(), "phrase"));
-            }
-        }
+        return null;
     }
 
 }

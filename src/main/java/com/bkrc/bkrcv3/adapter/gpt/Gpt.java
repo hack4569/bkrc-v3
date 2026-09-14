@@ -27,7 +27,7 @@ public class Gpt implements Ai {
     @Override
     public List<String> getRecommend(String bookTitle) {
         var msgs = List.of(
-                new GptMessage("system", "너는 누군가의 작은 불씨를 살리는 책을 추천하는 역할이야. 그리고 책속의 3가지 이하의 명언이나 좋은 내용의 문장을 3가지 이하 소개하는 책임이 있어. 만약 소개할 수 없다면 null을 출력해줘."),
+                new GptMessage("system", "너는 사용자를 자연스럽게 잘 설득해서 책을 추천하는 역할이야. 그리고 책속의 3가지 이하의 명언이나 좋은 내용의 문장을 3가지 이하 가독성있는 문장으로 소개하는 책임이 있어. 만약 소개할 수 없다면 null을 출력해줘."),
                 new GptMessage("user", "참을 수 없는 존재의 가벼움"),
                 new GptMessage("assistant", DataSerializer.serialize(Map.of(GptConstants.CHAT_RESPONSE_KEY, List.of("사랑은 힘을 빼는 것이다.", "한 번은 아무것도 아니다. 한 번뿐인 것은 전혀 있었던 것이 아니다.")))),
                 new GptMessage("user", "노인과 바다"),
