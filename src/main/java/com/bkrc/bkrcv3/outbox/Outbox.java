@@ -43,11 +43,6 @@ public class Outbox {
         return outbox;
     }
 
-    public void markPublished() {
-        this.outboxStatus = OutboxStatus.PUBLISHED;
-        this.publishedAt = LocalDateTime.now();
-    }
-
     public void markFailed() {
         this.outboxStatus = OutboxStatus.FAILED;
     }
