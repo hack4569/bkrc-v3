@@ -21,7 +21,7 @@ import com.bkrc.bkrcv3.member.application.response.MemberInfoResponse;
 import com.bkrc.bkrcv3.member.dto.MemberDto;
 import com.bkrc.bkrcv3.member.entity.Member;
 import com.bkrc.bkrcv3.member.entity.PasswordEncoder;
-import com.bkrc.bkrcv3.recommendation.application.RecommendationService;
+import com.bkrc.bkrcv3.recommendation.application.MemberRecommendationService;
 import com.bkrc.bkrcv3.outbox.Outbox;
 import com.bkrc.bkrcv3.outbox.OutboxEvent;
 import com.bkrc.bkrcv3.outbox.OutboxRepository;
@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
     private final ApplicationEventPublisher eventPublisher;
     private final Snowflake snowflake;
     private final LikeService likeService;
-    private final RecommendationService recommendationService;
+    private final MemberRecommendationService memberRecommendationService;
 
     @Override
     @Transactional
@@ -103,7 +103,7 @@ public class UserServiceImpl implements UserService {
         return MemberInfoResponse.of(
             member.getLoginId(),
             likeService.getMyLikes(member),
-            recommendationService.getMyRecommendations(member)
+            memberRecommendationService.getMyRecommendations(member)
         );
 
     }

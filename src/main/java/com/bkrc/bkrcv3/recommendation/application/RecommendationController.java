@@ -11,24 +11,24 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 public class RecommendationController {
-    private final RecommendationService recommendationService;
+    private final MemberRecommendationService memberRecommendationService;
 
     @PostMapping("/v1/aladin/books/recommend/user")
     public MyRecommendationResponse create(@AuthenticationPrincipal Long memberId,
                                            @RequestBody @Valid CreateRecommendationRequest request) {
-        return recommendationService.create(memberId, request);
+        return memberRecommendationService.create(memberId, request);
     }
 
     @GetMapping("/v1/aladin/books/recommend/{itemId}")
     public MyRecommendationResponse get(@AuthenticationPrincipal Long memberId,
                                         @PathVariable Integer itemId) {
-        return recommendationService.get(memberId, itemId);
+        return memberRecommendationService.get(memberId, itemId);
     }
 
     @PutMapping("/v1/aladin/books/recommend/{itemId}")
     public MyRecommendationResponse update(@AuthenticationPrincipal Long memberId,
                                            @PathVariable Integer itemId,
                                            @RequestBody @Valid UpdateRecommendationRequest request) {
-        return recommendationService.update(memberId, itemId, request.recommendation());
+        return memberRecommendationService.update(memberId, itemId, request.recommendation());
     }
 }

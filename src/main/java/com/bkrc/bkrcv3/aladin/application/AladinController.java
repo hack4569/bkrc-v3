@@ -28,6 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AladinController {
     private final AladinService aladinService;
+    private final BookRecommendationService bookRecommendationService;
 
     @Operation(summary = "사용자 맞춤 도서 추천 조회",
             description = "로그인된 사용자의 열람 이력을 기반으로 추천 도서 목록을 반환합니다.")
@@ -47,7 +48,7 @@ public class AladinController {
     public List<RecommendView> getRecommendbooksForUser(
             @Parameter(hidden = true) @AuthenticationPrincipal Long memberId) {
         AladinRecommendForUserRequest request = new AladinRecommendForUserRequest();
-        List<RecommendView> recommendViewList = aladinService.getRecommendBooksForUser(memberId, request);
+        List<RecommendView> recommendViewList = bookRecommendationService.getRecommendBooksForUser(memberId, request);
         return recommendViewList;
     }
 

@@ -102,12 +102,4 @@ public class AladinClient {
 
         return this.getApi(AladinConstants.ITEM_SEARCH, request);
     }
-
-    private List<AladinBookSearchResponse> searchBooksFallback(String query, Throwable throwable) {
-        log.error("[알라딘] 책 검색 Circuit Breaker fallback query={}", query, throwable);
-        if (throwable instanceof AladinClientException aladinClientException) {
-            throw aladinClientException;
-        }
-        throw new AladinClientException(throwable);
-    }
 }
