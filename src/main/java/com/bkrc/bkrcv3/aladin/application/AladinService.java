@@ -6,45 +6,33 @@ import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookPageResponse;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookSearchResponse;
+import com.bkrc.bkrcv3.aladin.application.response.AladinResponse;
 import com.bkrc.bkrcv3.aladin.client.AladinClient;
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
-import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
-import com.bkrc.bkrcv3.aladin.entity.BookComment;
-import com.bkrc.bkrcv3.aladin.entity.Category;
-import com.bkrc.bkrcv3.aladin.entity.MdRecommend;
-import com.bkrc.bkrcv3.aladin.entity.Phrase;
+import com.bkrc.bkrcv3.aladin.entity.*;
+import com.bkrc.bkrcv3.aladin.infrastructure.cache.AladinBookCache;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
-import com.bkrc.bkrcv3.exception.AladinClientException;
 import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.history.application.HistoryService;
 import com.bkrc.bkrcv3.history.entity.History;
 import com.bkrc.bkrcv3.member.application.response.RecommendView;
 import com.bkrc.bkrcv3.required.Ai;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
-import io.micrometer.core.instrument.Counter;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import java.time.Duration;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class AladinService {
 
-    private static final String CACHE_KEY_ALL_BOOKS = "aladin:books:all";
-    private static final Duration CACHE_TTL = Duration.ofHours(24);
     private static final Map<String, Integer> COMMENT_TYPE_ORDER = Map.of(
             "phrase", 6,
             "description", 3,
@@ -56,14 +44,10 @@ public class AladinService {
     );
     private final AladinClient aladinClient;
     private final Ai ai;
-    private final AladinBookRepository aladinBookRepository;
     private final HistoryService historyService;
-    private final CategoryService categoryService;
-    private final StringRedisTemplate redisTemplate;
-    private final ObjectMapper objectMapper;
+    private final AladinBookRepository aladinBookRepository;
     private final AladinMapper aladinMapper;
-    private final Counter cacheHitCounter;
-    private final Counter cacheMissCounter;
+    private final AladinBookCache aladinBookCache;
 
     public List<AladinBook> getAladinItemList(AladinRequest aladinRequest) {
         return aladinClient.getApi(AladinConstants.ITEM_LIST, aladinRequest).getItem();
@@ -71,16 +55,7 @@ public class AladinService {
 
     @CircuitBreaker(name = "aladinSearch", fallbackMethod = "searchBooksFallback")
     public List<AladinBookSearchResponse> searchBooks(String query) {
-        AladinRequest request = AladinRequest.builder()
-                .query(query.trim())
-                .querytype("Keyword")
-                .searchTarget("Book")
-                .maxResults(10)
-                .start(1)
-                .cover("MidBig")
-                .build();
-
-        var response = aladinClient.getApi(AladinConstants.ITEM_SEARCH, request);
+        AladinResponse response = aladinClient.searchBooks(query);
         if (response == null || CollectionUtils.isEmpty(response.getItem())) {
             return List.of();
         }
@@ -90,34 +65,23 @@ public class AladinService {
                 .toList();
     }
 
-    private List<AladinBookSearchResponse> searchBooksFallback(String query, Throwable throwable) {
-        log.error("[알라딘] 책 검색 Circuit Breaker fallback query={}", query, throwable);
-        if (throwable instanceof AladinClientException aladinClientException) {
-            throw aladinClientException;
-        }
-        throw new AladinClientException(throwable);
+    public AladinBookPageResponse findAll() {
+        return aladinBookCache.find()
+                .orElseGet(() -> {
+                    AladinBookPageResponse response = findAllFromDb();
+                    aladinBookCache.save(response);
+                    return response;
+                });
     }
 
-    public AladinBookPageResponse findAll() {
-        try {
-            String cached = redisTemplate.opsForValue().get(CACHE_KEY_ALL_BOOKS);
-            var result = objectMapper.readValue(cached, AladinBookPageResponse.class);
-            cacheHitCounter.increment();
-            if (result.getCount() > 0) return result;
-        } catch (Exception e) {
-            log.warn("[알라딘] 캐시 조회 실패, DB에서 조회합니다. key={}", CACHE_KEY_ALL_BOOKS, e);
-        }
-
-        cacheMissCounter.increment();
-        var response = findAllFromDb();
-
-        try {
-            String json = objectMapper.writeValueAsString(response);
-            redisTemplate.opsForValue().set(CACHE_KEY_ALL_BOOKS, json, CACHE_TTL);
-        } catch (Exception e) {
-            log.warn("[알라딘] 캐시 저장 실패. key={}", CACHE_KEY_ALL_BOOKS, e);
-        }
-        return response;
+    private AladinBookPageResponse findAllFromDb() {
+        var aladinBooks = aladinBookRepository.findAllWithBookComments();
+        return AladinBookPageResponse.of(
+                aladinBooks.stream()
+                        .map(aladinMapper::toResponse)
+                        .toList(),
+                aladinBooks.size()
+        );
     }
 
     public List<AladinBook> findAll(AladinBookPageResponse aladinBookPageResponse) {
@@ -125,13 +89,6 @@ public class AladinService {
         return aladinBookPageResponse.getAladinBookResponseList().stream()
                 .map(AladinBook::toEntity)
                 .toList();
-    }
-
-    public AladinBookPageResponse findAllFromDb() {
-        var aladinBooks = aladinBookRepository.findAllWithBookComments();
-        return AladinBookPageResponse.of(
-                aladinBooks.stream().map(aladinMapper::toResponse).toList(),
-                aladinBooks.size());
     }
 
     public AladinBook getAladinBook(Integer itemId) {
@@ -198,16 +155,6 @@ public class AladinService {
                 .filter(AladinBook.historyFilter(historyList))
                 .toList();
         return aladinBooks;
-    }
-
-    public void saveListForRedis(List<AladinBook> successList) {
-        try {
-            var response = AladinBookPageResponse.of(successList.stream().map(aladinMapper::toResponse).toList(), successList.size());
-            String json = objectMapper.writeValueAsString(response);
-            redisTemplate.opsForValue().set(CACHE_KEY_ALL_BOOKS, json, CACHE_TTL);
-        } catch (Exception e) {
-            log.warn("[알라딘] 캐시 저장 실패. key={}", CACHE_KEY_ALL_BOOKS, e);
-        }
     }
 
     public AladinBook settingAladinDetail(String isbn13) {
@@ -291,5 +238,16 @@ public class AladinService {
     public List<AladinBook> getAladinBooksByItemIds(Collection<Integer> itemIds) {
         if (CollectionUtils.isEmpty(itemIds)) return List.of();
         return aladinBookRepository.findAllByItemIdIn(itemIds);
+    }
+
+    public void saveListForRedis(List<AladinBook> diverseBooks) {
+        AladinBookPageResponse response = AladinBookPageResponse.of(
+                diverseBooks.stream()
+                        .map(aladinMapper::toResponse)
+                        .toList(),
+                diverseBooks.size()
+        );
+
+        aladinBookCache.save(response);
     }
 }

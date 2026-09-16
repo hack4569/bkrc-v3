@@ -1,6 +1,7 @@
 package com.bkrc.bkrcv3.aladin.client;
 
 import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
+import com.bkrc.bkrcv3.aladin.application.response.AladinBookSearchResponse;
 import com.bkrc.bkrcv3.aladin.application.response.AladinResponse;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
@@ -9,6 +10,7 @@ import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +20,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestClient;
 
 import java.nio.charset.StandardCharsets;
@@ -85,5 +88,26 @@ public class AladinClient {
         var aladinbook = aladinBooks.get(0);
 
         return aladinbook;
+    }
+
+    public AladinResponse searchBooks(String query) {
+        AladinRequest request = AladinRequest.builder()
+                .query(query.trim())
+                .querytype("Keyword")
+                .searchTarget("Book")
+                .maxResults(10)
+                .start(1)
+                .cover("MidBig")
+                .build();
+
+        return this.getApi(AladinConstants.ITEM_SEARCH, request);
+    }
+
+    private List<AladinBookSearchResponse> searchBooksFallback(String query, Throwable throwable) {
+        log.error("[알라딘] 책 검색 Circuit Breaker fallback query={}", query, throwable);
+        if (throwable instanceof AladinClientException aladinClientException) {
+            throw aladinClientException;
+        }
+        throw new AladinClientException(throwable);
     }
 }
