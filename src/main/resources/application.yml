@@ -19,6 +19,9 @@ spring:
     publisher-confirm-type: correlated
     listener:
       simple:
+        concurrency: 2
+        max-concurrency: 4
+        prefetch: 10
         acknowledge-mode: auto
         retry:
           enabled: true # 재시도 활성화
@@ -33,14 +36,14 @@ spring:
     password: ${DB_PASSWORD}
     hikari:
       maximum-pool-size: 5        # 최대 커넥션 수
-      connection-timeout: 5000     # 커넥션 못 얻으면 3초 후 에러 (ms)
+      connection-timeout: 5000     # 커넥션 못 얻으면 5초 후 에러 (ms)
       idle-timeout: 600000         # 놀고있는 커넥션 10분 후 반납 (ms)
       max-lifetime: 1800000        # 커넥션 최대 수명 30분 (ms)
       pool-name: bkrc-pool
 
   # JPA config
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: update
       naming:
@@ -58,14 +61,26 @@ gpt:
   host: https://api.openai.com
   api_key: ${GPT_API_KEY}
   organization: org-Rsp89ak5ICmT0kiJZX9MlO4B
+
+external-api:
+  aladin:
+    connect-timeout: 3s
+    read-timeout: 5s
+  gpt:
+    connect-timeout: 5s
+    read-timeout: 60s
+
 token:
   expiration-time: 86400000 #10 days
   secret: ${JWT_SECRET}
 
+load-test:
+  auth-bypass-enabled: ${LOAD_TEST_AUTH_BYPASS_ENABLED:false}
+
 resilience4j:
   circuitbreaker:
     instances:
-      aladinSearch:
+      aladin:
         slidingWindowType: COUNT_BASED
         slidingWindowSize: 20
         minimumNumberOfCalls: 10
@@ -73,6 +88,22 @@ resilience4j:
         waitDurationInOpenState: 30s
         permittedNumberOfCallsInHalfOpenState: 3
         automaticTransitionFromOpenToHalfOpenEnabled: true
+      gpt:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 2
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+  retry:
+    instances:
+      aladin:
+        maxAttempts: 2
+        waitDuration: 200ms
+      gpt:
+        maxAttempts: 2
+        waitDuration: 500ms
   ratelimiter:
     instances:
       aladin:
@@ -96,5 +127,5 @@ management:
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: OFF

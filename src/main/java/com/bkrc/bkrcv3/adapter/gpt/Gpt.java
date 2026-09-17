@@ -9,6 +9,8 @@ import com.bkrc.bkrcv3.adapter.gpt.response.GptResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -25,6 +27,8 @@ public class Gpt implements Ai {
     private final ObjectMapper objectMapper;
 
     @Override
+    @Retry(name = "gpt")
+    @CircuitBreaker(name = "gpt", fallbackMethod = "getRecommendFallback")
     public List<String> getRecommend(String bookTitle) {
         var msgs = List.of(
                 new GptMessage("system", "너는 사용자를 자연스럽게 잘 설득해서 책을 추천하는 역할이야. 그리고 책속의 3가지 이하의 명언이나 좋은 내용의 문장을 3가지 이하 가독성있는 문장으로 소개하는 책임이 있어. 만약 소개할 수 없다면 null을 출력해줘."),
@@ -39,6 +43,8 @@ public class Gpt implements Ai {
     }
 
     @Override
+    @Retry(name = "gpt")
+    @CircuitBreaker(name = "gpt", fallbackMethod = "filteringContentFallback")
     public String filteringContent(String comment) {
         var msgs = List.of(
                 new GptMessage("system", "너는 누군가의 인생에서 기억될 수 있는 책을 추천하는 역할이야. 그리고 내가 말해준 아래 책 내용에 대해 사용자가 읽었을때 구매할 수 있도록 단백한 문장으로 요약하는 책임이 있어"),
@@ -95,6 +101,8 @@ public class Gpt implements Ai {
     }
 
     @Override
+    @Retry(name = "gpt")
+    @CircuitBreaker(name = "gpt", fallbackMethod = "summarizeDescriptionsFallback")
     public BookDescriptionSummary summarizeDescriptions(String comment) {
         var msgs = List.of(
                 new GptMessage("system", """
@@ -168,6 +176,21 @@ public class Gpt implements Ai {
         if (CollectionUtils.isEmpty(gptResponse.getChoices())) return Optional.empty();
         return Optional.ofNullable(gptResponse.getChoices().get(0).getMessage())
                 .map(msg -> msg.content());
+    }
+
+    private List<String> getRecommendFallback(String bookTitle, Throwable throwable) {
+        log.warn("[GPT] 추천 문구 생성 fallback bookTitle={}", bookTitle, throwable);
+        return List.of();
+    }
+
+    private String filteringContentFallback(String comment, Throwable throwable) {
+        log.warn("[GPT] 콘텐츠 요약 fallback", throwable);
+        return "";
+    }
+
+    private BookDescriptionSummary summarizeDescriptionsFallback(String comment, Throwable throwable) {
+        log.warn("[GPT] 책 소개 요약 fallback", throwable);
+        return BookDescriptionSummary.empty();
     }
 
 

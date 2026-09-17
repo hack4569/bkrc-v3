@@ -11,6 +11,7 @@ import com.bkrc.bkrcv3.common.constants.RcmdConst;
 import com.bkrc.bkrcv3.exception.AladinClientException;
 import com.bkrc.bkrcv3.required.Ai;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,11 +32,14 @@ public class AladinService {
     private final AladinMapper aladinMapper;
     private final AladinBookCache aladinBookCache;
 
+    @Retry(name = "aladin")
+    @CircuitBreaker(name = "aladin", fallbackMethod = "getAladinItemListFallback")
     public List<AladinBook> getAladinItemList(AladinRequest aladinRequest) {
         return aladinClient.getApi(AladinConstants.ITEM_LIST, aladinRequest).getItem();
     }
 
-    @CircuitBreaker(name = "aladinSearch", fallbackMethod = "searchBooksFallback")
+    @Retry(name = "aladin")
+    @CircuitBreaker(name = "aladin", fallbackMethod = "searchBooksFallback")
     public List<AladinBookSearchResponse> searchBooks(String query) {
         AladinResponse response = aladinClient.searchBooks(query);
         if (response == null || CollectionUtils.isEmpty(response.getItem())) {
@@ -77,6 +81,8 @@ public class AladinService {
         return aladinBookRepository.findById(itemId).orElse(null);
     }
 
+    @Retry(name = "aladin")
+    @CircuitBreaker(name = "aladin", fallbackMethod = "settingAladinDetailFallback")
     public AladinBook settingAladinDetail(String isbn13) {
         var aladinDetail = aladinClient.bookDetail(AladinRequest.create(isbn13));
         //코멘트 세팅
@@ -141,12 +147,18 @@ public class AladinService {
         return value.replaceAll("<[^>]*>", "");
     }
 
-    private List<AladinBook> showError(Throwable t) {
-        log.warn("[알라딘] 요청 제한 또는 타임아웃 msg={}", t.getMessage(), t);
+    private List<AladinBook> getAladinItemListFallback(AladinRequest request, Throwable throwable) {
+        log.warn("[알라딘] 목록 조회 fallback", throwable);
         return List.of();
     }
+
     private List<AladinBookSearchResponse> searchBooksFallback(String query, Throwable throwable) {
-        log.error("[알라딘] 책 검색 Circuit Breaker fallback query={}", query, throwable);
+        log.warn("[알라딘] 책 검색 fallback query={}", query, throwable);
+        return List.of();
+    }
+
+    private AladinBook settingAladinDetailFallback(String isbn13, Throwable throwable) {
+        log.error("[알라딘] 상세 조회 fallback isbn13={}", isbn13, throwable);
         if (throwable instanceof AladinClientException aladinClientException) {
             throw aladinClientException;
         }

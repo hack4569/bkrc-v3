@@ -1,31 +1,23 @@
 package com.bkrc.bkrcv3.aladin.client;
 
 import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
-import com.bkrc.bkrcv3.aladin.application.response.AladinBookSearchResponse;
 import com.bkrc.bkrcv3.aladin.application.response.AladinResponse;
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
+import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.exception.AladinClientException;
 import com.bkrc.bkrcv3.exception.BusinessException;
-import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestClient;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Component
 @Slf4j
@@ -36,6 +28,10 @@ public class AladinClient {
     private String aladinHost;
     @Value("${aladin.ttbkey}")
     private String aladinTbKey;
+    @Value("${external-api.aladin.connect-timeout:2s}")
+    private java.time.Duration connectTimeout;
+    @Value("${external-api.aladin.read-timeout:5s}")
+    private java.time.Duration readTimeout;
     private AladinRequest aladinRequest;
 
     @PostConstruct
@@ -44,9 +40,13 @@ public class AladinClient {
                 .enable(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS)
                 .build();
         var converter = new MappingJackson2HttpMessageConverter(lenientMapper);
+        var requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(connectTimeout);
+        requestFactory.setReadTimeout(readTimeout);
 
         aladinApi = RestClient.builder()
                 .baseUrl(aladinHost)
+                .requestFactory(requestFactory)
                 .messageConverters(converters -> {
                     converters.removeIf(c -> c instanceof MappingJackson2HttpMessageConverter);
                     converters.add(converter);
@@ -72,12 +72,6 @@ public class AladinClient {
             log.error("[알라딘] 에러 메세지 파싱 에러 errorMessage={}", e.getMessage(), e);
             throw new AladinClientException(e);
         }
-    }
-
-    @Async("aladinTaskExecutor")
-    public CompletableFuture<AladinBook> bookDetailAsync(String isbn13) {
-        AladinBook book = this.bookDetail(AladinRequest.create(isbn13));
-        return CompletableFuture.completedFuture(book);
     }
 
     //책 상세 조회
