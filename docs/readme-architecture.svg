@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="640" viewBox="0 0 1400 640" role="img" aria-labelledby="title desc">
+  <title id="title">인생책 서비스 아키텍처</title>
+  <desc id="desc">React 프론트엔드, Spring Boot 백엔드, 데이터 저장소, 메시징, 외부 API와 모니터링 구성을 보여주는 아키텍처</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto">
+      <path d="M0,0 L0,8 L11,4 z" fill="#475569"/>
+    </marker>
+    <style>
+      text { font-family: Arial, "Noto Sans KR", sans-serif; fill: #172033; font-size: 18px; }
+      .heading { font-size: 30px; font-weight: 700; }
+      .group { font-size: 22px; font-weight: 700; }
+      .name { font-size: 20px; font-weight: 700; }
+      .detail { font-size: 18px; fill: #475569; }
+      .arrow { fill: none; stroke: #475569; stroke-width: 3; marker-end: url(#arrow); }
+      .async { stroke-dasharray: 9 7; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="640" rx="20" fill="#f8fafc"/>
+  <text x="40" y="50" class="heading">인생책 서비스 아키텍처</text>
+
+  <rect x="40" y="100" width="220" height="120" rx="16" fill="#fff7ed" stroke="#f97316" stroke-width="3"/>
+  <text x="150" y="145" text-anchor="middle" class="name">사용자</text>
+  <text x="150" y="180" text-anchor="middle" class="detail">Web / Mobile</text>
+
+  <rect x="320" y="80" width="300" height="160" rx="18" fill="#eff6ff" stroke="#3b82f6" stroke-width="3"/>
+  <text x="470" y="120" text-anchor="middle" class="group">client</text>
+  <text x="470" y="158" text-anchor="middle" class="name">React · Vite · TypeScript</text>
+  <text x="470" y="194" text-anchor="middle" class="detail">Pages · Components · Axios</text>
+
+  <rect x="680" y="80" width="350" height="160" rx="18" fill="#f0fdf4" stroke="#22c55e" stroke-width="3"/>
+  <text x="855" y="120" text-anchor="middle" class="group">Server</text>
+  <text x="855" y="158" text-anchor="middle" class="name">Spring Boot · Java · JWT</text>
+  <text x="855" y="194" text-anchor="middle" class="detail">REST API · Batch · Outbox</text>
+
+  <rect x="1090" y="80" width="270" height="160" rx="18" fill="#faf5ff" stroke="#8b5cf6" stroke-width="3"/>
+  <text x="1225" y="120" text-anchor="middle" class="group">외부 API</text>
+  <text x="1225" y="158" text-anchor="middle" class="name">Aladin</text>
+  <text x="1225" y="194" text-anchor="middle" class="name">OpenAI</text>
+
+  <path d="M260 160 H320" class="arrow"/>
+  <text x="290" y="145" text-anchor="middle">HTTPS</text>
+  <path d="M620 160 H680" class="arrow"/>
+  <text x="650" y="145" text-anchor="middle">REST</text>
+  <path d="M1030 160 H1090" class="arrow"/>
+
+  <rect x="360" y="330" width="220" height="120" rx="16" fill="#eff6ff" stroke="#3b82f6" stroke-width="3"/>
+  <text x="470" y="375" text-anchor="middle" class="name">MySQL 8</text>
+  <text x="470" y="410" text-anchor="middle" class="detail">영속 데이터 · Outbox</text>
+
+  <rect x="635" y="330" width="220" height="120" rx="16" fill="#fef2f2" stroke="#ef4444" stroke-width="3"/>
+  <text x="745" y="375" text-anchor="middle" class="name">Redis 7</text>
+  <text x="745" y="410" text-anchor="middle" class="detail">Cache · HotBook</text>
+
+  <rect x="910" y="330" width="220" height="120" rx="16" fill="#fff7ed" stroke="#f97316" stroke-width="3"/>
+  <text x="1020" y="375" text-anchor="middle" class="name">RabbitMQ 4</text>
+  <text x="1020" y="410" text-anchor="middle" class="detail">비동기 이벤트 · DLQ</text>
+
+  <path d="M790 240 V285 H470 V330" class="arrow"/>
+  <path d="M855 240 V330" class="arrow"/>
+  <path d="M920 240 V285 H1020 V330" class="arrow async"/>
+
+  <rect x="425" y="520" width="550" height="80" rx="16" fill="#ffffff" stroke="#64748b" stroke-width="3"/>
+  <text x="700" y="553" text-anchor="middle" class="name">Prometheus · Grafana</text>
+  <text x="700" y="583" text-anchor="middle" class="detail">Actuator 메트릭 수집 및 모니터링</text>
+  <path d="M855 450 V485 H700 V520" class="arrow async"/>
+</svg>
