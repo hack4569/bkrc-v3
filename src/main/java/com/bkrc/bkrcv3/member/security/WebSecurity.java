@@ -43,8 +43,12 @@ public class WebSecurity {
                         .requestMatchers(
                                 "/v1/like/**",
                                 "/v1/history/**",
-                                "/v1/recommend/**"
+                                "/v1/recommend/**",
+                                "/v1/coupons/my/**"
                                 ).authenticated()
+                        // 쿠폰 목록은 공개하지만 다운로드와 보유 쿠폰 API는 회원 인증이 필요합니다.
+                        .requestMatchers(HttpMethod.POST, "/v1/coupons/*/download").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/v1/coupons").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/member/*").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/v1/member/*").authenticated()
                         .requestMatchers(HttpMethod.GET, "/v1/aladin/books/search").authenticated()
