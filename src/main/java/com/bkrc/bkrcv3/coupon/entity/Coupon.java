@@ -44,17 +44,11 @@ public class Coupon {
     protected Coupon() {}
 
     /**
-     * 활성 상태, 게시 기간, 유효기간, 잔여 재고를 모두 만족할 때만 다운로드를 허용합니다.
+     * 활성 상태, 게시 기간, 유효기간을 만족하는지 확인합니다. 재고는 Redis에서 판단합니다.
      * 시작일과 종료일의 경계 시각은 유효한 시각으로 포함합니다.
      */
     public boolean isDownloadableAt(LocalDateTime now) {
         return active && !now.isBefore(publishFrom) && !now.isAfter(publishUntil)
-                && !now.isBefore(validFrom) && !now.isAfter(validUntil) && issuedCount < stock;
-    }
-
-    public void issue() {
-        // 서비스 계층에서 잠금을 획득하지만, 엔티티에서도 재고 불변식을 한 번 더 보호합니다.
-        if (issuedCount >= stock) throw new IllegalStateException("쿠폰 재고가 소진되었습니다.");
-        issuedCount++;
+                && !now.isBefore(validFrom) && !now.isAfter(validUntil);
     }
 }

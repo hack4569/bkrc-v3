@@ -166,7 +166,7 @@ export function handleSummary(data) {
     const json = JSON.stringify(summary, null, 2);
     return {
         stdout: `\n${json}\n`,
-        'load-test/coupon-download-summary.json': `${json}\n`,
+        'load-test/coupon-download-summary2.json': `${json}\n`,
     };
 }
 

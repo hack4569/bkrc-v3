@@ -1,0 +1,23 @@
+{
+  "test": {
+    "couponId": 4,
+    "ratePerSecond": 2000,
+    "durationSeconds": 30,
+    "targetRequests": 60000
+  },
+  "requests": {
+    "sent": 40754,
+    "succeeded": 40754,
+    "failed": 0,
+    "dropped": 19246,
+    "achievedRatePerSecond": 1195.7
+  },
+  "responseTimeMs": {
+    "average": 3394.17,
+    "median": 3688.15,
+    "p90": 4837.6,
+    "p95": 5056.72,
+    "p99": 5312.49,
+    "max": 5725.06
+  }
+}

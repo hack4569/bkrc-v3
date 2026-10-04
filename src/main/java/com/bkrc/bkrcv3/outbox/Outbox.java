@@ -18,6 +18,7 @@ public class Outbox {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long outboxId;
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
     private EventType eventType;
     @Enumerated(EnumType.STRING)
     private OutboxStatus outboxStatus;

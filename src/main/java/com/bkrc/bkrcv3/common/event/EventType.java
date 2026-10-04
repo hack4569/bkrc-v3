@@ -1,6 +1,7 @@
 package com.bkrc.bkrcv3.common.event;
 
 import com.bkrc.bkrcv3.adapter.payload.BookLikeEventPayload;
+import com.bkrc.bkrcv3.adapter.payload.CouponIssuedEventPayload;
 import com.bkrc.bkrcv3.required.EventPayload;
 import com.bkrc.bkrcv3.adapter.payload.MemberJoinEventPayload;
 import com.bkrc.bkrcv3.adapter.payload.MemberModifyEventPayload;
@@ -16,7 +17,8 @@ public enum EventType {
     MEMBER_JOIN(MemberJoinEventPayload.class, Topic.MEMBER_JOIN),
     MEMBER_MODIFY(MemberModifyEventPayload.class, Topic.MEMBER_MODIFY),
     MEMBER_WITHDRAW(MemberWithdrawEventPayload.class, Topic.MEMBER_WITHDRAW),
-    BOOK_LIKE(BookLikeEventPayload.class, Topic.BOOK_LIKE);
+    BOOK_LIKE(BookLikeEventPayload.class, Topic.BOOK_LIKE),
+    COUPON_ISSUED(CouponIssuedEventPayload.class, Topic.COUPON_ISSUED);
 
     private final Class<? extends EventPayload> payloadClass;
     private final String topic;
@@ -36,5 +38,6 @@ public enum EventType {
         public static final String MEMBER_WITHDRAW = "member_withdraw";
         public static final String BOOK_LIKE = "book_like";
         public static final String BOOK_CLICK = "book_click";
+        public static final String COUPON_ISSUED = "coupon_issued";
     }
 }

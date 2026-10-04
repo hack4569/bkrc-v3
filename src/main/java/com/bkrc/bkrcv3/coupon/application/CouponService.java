@@ -1,15 +1,24 @@
 package com.bkrc.bkrcv3.coupon.application;
 
+import com.bkrc.bkrcv3.adapter.payload.CouponIssuedEventPayload;
+import com.bkrc.bkrcv3.common.event.Event;
+import com.bkrc.bkrcv3.common.event.EventType;
 import com.bkrc.bkrcv3.coupon.entity.Coupon;
 import com.bkrc.bkrcv3.coupon.entity.MemberCoupon;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.common.shared.Snowflake;
+import com.bkrc.bkrcv3.config.RabbitMQConfig;
 import com.bkrc.bkrcv3.exception.BusinessException;
-import com.bkrc.bkrcv3.member.application.MemberRepository;
+import com.bkrc.bkrcv3.outbox.Outbox;
+import com.bkrc.bkrcv3.outbox.OutboxEvent;
+import com.bkrc.bkrcv3.outbox.OutboxRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -20,43 +29,71 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 /** 쿠폰 노출, 발급, 보유 내역 조회 및 사용 처리를 담당합니다. */
 public class CouponService {
     private final CouponRepository couponRepository;
     private final MemberCouponRepository memberCouponRepository;
-    private final MemberRepository memberRepository;
+    private final CouponRedisRepository couponRedisRepository;
+    private final OutboxRepository outboxRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final Clock couponClock;
     private final Snowflake snowflake;
 
     @Transactional(readOnly = true)
     public List<CouponResponse> getDownloadable() {
         // 서버 기본 타임존과 무관하게 쿠폰 정책은 한국 시각을 사용합니다.
-        return couponRepository.findDownloadable(LocalDateTime.now(couponClock)).stream().map(CouponResponse::from).toList();
+        return couponRepository.findVisible(LocalDateTime.now(couponClock)).stream()
+                .map(coupon -> CouponResponse.from(coupon, remainingStock(coupon)))
+                .filter(coupon -> coupon.remainingStock() > 0)
+                .toList();
     }
 
-    /**
-     * 쿠폰 행 잠금부터 재고 증가와 발급 내역 저장까지 하나의 트랜잭션에서 처리합니다.
-     * 따라서 여러 요청이 동시에 들어와도 재고 확인과 차감 사이에 다른 요청이 끼어들 수 없습니다.
-     */
+    /** Redis Lua로 발급을 예약하고, DB 저장 명령은 Outbox를 통해 RabbitMQ로 전달합니다. */
     @Transactional
     public CouponResponse.Issued download(Long couponId, Long memberId) {
         LocalDateTime now = LocalDateTime.now(couponClock);
-        Coupon coupon = couponRepository.findByIdForUpdate(couponId)
+        Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COUPON_NOT_FOUND));
-        if (!coupon.isDownloadableAt(now)) throw new BusinessException(ErrorCode.COUPON_NOT_DOWNLOADABLE);
-        if (memberCouponRepository.existsByCouponIdAndMemberId(couponId, memberId))
+        if (memberCouponRepository.existsByCouponIdAndMemberId(couponId, memberId)) {
             throw new BusinessException(ErrorCode.COUPON_ALREADY_ISSUED);
-//        if (!memberRepository.existsById(memberId)) throw new BusinessException(ErrorCode.USER_NOT_FOUND);
-        coupon.issue();
-        try {
-            // 발급 내역의 PK는 DB 자동 증가 값 대신 프로젝트 공통 Snowflake ID를 사용합니다.
-            MemberCoupon issued = memberCouponRepository.save(
-                    MemberCoupon.issue(snowflake.nextId(), couponId, memberId, now));
-            return CouponResponse.Issued.from(issued, coupon);
-        } catch (DataIntegrityViolationException e) {
-            // 서로 다른 서버에서 동일 회원의 요청이 경합해도 DB 유니크 제약 위반을 업무 오류로 변환합니다.
-            throw new BusinessException(ErrorCode.COUPON_ALREADY_ISSUED, e);
         }
+        long memberCouponId = snowflake.nextId();
+        long databaseIssuedCount = memberCouponRepository.countByCouponId(couponId);
+        int remainingStock = couponRedisRepository.issue(coupon, memberId, now, databaseIssuedCount);
+        registerRedisRollback(couponId, memberId);
+        Outbox outbox = outboxRepository.save(Outbox.of(
+                EventType.COUPON_ISSUED,
+                RabbitMQConfig.COUPON_DIRECT_EXCHANGE,
+                RabbitMQConfig.COUPON_ISSUE_ROUTING_KEY,
+                Event.of(EventType.COUPON_ISSUED,
+                        new CouponIssuedEventPayload(memberCouponId, couponId, memberId, now)).toJson()
+        ));
+        eventPublisher.publishEvent(OutboxEvent.of(outbox));
+
+        // DB 반영은 비동기이므로 Redis가 승인한 결과와 미리 생성한 ID로 즉시 응답합니다.
+        return CouponResponse.Issued.pending(memberCouponId, coupon, now, remainingStock);
+    }
+
+    private int remainingStock(Coupon coupon) {
+        return couponRedisRepository.remainingStock(coupon,
+                memberCouponRepository.countByCouponId(coupon.getCouponId()));
+    }
+
+    private void registerRedisRollback(Long couponId, Long memberId) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status != STATUS_COMMITTED) {
+                    try {
+                        couponRedisRepository.rollback(couponId, memberId);
+                    } catch (RuntimeException exception) {
+                        log.error("Coupon Redis compensation failed - couponId={}, memberId={}",
+                                couponId, memberId, exception);
+                    }
+                }
+            }
+        });
     }
 
     @Transactional(readOnly = true)

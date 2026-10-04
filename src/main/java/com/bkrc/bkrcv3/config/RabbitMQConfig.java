@@ -17,14 +17,17 @@ public class RabbitMQConfig {
     public static final String MODIFY_QUEUE = "modifyQueue";
     public static final String WITHDRAW_QUEUE = "withdrawQueue";
     public static final String LIKE_QUEUE = "likeQueue";
+    public static final String COUPON_ISSUE_QUEUE = "couponIssueQueue";
 
     public static final String JOIN_ROUTING_KEY = "member.join";
     public static final String MODIFY_ROUTING_KEY = "member.modify";
     public static final String WITHDRAW_ROUTING_KEY = "member.withdraw";
     public static final String LIKE_ROUTING_KEY = "hotbook.like";
+    public static final String COUPON_ISSUE_ROUTING_KEY = "coupon.issued";
 
     public static final String NOTIFICATION_DIRECT_EXCHANGE = "notificationExchange";
     public static final String HOTBOOK_DIRECT_EXCHANGE = "hotbookExchange";
+    public static final String COUPON_DIRECT_EXCHANGE = "couponExchange";
 
     public static final String DLQ = "deadLetterQueue";
     public static final String DEAD_LETTER_ROUTING_KEY = "dead.letter";
@@ -60,6 +63,11 @@ public class RabbitMQConfig {
     @Bean
     public DirectExchange hotBookExchange() {
         return new DirectExchange(HOTBOOK_DIRECT_EXCHANGE);
+    }
+
+    @Bean
+    public DirectExchange couponExchange() {
+        return new DirectExchange(COUPON_DIRECT_EXCHANGE);
     }
 
     // Dead Letter Exchange
@@ -101,6 +109,14 @@ public class RabbitMQConfig {
                 .build();
     }
 
+    @Bean
+    public Queue couponIssueQueue() {
+        return QueueBuilder.durable(COUPON_ISSUE_QUEUE)
+                .withArgument("x-dead-letter-exchange", DEAD_DIRECT_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", DEAD_LETTER_ROUTING_KEY)
+                .build();
+    }
+
     // Dead Letter Queue 설정
     @Bean
     public Queue deadLetterQueue() {
@@ -126,6 +142,11 @@ public class RabbitMQConfig {
     @Bean
     public Binding likeQueueBinding() {
         return BindingBuilder.bind(likeQueue()).to(hotBookExchange()).with(LIKE_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding couponIssueQueueBinding() {
+        return BindingBuilder.bind(couponIssueQueue()).to(couponExchange()).with(COUPON_ISSUE_ROUTING_KEY);
     }
 
     // Dead Letter Queue와 Dead Letter Exchange 바인딩

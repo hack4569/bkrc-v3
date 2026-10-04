@@ -3,6 +3,7 @@ package com.bkrc.bkrcv3.member.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
@@ -21,10 +22,18 @@ import java.util.List;
 
 @Slf4j
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
-    private final Environment environment;
+    /** 완성된 JwtParser는 불변 객체이므로 요청마다 만들지 않고 모든 요청에서 재사용합니다. */
+    private final JwtParser jwtParser;
+
     public JwtAuthorizationFilter(Environment environment) {
-        this.environment = environment;
+        byte[] secretKeyBytes = environment.getRequiredProperty("token.secret")
+                .getBytes(StandardCharsets.UTF_8);
+        SecretKey secretKey = Keys.hmacShaKeyFor(secretKeyBytes);
+        this.jwtParser = Jwts.parser()
+                .verifyWith(secretKey)
+                .build();
     }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
@@ -35,12 +44,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         }
         try {
             String token = authorizationHeader.substring(7);
-            byte[] secretKeyBytes = environment.getProperty("token.secret").getBytes(StandardCharsets.UTF_8);
-            SecretKey secretKey = Keys.hmacShaKeyFor(secretKeyBytes);
-            Claims claims = Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token)
+            Claims claims = jwtParser.parseSignedClaims(token)
                     .getPayload();
             String subject = claims.getSubject();
             if (subject != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -59,4 +63,3 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-
