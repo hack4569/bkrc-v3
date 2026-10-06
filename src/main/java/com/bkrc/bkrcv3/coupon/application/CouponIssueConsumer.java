@@ -3,6 +3,7 @@ package com.bkrc.bkrcv3.coupon.application;
 import com.bkrc.bkrcv3.adapter.payload.CouponIssuedEventPayload;
 import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.config.RabbitMQConfig;
+import com.bkrc.bkrcv3.coupon.entity.MemberCoupon;
 import com.bkrc.bkrcv3.required.EventPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.springframework.context.annotation.Profile;
 @Slf4j
 public class CouponIssueConsumer {
     private final MemberCouponRepository memberCouponRepository;
+    private final CouponRedisRepository couponRedisRepository;
 
     /** RabbitMQ 재전송이 발생해도 같은 발급 내역을 한 번만 저장합니다. */
     @RabbitListener(queues = RabbitMQConfig.COUPON_ISSUE_QUEUE)
@@ -30,7 +32,20 @@ public class CouponIssueConsumer {
         int inserted = memberCouponRepository.insertIfAbsent(payload.getMemberCouponId(), payload.getCouponId(),
                 payload.getMemberId(), payload.getIssuedAt());
         if (inserted == 0) {
-            log.info("Coupon issue event already processed - memberCouponId={}", payload.getMemberCouponId());
+            MemberCoupon existing = memberCouponRepository
+                    .findByCouponIdAndMemberId(payload.getCouponId(), payload.getMemberId())
+                    .orElseThrow(() -> new IllegalStateException("중복 처리된 쿠폰 발급 내역을 찾을 수 없습니다."));
+
+            if (existing.getMemberCouponId().equals(payload.getMemberCouponId())) {
+                log.info("이미 처리된 쿠폰 발급 이벤트입니다. memberCouponId={}", payload.getMemberCouponId());
+                return;
+            }
+
+            couponRedisRepository.compensateDuplicate(payload.getCouponId(), payload.getMemberId(),
+                    payload.getMemberCouponId());
+            log.info("중복 쿠폰 발급 예약을 Redis에서 보상했습니다. 요청 memberCouponId={}, " +
+                            "기존 memberCouponId={}",
+                    payload.getMemberCouponId(), existing.getMemberCouponId());
         }
     }
 }

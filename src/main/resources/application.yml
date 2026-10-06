@@ -35,8 +35,9 @@ spring:
     username: root
     password: ${DB_PASSWORD}
     hikari:
-      maximum-pool-size: 5        # 최대 커넥션 수
-      connection-timeout: 5000     # 커넥션 못 얻으면 5초 후 에러 (ms)
+      maximum-pool-size: 20       # 인스턴스당 최대 DB 커넥션 수
+      minimum-idle: 5             # 요청 급증에 대비해 상시 유지할 유휴 커넥션 수
+      connection-timeout: 3000    # 풀에서 커넥션을 3초 안에 얻지 못하면 빠르게 실패 (ms)
       idle-timeout: 600000         # 놀고있는 커넥션 10분 후 반납 (ms)
       max-lifetime: 1800000        # 커넥션 최대 수명 30분 (ms)
       pool-name: bkrc-pool
@@ -76,6 +77,15 @@ token:
 
 load-test:
   auth-bypass-enabled: ${LOAD_TEST_AUTH_BYPASS_ENABLED:false}
+
+coupon:
+  cache:
+    # 관리자 변경의 최대 지연을 짧게 유지하면서 반복 조회를 흡수합니다.
+    ttl: ${COUPON_CACHE_TTL:60s}
+    ttl-jitter: ${COUPON_CACHE_TTL_JITTER:20s}
+    negative-ttl: ${COUPON_CACHE_NEGATIVE_TTL:10s}
+    lock-ttl: ${COUPON_CACHE_LOCK_TTL:3s}
+    lock-wait: ${COUPON_CACHE_LOCK_WAIT:1s}
 
 resilience4j:
   circuitbreaker:

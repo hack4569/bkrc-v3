@@ -55,13 +55,10 @@ public class CouponService {
         LocalDateTime now = LocalDateTime.now(couponClock);
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COUPON_NOT_FOUND));
-        if (memberCouponRepository.existsByCouponIdAndMemberId(couponId, memberId)) {
-            throw new BusinessException(ErrorCode.COUPON_ALREADY_ISSUED);
-        }
-        long memberCouponId = snowflake.nextId();
-        long databaseIssuedCount = memberCouponRepository.countByCouponId(couponId);
+        long databaseIssuedCount = initialIssuedCount(couponId);
         int remainingStock = couponRedisRepository.issue(coupon, memberId, now, databaseIssuedCount);
         registerRedisRollback(couponId, memberId);
+        long memberCouponId = snowflake.nextId();
         Outbox outbox = outboxRepository.save(Outbox.of(
                 EventType.COUPON_ISSUED,
                 RabbitMQConfig.COUPON_DIRECT_EXCHANGE,
@@ -76,8 +73,15 @@ public class CouponService {
     }
 
     private int remainingStock(Coupon coupon) {
-        return couponRedisRepository.remainingStock(coupon,
-                memberCouponRepository.countByCouponId(coupon.getCouponId()));
+        return couponRedisRepository.remainingStock(coupon, initialIssuedCount(coupon.getCouponId()));
+    }
+
+    /** Redis 상태가 유실되었거나 최초 접근일 때만 DB 발급 건수로 카운터를 복구합니다. */
+    private long initialIssuedCount(Long couponId) {
+        if (couponRedisRepository.isInitialized(couponId)) {
+            return 0L;
+        }
+        return memberCouponRepository.countByCouponId(couponId);
     }
 
     private void registerRedisRollback(Long couponId, Long memberId) {

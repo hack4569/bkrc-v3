@@ -24,11 +24,13 @@ public enum ErrorCode {
     RECOMMENDATION_NOT_EDITABLE(HttpStatus.CONFLICT, "ER1", "미승인 상태의 추천만 수정할 수 있습니다."),
 
     COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "EC1", "쿠폰을 찾을 수 없습니다."),
-    COUPON_NOT_DOWNLOADABLE(HttpStatus.CONFLICT, "EC2", "다운로드할 수 없는 쿠폰입니다."),
+    COUPON_NOT_DOWNLOADABLE(HttpStatus.CONFLICT, "EC2",
+            "쿠폰이 비활성 상태이거나 다운로드 가능 기간 또는 유효기간이 아닙니다."),
     COUPON_ALREADY_ISSUED(HttpStatus.CONFLICT, "EC3", "이미 다운로드한 쿠폰입니다."),
     MEMBER_COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "EC4", "보유 쿠폰을 찾을 수 없습니다."),
     COUPON_ALREADY_USED(HttpStatus.CONFLICT, "EC5", "이미 사용한 쿠폰입니다."),
     COUPON_NOT_VALID(HttpStatus.CONFLICT, "EC6", "쿠폰 유효기간이 아닙니다."),
+    COUPON_OUT_OF_STOCK(HttpStatus.CONFLICT, "EC7", "쿠폰 재고가 모두 소진되어 더 이상 다운로드할 수 없습니다."),
 
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "EAU1","인증에 실패했습니다."),
     SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "ECM0", "에러가 발생하였습니다."),

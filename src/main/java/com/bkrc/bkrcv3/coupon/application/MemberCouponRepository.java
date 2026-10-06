@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MemberCouponRepository extends JpaRepository<MemberCoupon, Long> {
-    /** 서비스 수준에서 중복 발급을 빠르게 판별합니다. 최종 방어선은 DB 유니크 제약입니다. */
-    boolean existsByCouponIdAndMemberId(Long couponId, Long memberId);
+    /** 중복 이벤트가 동일 발급의 재전송인지, 다른 ID로 요청된 중복 발급인지 판별합니다. */
+    Optional<MemberCoupon> findByCouponIdAndMemberId(Long couponId, Long memberId);
 
     /** Redis가 비어 있을 때 실제 발급 이력으로 재고 카운터를 복구합니다. */
     long countByCouponId(Long couponId);

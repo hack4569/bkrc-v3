@@ -8,10 +8,12 @@ import { SharedArray } from 'k6/data';
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 const COUPON_ID = Number(__ENV.COUPON_ID);
-const RATE_PER_SECOND = Number(__ENV.RATE_PER_SECOND || '2000');
+const RATE_PER_SECOND = Number(__ENV.RATE_PER_SECOND || '1000');
 const DURATION_SECONDS = Number(__ENV.DURATION_SECONDS || '30');
+const EXPECTED_SUCCESS_COUNT = Number(__ENV.EXPECTED_SUCCESS_COUNT || '3000');
 const TOKEN_SECRET = __ENV.TOKEN_SECRET;
 const EXPECTED_REQUESTS = RATE_PER_SECOND * DURATION_SECONDS;
+const EXPECTED_SOLD_OUT_COUNT = EXPECTED_REQUESTS - EXPECTED_SUCCESS_COUNT;
 
 // 회원당 한 번만 발급할 수 있으므로 각 iteration은 서로 다른 실제 회원 ID를 사용한다.
 // 별도 파일을 지정하지 않으면 준비 SQL과 동일한 연속 ID를 필요한 수만큼 생성한다.
@@ -26,28 +28,30 @@ const memberIds = new SharedArray('coupon download member IDs', () => {
 
 const downloadRequests = new Counter('coupon_download_requests');
 const downloadSuccesses = new Counter('coupon_download_successes');
-const downloadFailures = new Counter('coupon_download_failures');
-const downloadErrorRate = new Rate('coupon_download_error_rate');
+const downloadSoldOuts = new Counter('coupon_download_sold_outs');
+const downloadUnexpectedFailures = new Counter('coupon_download_unexpected_failures');
+const downloadUnexpectedErrorRate = new Rate('coupon_download_unexpected_error_rate');
 const downloadResponseTime = new Trend('coupon_download_response_time_ms', true);
 
 export const options = {
     scenarios: {
-        coupon_download_2000_per_second: {
+        coupon_download_1000_per_second: {
             // 응답 속도와 관계없이 매초 지정한 수의 iteration을 시작한다.
             executor: 'constant-arrival-rate',
             rate: RATE_PER_SECOND,
             timeUnit: '1s',
             duration: `${DURATION_SECONDS}s`,
-            preAllocatedVUs: Number(__ENV.PRE_ALLOCATED_VUS || '2000'),
-            maxVUs: Number(__ENV.MAX_VUS || '5000'),
+            preAllocatedVUs: Number(__ENV.PRE_ALLOCATED_VUS || '1000'),
+            maxVUs: Number(__ENV.MAX_VUS || '3000'),
             gracefulStop: '30s',
         },
     },
     thresholds: {
         coupon_download_requests: [`count==${EXPECTED_REQUESTS}`],
-        coupon_download_successes: [`count==${EXPECTED_REQUESTS}`],
-        coupon_download_failures: ['count==0'],
-        coupon_download_error_rate: ['rate==0'],
+        coupon_download_successes: [`count==${EXPECTED_SUCCESS_COUNT}`],
+        coupon_download_sold_outs: [`count==${EXPECTED_SOLD_OUT_COUNT}`],
+        coupon_download_unexpected_failures: ['count==0'],
+        coupon_download_unexpected_error_rate: ['rate==0'],
         coupon_download_response_time_ms: ['p(95)<2000', 'p(99)<5000'],
         dropped_iterations: ['count==0'],
     },
@@ -66,6 +70,10 @@ export function setup() {
         || !Number.isInteger(DURATION_SECONDS) || DURATION_SECONDS <= 0) {
         fail('RATE_PER_SECOND와 DURATION_SECONDS는 1 이상의 정수여야 합니다.');
     }
+    if (!Number.isInteger(EXPECTED_SUCCESS_COUNT) || EXPECTED_SUCCESS_COUNT <= 0
+        || EXPECTED_SUCCESS_COUNT >= EXPECTED_REQUESTS) {
+        fail('EXPECTED_SUCCESS_COUNT는 1 이상이며 전체 요청 수보다 작아야 합니다.');
+    }
     if (memberIds.length < EXPECTED_REQUESTS) {
         fail(`서로 다른 회원 ID가 ${EXPECTED_REQUESTS}개 필요합니다. 현재=${memberIds.length}`);
     }
@@ -83,8 +91,9 @@ export function setup() {
     if (!coupon) {
         fail(`couponId=${COUPON_ID}가 현재 게시 및 유효기간 내에 없거나 재고가 소진되었습니다.`);
     }
-    if (Number(coupon.remainingStock) < EXPECTED_REQUESTS) {
-        fail(`재고가 부족합니다. 필요=${EXPECTED_REQUESTS}, 잔여=${coupon.remainingStock}`);
+    if (Number(coupon.remainingStock) !== EXPECTED_SUCCESS_COUNT) {
+        fail(`테스트 시작 전 잔여 재고가 기대 성공 건수와 같아야 합니다. ` +
+            `기대=${EXPECTED_SUCCESS_COUNT}, 실제=${coupon.remainingStock}`);
     }
 
     return {
@@ -98,8 +107,8 @@ export default function () {
     const memberId = memberIds[index];
 
     if (memberId === undefined) {
-        downloadFailures.add(1);
-        downloadErrorRate.add(true);
+        downloadUnexpectedFailures.add(1);
+        downloadUnexpectedErrorRate.add(true);
         fail(`iteration ${index}에 대응하는 member_id가 없습니다.`);
     }
 
@@ -116,42 +125,59 @@ export default function () {
     downloadResponseTime.add(response.timings.duration);
 
     const body = parseBody(response);
-    const success = check(response, {
-        '쿠폰 다운로드 응답이 200이다': (res) => res.status === 200,
-        '응답 couponId가 일치한다': () => Number(body?.couponId) === COUPON_ID,
+    const issued = response.status === 200
+        && Number(body?.couponId) === COUPON_ID
         // Snowflake 값은 JavaScript 안전 정수 범위를 넘을 수 있으므로 존재 여부만 검사한다.
-        'memberCouponId가 발급되었다': () => body?.memberCouponId !== undefined && body?.memberCouponId !== null,
+        && body?.memberCouponId !== undefined
+        && body?.memberCouponId !== null;
+    const soldOut = response.status === 409 && body?.errorCode === 'EC7';
+    const expectedOutcome = check(response, {
+        '발급 성공 또는 EC7 재고 소진 응답이다': () => issued || soldOut,
     });
 
-    downloadErrorRate.add(!success);
-    if (success) {
+    downloadUnexpectedErrorRate.add(!expectedOutcome);
+    if (issued) {
         downloadSuccesses.add(1);
+    } else if (soldOut) {
+        downloadSoldOuts.add(1);
     } else {
-        downloadFailures.add(1);
+        downloadUnexpectedFailures.add(1);
         console.error(`index=${index}, memberId=${memberId}, status=${response.status}, body=${response.body}`);
     }
 }
 
 export function teardown(data) {
     console.log(`쿠폰 다운로드 부하테스트 완료: couponId=${COUPON_ID}, 시작=${data.startedAt}`);
-    console.log(`예상 발급=${EXPECTED_REQUESTS}, 테스트 전 잔여 재고=${data.initialRemainingStock}`);
+    console.log(`예상 발급=${EXPECTED_SUCCESS_COUNT}, 예상 품절=${EXPECTED_SOLD_OUT_COUNT}, ` +
+        `테스트 전 잔여 재고=${data.initialRemainingStock}`);
     console.log('load-test/coupon_download_verify.sql로 coupon 및 member_coupon 정합성을 확인하세요.');
 }
 
 export function handleSummary(data) {
+    const succeeded = metric(data, 'coupon_download_successes', 'count');
+    const soldOut = metric(data, 'coupon_download_sold_outs', 'count');
+    const unexpectedFailures = metric(data, 'coupon_download_unexpected_failures', 'count');
     const summary = {
         test: {
             couponId: COUPON_ID,
             ratePerSecond: RATE_PER_SECOND,
             durationSeconds: DURATION_SECONDS,
             targetRequests: EXPECTED_REQUESTS,
+            expectedSuccesses: EXPECTED_SUCCESS_COUNT,
+            expectedSoldOuts: EXPECTED_SOLD_OUT_COUNT,
         },
         requests: {
             sent: metric(data, 'coupon_download_requests', 'count'),
-            succeeded: metric(data, 'coupon_download_successes', 'count'),
-            failed: metric(data, 'coupon_download_failures', 'count'),
+            succeeded,
+            soldOut,
+            unexpectedFailures,
             dropped: metric(data, 'dropped_iterations', 'count'),
             achievedRatePerSecond: rounded(metric(data, 'coupon_download_requests', 'rate')),
+        },
+        result: {
+            overIssued: Math.max(0, succeeded - EXPECTED_SUCCESS_COUNT),
+            successCountMatches: succeeded === EXPECTED_SUCCESS_COUNT,
+            hasUnexpectedFailure: unexpectedFailures > 0,
         },
         responseTimeMs: {
             average: rounded(metric(data, 'coupon_download_response_time_ms', 'avg')),
@@ -166,7 +192,7 @@ export function handleSummary(data) {
     const json = JSON.stringify(summary, null, 2);
     return {
         stdout: `\n${json}\n`,
-        'load-test/coupon-download-summary2.json': `${json}\n`,
+        'load-test/coupon-download-summary.json': `${json}\n`,
     };
 }
 

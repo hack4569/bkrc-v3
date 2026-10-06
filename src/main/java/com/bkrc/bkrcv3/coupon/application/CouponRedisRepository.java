@@ -19,11 +19,18 @@ public class CouponRedisRepository {
             "redis/coupon/issue-coupon.lua", List.class);
     private static final DefaultRedisScript<Long> ROLLBACK_SCRIPT = script(
             "redis/coupon/rollback-coupon.lua", Long.class);
+    private static final DefaultRedisScript<Long> COMPENSATE_DUPLICATE_SCRIPT = script(
+            "redis/coupon/compensate-duplicate-coupon.lua", Long.class);
 
     private final StringRedisTemplate redisTemplate;
 
     public CouponRedisRepository(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
+    }
+
+    /** Redis 발급 카운터가 이미 초기화되어 있는지 확인합니다. */
+    public boolean isInitialized(Long couponId) {
+        return Boolean.TRUE.equals(redisTemplate.hasKey(stateKey(couponId)));
     }
 
     /** Lua 한 번으로 기간, 중복, 재고 검사와 예약을 원자적으로 처리합니다. */
@@ -46,7 +53,7 @@ public class CouponRedisRepository {
         long code = ((Number) result.get(0)).longValue();
         if (code == -2) throw new BusinessException(ErrorCode.COUPON_NOT_DOWNLOADABLE);
         if (code == -3) throw new BusinessException(ErrorCode.COUPON_ALREADY_ISSUED);
-        if (code == -4) throw new BusinessException(ErrorCode.COUPON_NOT_DOWNLOADABLE);
+        if (code == -4) throw new BusinessException(ErrorCode.COUPON_OUT_OF_STOCK);
         if (code != 1) throw new BusinessException(ErrorCode.SERVER_ERROR);
         return ((Number) result.get(1)).intValue();
     }
@@ -64,6 +71,13 @@ public class CouponRedisRepository {
                 List.of(stateKey(couponId), membersKey(couponId)), String.valueOf(memberId));
     }
 
+    /** DB에서 중복 발급이 확인되면 회원 표시는 유지하고 이번 예약의 카운터 증가만 멱등하게 취소합니다. */
+    public void compensateDuplicate(Long couponId, Long memberId, Long memberCouponId) {
+        redisTemplate.execute(COMPENSATE_DUPLICATE_SCRIPT,
+                List.of(stateKey(couponId), membersKey(couponId), compensationsKey(couponId)),
+                String.valueOf(memberId), String.valueOf(memberCouponId));
+    }
+
     private static long epoch(LocalDateTime value) {
         return value.atZone(SEOUL).toEpochSecond();
     }
@@ -71,6 +85,9 @@ public class CouponRedisRepository {
     // 중괄호 hash tag로 Redis Cluster에서도 두 키를 같은 슬롯에 배치합니다.
     private static String stateKey(Long couponId) { return "coupon::{" + couponId + "}::state"; }
     private static String membersKey(Long couponId) { return "coupon::{" + couponId + "}::members"; }
+    private static String compensationsKey(Long couponId) {
+        return "coupon::{" + couponId + "}::duplicate-compensations";
+    }
 
     private static <T> DefaultRedisScript<T> script(String path, Class<T> resultType) {
         DefaultRedisScript<T> script = new DefaultRedisScript<>();

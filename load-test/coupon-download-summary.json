@@ -1,23 +1,32 @@
 {
   "test": {
-    "couponId": 1,
-    "ratePerSecond": 2000,
+    "couponId": 13,
+    "ratePerSecond": 1000,
     "durationSeconds": 30,
-    "targetRequests": 60000
+    "targetRequests": 30000,
+    "expectedSuccesses": 5000,
+    "expectedSoldOuts": 25000
   },
   "requests": {
-    "sent": 30726,
-    "succeeded": 11071,
-    "failed": 19655,
-    "dropped": 29275,
-    "achievedRatePerSecond": 847.1
+    "sent": 29957,
+    "succeeded": 5000,
+    "soldOut": 24957,
+    "unexpectedFailures": 0,
+    "dropped": 46,
+    "achievedRatePerSecond": 996.99
+  },
+  "result": {
+    "overIssued": 0,
+    "successCountMatches": true,
+    "soldOutCountMatches": false,
+    "hasUnexpectedFailure": false
   },
   "responseTimeMs": {
-    "average": 4787.24,
-    "median": 6035.75,
-    "p90": 6949.56,
-    "p95": 7138.58,
-    "p99": 7272.42,
-    "max": 7504.02
+    "average": 73.54,
+    "median": 1.35,
+    "p90": 290.94,
+    "p95": 533.17,
+    "p99": 988.07,
+    "max": 1499.14
   }
 }
