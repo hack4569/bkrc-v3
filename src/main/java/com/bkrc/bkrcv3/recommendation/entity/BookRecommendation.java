@@ -1,7 +1,7 @@
 package com.bkrc.bkrcv3.recommendation.entity;
 
 import com.bkrc.bkrcv3.common.shared.BaseEntity;
-import com.bkrc.bkrcv3.member.entity.Member;
+import com.bkrc.bkrcv3.member.domain.Member;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;

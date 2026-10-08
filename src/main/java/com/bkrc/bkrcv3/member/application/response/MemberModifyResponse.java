@@ -1,6 +1,6 @@
 package com.bkrc.bkrcv3.member.application.response;
 
-import com.bkrc.bkrcv3.member.entity.Member;
+import com.bkrc.bkrcv3.member.domain.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "회원 정보 수정 응답")

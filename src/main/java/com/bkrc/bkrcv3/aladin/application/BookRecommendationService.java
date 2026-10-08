@@ -5,7 +5,7 @@ import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.BookComment;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
-import com.bkrc.bkrcv3.exception.BusinessException;
+import com.bkrc.bkrcv3.aladin.entity.AladinException;
 import com.bkrc.bkrcv3.history.application.HistoryService;
 import com.bkrc.bkrcv3.history.entity.History;
 import com.bkrc.bkrcv3.member.application.response.RecommendView;
@@ -45,7 +45,7 @@ public class BookRecommendationService {
 
         var response = aladinService.findAll();
         if (response == null || response.getCount() == 0) {
-            throw new BusinessException(ErrorCode.ALADIN_NOT_FOUND);
+            throw new AladinException(ErrorCode.ALADIN_NOT_FOUND);
         }
 
         List<AladinBook> books = response.getAladinBookResponseList().stream()

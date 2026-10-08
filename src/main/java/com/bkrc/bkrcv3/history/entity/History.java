@@ -1,9 +1,7 @@
 package com.bkrc.bkrcv3.history.entity;
 
 import com.bkrc.bkrcv3.common.shared.BaseEntity;
-import com.bkrc.bkrcv3.history.application.HistorySaveRequest;
 import com.bkrc.bkrcv3.history.application.HistoryResponse;
-import com.bkrc.bkrcv3.member.entity.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;

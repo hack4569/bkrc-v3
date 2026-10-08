@@ -1,4 +1,4 @@
-package com.bkrc.bkrcv3.member.entity;
+package com.bkrc.bkrcv3.member.domain;
 
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Component;

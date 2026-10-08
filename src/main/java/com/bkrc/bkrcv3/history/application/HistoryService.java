@@ -2,8 +2,8 @@ package com.bkrc.bkrcv3.history.application;
 
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.common.shared.Snowflake;
-import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.history.entity.History;
+import com.bkrc.bkrcv3.history.entity.HistoryException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -28,9 +28,9 @@ public class HistoryService {
         try {
             historyRepository.save(History.create(itemId, memberId, snowflake.nextId()));
         } catch (DataIntegrityViolationException de) {
-            throw new BusinessException(ErrorCode.HISTORY_ALREADY_EXISTS);
+            throw new HistoryException(ErrorCode.HISTORY_ALREADY_EXISTS, de);
         } catch (Exception ex) {
-            throw new BusinessException(ErrorCode.SERVER_ERROR);
+            throw new HistoryException(ErrorCode.SERVER_ERROR, ex);
         }
     }
 }

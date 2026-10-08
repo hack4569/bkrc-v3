@@ -1,4 +1,4 @@
-package com.bkrc.bkrcv3.member.application;
+package com.bkrc.bkrcv3.adapter.webapi;
 
 import com.bkrc.bkrcv3.member.application.request.LoginForm;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "인증 (Auth)", description = "로그인 / JWT 발급 API")
 @RestController
-public class LoginController {
+public class AuthenticatorApi {
 
     @Operation(
             summary = "로그인",

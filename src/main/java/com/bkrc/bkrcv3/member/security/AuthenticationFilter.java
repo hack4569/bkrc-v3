@@ -1,11 +1,10 @@
 package com.bkrc.bkrcv3.member.security;
 
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
-import com.bkrc.bkrcv3.exception.BusinessException;
-import com.bkrc.bkrcv3.member.application.UserService;
+import com.bkrc.bkrcv3.member.application.provided.MemberFinder;
 import com.bkrc.bkrcv3.member.application.request.LoginForm;
 import com.bkrc.bkrcv3.member.application.response.LoginResponse;
-import com.bkrc.bkrcv3.member.dto.MemberDto;
+import com.bkrc.bkrcv3.member.domain.Member;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -34,15 +33,16 @@ import java.util.Date;
 
 @Slf4j
 public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
-    private UserService userService;
-    private Environment environment;
-    private ObjectMapper objectMapper;
+    private final MemberFinder memberFinder;
+    private final Environment environment;
+    private final ObjectMapper objectMapper;
+
     public AuthenticationFilter(AuthenticationManager authenticationManager,
-                                UserService userService,
+                                MemberFinder memberFinder,
                                 Environment environment,
                                 ObjectMapper objectMapper) {
         super(authenticationManager);
-        this.userService = userService;
+        this.memberFinder = memberFinder;
         this.environment = environment;
         this.objectMapper = objectMapper;
     }
@@ -82,8 +82,8 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     protected void successfulAuthentication(HttpServletRequest req, HttpServletResponse res,
                                             FilterChain chain, Authentication authResult)
             throws IOException, ServletException {
-        String userName = ((User) authResult.getPrincipal()).getUsername();
-        MemberDto memberDto = userService.getMemberByLoginId(userName);
+        String loginId = ((User) authResult.getPrincipal()).getUsername();
+        Member member = memberFinder.getMemberByLoginId(loginId);
 
         byte[] secretKeyBytes = environment.getProperty("token.secret").getBytes(StandardCharsets.UTF_8);
 
@@ -92,17 +92,17 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         Instant now = Instant.now();
 
         String token = Jwts.builder()
-                .subject(String.valueOf(memberDto.getMemberId()))
+                .subject(String.valueOf(member.getMemberId()))
                 .expiration(Date.from(now.plusMillis(Long.parseLong(environment.getProperty("token.expiration-time")))))
                 .issuedAt(Date.from(now))
                 .signWith(secretKey)
                 .compact();
 
-        log.info("successfulAuthentication - generated token for memberId={}", memberDto.getMemberId());
+        log.info("successfulAuthentication - generated token for memberId={}", member.getMemberId());
 
         res.setContentType("application/json; charset=UTF-8");
         // 실제 토큰과 로그인 ID를 담은 응답 인스턴스를 반환하도록 수정
-        objectMapper.writeValue(res.getWriter(), new LoginResponse(token, memberDto.getLoginId()));
+        objectMapper.writeValue(res.getWriter(), new LoginResponse(token, member.getLoginId()));
     }
 
     @Override

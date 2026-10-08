@@ -4,11 +4,11 @@ import com.bkrc.bkrcv3.adapter.payload.CouponIssuedEventPayload;
 import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.common.event.EventType;
 import com.bkrc.bkrcv3.coupon.entity.Coupon;
+import com.bkrc.bkrcv3.coupon.entity.CouponException;
 import com.bkrc.bkrcv3.coupon.entity.MemberCoupon;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.common.shared.Snowflake;
 import com.bkrc.bkrcv3.config.RabbitMQConfig;
-import com.bkrc.bkrcv3.exception.BusinessException;
 import com.bkrc.bkrcv3.outbox.Outbox;
 import com.bkrc.bkrcv3.outbox.OutboxEvent;
 import com.bkrc.bkrcv3.outbox.OutboxRepository;
@@ -54,7 +54,7 @@ public class CouponService {
     public CouponResponse.Issued download(Long couponId, Long memberId) {
         LocalDateTime now = LocalDateTime.now(couponClock);
         Coupon coupon = couponRepository.findById(couponId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.COUPON_NOT_FOUND));
+                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_NOT_FOUND));
         long databaseIssuedCount = initialIssuedCount(couponId);
         int remainingStock = couponRedisRepository.issue(coupon, memberId, now, databaseIssuedCount);
         registerRedisRollback(couponId, memberId);
@@ -116,9 +116,9 @@ public class CouponService {
     public CouponResponse.Issued use(Long memberCouponId, Long memberId) {
         // memberId를 조건에 포함해 본인에게 발급된 쿠폰만 사용할 수 있게 합니다.
         MemberCoupon value = memberCouponRepository.findByMemberCouponIdAndMemberId(memberCouponId, memberId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_COUPON_NOT_FOUND));
+                .orElseThrow(() -> new CouponException(ErrorCode.MEMBER_COUPON_NOT_FOUND));
         Coupon coupon = couponRepository.findById(value.getCouponId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.COUPON_NOT_FOUND));
+                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_NOT_FOUND));
         value.use(LocalDateTime.now(couponClock), coupon);
         return CouponResponse.Issued.from(value, coupon);
     }

@@ -1,6 +1,5 @@
 package com.bkrc.bkrcv3.common.shared;
 
-import com.bkrc.bkrcv3.exception.BusinessException;
 import org.springframework.stereotype.Component;
 
 import java.util.random.RandomGenerator;
@@ -26,7 +25,7 @@ public class Snowflake {
 		long currentTimeMillis = System.currentTimeMillis();
 
 		if (currentTimeMillis < lastTimeMillis) {
-			throw new BusinessException(ErrorCode.INVALID_TIME);
+			throw new SnowflakeException(ErrorCode.INVALID_TIME);
 		}
 
 		if (currentTimeMillis == lastTimeMillis) {

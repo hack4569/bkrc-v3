@@ -1,7 +1,7 @@
 package com.bkrc.bkrcv3.hotbook.application;
 
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
-import com.bkrc.bkrcv3.exception.BusinessException;
+import com.bkrc.bkrcv3.common.event.EventHandlerException;
 import com.bkrc.bkrcv3.required.HotBookEventHandler;
 import com.bkrc.bkrcv3.aladin.application.AladinService;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
@@ -57,6 +57,6 @@ public class HotBookService {
         return eventHandlers.stream()
                 .filter(eventHandler -> eventHandler.supports(event))
                 .findAny()
-                .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_HANDLER_NOT_FOUND));
+                .orElseThrow(() -> new EventHandlerException(ErrorCode.EVENT_HANDLER_NOT_FOUND));
     }
 }

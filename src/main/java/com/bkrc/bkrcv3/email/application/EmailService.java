@@ -2,7 +2,7 @@ package com.bkrc.bkrcv3.email.application;
 
 import com.bkrc.bkrcv3.adapter.eventhandler.MemberJoinEmailEventHandler;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
-import com.bkrc.bkrcv3.exception.BusinessException;
+import com.bkrc.bkrcv3.common.event.EventHandlerException;
 import com.bkrc.bkrcv3.adapter.payload.MemberJoinEventPayload;
 import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.required.EventPayload;
@@ -27,6 +27,6 @@ public class EmailService {
         return emailEventHandlers.stream()
                 .filter(emailEventHandler -> emailEventHandler.supports(event))
                 .findAny()
-                .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_HANDLER_NOT_FOUND));
+                .orElseThrow(() -> new EventHandlerException(ErrorCode.EVENT_HANDLER_NOT_FOUND));
     }
 }

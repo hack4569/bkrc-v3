@@ -2,7 +2,7 @@ package com.bkrc.bkrcv3.like.entity;
 
 import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.common.shared.BaseEntity;
-import com.bkrc.bkrcv3.member.entity.Member;
+import com.bkrc.bkrcv3.member.domain.Member;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;

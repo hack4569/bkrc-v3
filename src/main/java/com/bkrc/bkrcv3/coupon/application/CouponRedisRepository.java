@@ -2,7 +2,7 @@ package com.bkrc.bkrcv3.coupon.application;
 
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.coupon.entity.Coupon;
-import com.bkrc.bkrcv3.exception.BusinessException;
+import com.bkrc.bkrcv3.coupon.entity.CouponException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -48,13 +48,13 @@ public class CouponRedisRepository {
                 String.valueOf(coupon.getStock()),
                 String.valueOf(initialIssuedCount)
         );
-        if (result == null || result.size() < 2) throw new BusinessException(ErrorCode.SERVER_ERROR);
+        if (result == null || result.size() < 2) throw new CouponException(ErrorCode.SERVER_ERROR);
 
         long code = ((Number) result.get(0)).longValue();
-        if (code == -2) throw new BusinessException(ErrorCode.COUPON_NOT_DOWNLOADABLE);
-        if (code == -3) throw new BusinessException(ErrorCode.COUPON_ALREADY_ISSUED);
-        if (code == -4) throw new BusinessException(ErrorCode.COUPON_OUT_OF_STOCK);
-        if (code != 1) throw new BusinessException(ErrorCode.SERVER_ERROR);
+        if (code == -2) throw new CouponException(ErrorCode.COUPON_NOT_DOWNLOADABLE);
+        if (code == -3) throw new CouponException(ErrorCode.COUPON_ALREADY_ISSUED);
+        if (code == -4) throw new CouponException(ErrorCode.COUPON_OUT_OF_STOCK);
+        if (code != 1) throw new CouponException(ErrorCode.SERVER_ERROR);
         return ((Number) result.get(1)).intValue();
     }
 

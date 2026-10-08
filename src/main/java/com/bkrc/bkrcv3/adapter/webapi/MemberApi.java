@@ -1,12 +1,13 @@
-package com.bkrc.bkrcv3.member.application;
+package com.bkrc.bkrcv3.adapter.webapi;
 
+import com.bkrc.bkrcv3.member.application.provided.MemberFinder;
+import com.bkrc.bkrcv3.member.application.provided.MemberRegister;
 import com.bkrc.bkrcv3.member.application.request.MemberModifyRequest;
 import com.bkrc.bkrcv3.member.application.request.MemberRegisterRequest;
 import com.bkrc.bkrcv3.member.application.request.MemberWithdrawRequest;
 import com.bkrc.bkrcv3.member.application.response.MemberInfoResponse;
 import com.bkrc.bkrcv3.member.application.response.MemberModifyResponse;
 import com.bkrc.bkrcv3.member.application.response.MemberRegisterResponse;
-import com.bkrc.bkrcv3.member.entity.PasswordEncoder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,16 +20,15 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "회원 (Member)", description = "회원 가입 및 정보 수정 API")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class UserController {
-    private final UserServiceImpl userService;
-    private final PasswordEncoder passwordEncoder;
+public class MemberApi {
+    private final MemberRegister memberRegister;
+    private final MemberFinder memberFinder;
 
     @Operation(summary = "회원 가입", description = "새로운 회원을 등록합니다.")
     @ApiResponses({
@@ -40,7 +40,7 @@ public class UserController {
     })
     @PostMapping("/v1/member")
     public MemberRegisterResponse register(@RequestBody @Valid MemberRegisterRequest request) {
-        var member = userService.saveMember(request);
+        var member = memberRegister.saveMember(request);
         var registeredMember = MemberRegisterResponse.of(member);
         return registeredMember;
     }
@@ -57,7 +57,7 @@ public class UserController {
     public MemberModifyResponse update(
             @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
             @RequestBody @Valid MemberModifyRequest request) {
-        var response = userService.modifyMember(memberId, request);
+        var response = memberRegister.modifyMember(memberId, request);
         return MemberModifyResponse.of(response);
     }
 
@@ -70,7 +70,8 @@ public class UserController {
     @GetMapping("/v1/member/me")
     public MemberInfoResponse getMemberInfo(
             @Parameter(hidden = true) @AuthenticationPrincipal Long memberId) {
-        return userService.getMemberInfo(memberId);
+        var member = memberFinder.getMemberById(memberId);
+        return null;
     }
 
     @Operation(summary = "회원 탈퇴", description = "현재 비밀번호를 확인 후 회원을 탈퇴합니다.")
@@ -85,6 +86,6 @@ public class UserController {
     public void withdraw(
             @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
             @RequestBody @Valid MemberWithdrawRequest request) {
-        userService.withdrawMember(memberId, request);
+        memberRegister.withdrawMember(memberId, request);
     }
 }

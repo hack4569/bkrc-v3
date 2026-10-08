@@ -9,13 +9,14 @@ import com.bkrc.bkrcv3.common.event.EventType;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.common.shared.Snowflake;
 import com.bkrc.bkrcv3.config.RabbitMQConfig;
-import com.bkrc.bkrcv3.exception.BusinessException;
+import com.bkrc.bkrcv3.aladin.entity.AladinException;
 import com.bkrc.bkrcv3.exception.MemberNotFoundException;
 import com.bkrc.bkrcv3.like.application.response.LikeResponse;
 import com.bkrc.bkrcv3.like.application.response.MyLikeResponse;
 import com.bkrc.bkrcv3.like.entity.Like;
+import com.bkrc.bkrcv3.like.entity.LikeException;
 import com.bkrc.bkrcv3.member.application.MemberRepository;
-import com.bkrc.bkrcv3.member.entity.Member;
+import com.bkrc.bkrcv3.member.domain.Member;
 import com.bkrc.bkrcv3.outbox.Outbox;
 import com.bkrc.bkrcv3.outbox.OutboxEvent;
 import com.bkrc.bkrcv3.outbox.OutboxRepository;
@@ -30,10 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -63,10 +61,11 @@ public class LikeService {
     @Transactional
     public LikeResponse like(Integer itemId, Long memberId) {
         if (likeRepository.findByBookItemIdAndMemberMemberId(itemId, memberId).isPresent()) {
-            throw new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS);
+            throw new LikeException(ErrorCode.LIKE_ALREADY_EXISTS);
         }
 
-        AladinBook likeItem = aladinBookRepository.findById(itemId).orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
+        AladinBook likeItem = aladinBookRepository.findById(itemId)
+                .orElseThrow(() -> new AladinException(ErrorCode.BOOK_NOT_FOUND));
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
 
@@ -104,7 +103,7 @@ public class LikeService {
     public void unLike(Integer itemId, Long memberId) {
         var myLike = likeRepository.findByBookItemIdAndMemberMemberId(itemId, memberId);
         if (myLike.isEmpty()) {
-            throw new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS);
+            throw new LikeException(ErrorCode.LIKE_ALREADY_EXISTS);
         }
         likeRepository.deleteById(myLike.get().getLikeId());
         publishLikeCountChanged(itemId, memberId, -1);

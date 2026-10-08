@@ -1,6 +1,5 @@
 package com.bkrc.bkrcv3.history;
 
-import com.bkrc.bkrcv3.member.MemberTestFixture;
 import org.springframework.boot.test.web.client.LocalHostUriTemplateHandler;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.client.RestTemplateBuilder;

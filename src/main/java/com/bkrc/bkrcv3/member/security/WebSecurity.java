@@ -1,7 +1,8 @@
 package com.bkrc.bkrcv3.member.security;
 
-import com.bkrc.bkrcv3.member.application.UserService;
-import com.bkrc.bkrcv3.member.entity.PasswordEncoder;
+import com.bkrc.bkrcv3.member.application.provided.MemberFinder;
+import com.bkrc.bkrcv3.member.application.provided.MemberRegister;
+import com.bkrc.bkrcv3.member.domain.PasswordEncoder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +25,8 @@ import java.util.List;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class WebSecurity {
-    private final UserService userService;
+    private final MemberRegister userService;
+    private final MemberFinder memberFinder;
     private final Environment env;
     private final ObjectMapper objectMapper;
     private final PasswordEncoder passwordEncoder;
@@ -33,7 +35,7 @@ public class WebSecurity {
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(userService).passwordEncoder(passwordEncoder);
+        authenticationManagerBuilder.userDetailsService(memberFinder).passwordEncoder(passwordEncoder);
 
         AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
 
@@ -91,7 +93,8 @@ public class WebSecurity {
     }
 
     private AuthenticationFilter getAuthenticationFilter(AuthenticationManager authenticationManager) throws Exception {
-        AuthenticationFilter authenticationFilter = new AuthenticationFilter(authenticationManager, userService, env, objectMapper);
+        AuthenticationFilter authenticationFilter =
+                new AuthenticationFilter(authenticationManager, memberFinder, env, objectMapper);
         authenticationFilter.setAuthenticationManager(authenticationManager);
 
         return authenticationFilter;

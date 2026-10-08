@@ -6,7 +6,7 @@ import com.bkrc.bkrcv3.aladin.entity.AladinBook;
 import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.exception.AladinClientException;
-import com.bkrc.bkrcv3.exception.BusinessException;
+import com.bkrc.bkrcv3.aladin.entity.AladinException;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import jakarta.annotation.PostConstruct;
@@ -77,7 +77,7 @@ public class AladinClient {
     //책 상세 조회
     public AladinBook bookDetail(AladinRequest aladinRequest) {
         var aladinBooks = this.getApi(AladinConstants.ITEM_LOOKUP, aladinRequest).getItem();
-        if (aladinBooks.isEmpty()) throw new BusinessException(ErrorCode.ALADIN_NOT_READY);
+        if (aladinBooks.isEmpty()) throw new AladinException(ErrorCode.ALADIN_NOT_READY);
 
         var aladinbook = aladinBooks.get(0);
 
