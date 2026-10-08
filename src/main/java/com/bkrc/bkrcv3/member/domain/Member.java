@@ -1,7 +1,7 @@
 package com.bkrc.bkrcv3.member.domain;
 
 import com.bkrc.bkrcv3.common.shared.BaseEntity;
-import com.bkrc.bkrcv3.like.entity.Like;
+import com.bkrc.bkrcv3.like.domain.Like;
 import com.bkrc.bkrcv3.recommendation.entity.BookRecommendation;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;

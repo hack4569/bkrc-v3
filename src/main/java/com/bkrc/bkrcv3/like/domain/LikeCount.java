@@ -1,7 +1,10 @@
-package com.bkrc.bkrcv3.like.entity;
+package com.bkrc.bkrcv3.like.domain;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -22,25 +25,27 @@ public class LikeCount {
     @Column(nullable = false)
     private Long eventVersion = 0L;
 
+    protected LikeCount() {
+    }
+
     public static LikeCount create(Integer itemId, Integer likeCount) {
-        LikeCount bookLikeCount = new LikeCount();
-        bookLikeCount.itemId = itemId;
-        bookLikeCount.likeCount = likeCount;
-        bookLikeCount.eventVersion = 0L;
-        return bookLikeCount;
+        LikeCount count = new LikeCount();
+        count.itemId = itemId;
+        count.likeCount = likeCount;
+        return count;
     }
 
     public void increase() {
-        this.likeCount++;
+        likeCount++;
         increaseEventVersion();
     }
 
     public void decrease() {
-        this.likeCount--;
+        likeCount--;
         increaseEventVersion();
     }
 
     private void increaseEventVersion() {
-        this.eventVersion = this.eventVersion == null ? 1L : this.eventVersion + 1;
+        eventVersion = eventVersion == null ? 1L : eventVersion + 1;
     }
 }

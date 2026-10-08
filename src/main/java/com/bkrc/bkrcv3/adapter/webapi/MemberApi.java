@@ -2,12 +2,15 @@ package com.bkrc.bkrcv3.adapter.webapi;
 
 import com.bkrc.bkrcv3.member.application.provided.MemberFinder;
 import com.bkrc.bkrcv3.member.application.provided.MemberRegister;
+import com.bkrc.bkrcv3.like.application.provided.LikeFinder;
 import com.bkrc.bkrcv3.member.application.request.MemberModifyRequest;
 import com.bkrc.bkrcv3.member.application.request.MemberRegisterRequest;
 import com.bkrc.bkrcv3.member.application.request.MemberWithdrawRequest;
-import com.bkrc.bkrcv3.member.application.response.MemberInfoResponse;
-import com.bkrc.bkrcv3.member.application.response.MemberModifyResponse;
-import com.bkrc.bkrcv3.member.application.response.MemberRegisterResponse;
+import com.bkrc.bkrcv3.adapter.webapi.dto.MemberInfoResponse;
+import com.bkrc.bkrcv3.adapter.webapi.dto.MemberModifyResponse;
+import com.bkrc.bkrcv3.adapter.webapi.dto.MemberRegisterResponse;
+import com.bkrc.bkrcv3.adapter.webapi.dto.MyLikeResponse;
+import com.bkrc.bkrcv3.recommendation.application.MemberRecommendationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -29,6 +32,8 @@ import org.springframework.web.bind.annotation.*;
 public class MemberApi {
     private final MemberRegister memberRegister;
     private final MemberFinder memberFinder;
+    private final LikeFinder likeFinder;
+    private final MemberRecommendationService memberRecommendationService;
 
     @Operation(summary = "회원 가입", description = "새로운 회원을 등록합니다.")
     @ApiResponses({
@@ -71,7 +76,11 @@ public class MemberApi {
     public MemberInfoResponse getMemberInfo(
             @Parameter(hidden = true) @AuthenticationPrincipal Long memberId) {
         var member = memberFinder.getMemberById(memberId);
-        return null;
+        return MemberInfoResponse.of(
+                member.getLoginId(),
+                likeFinder.getMyLikes(memberId).stream().map(MyLikeResponse::of).toList(),
+                memberRecommendationService.getMyRecommendations(member)
+        );
     }
 
     @Operation(summary = "회원 탈퇴", description = "현재 비밀번호를 확인 후 회원을 탈퇴합니다.")

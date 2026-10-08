@@ -41,9 +41,9 @@ public class MemberModifyService implements MemberRegister {
 //                        .created(savedMember.getCreated())
 //                        .build()).toJson()
 //        ));
-//
-//        // 트랜잭션 커밋 후 이벤트 발행
-//        eventPublisher.publishEvent(OutboxEvent.of(outbox));
+
+        // 트랜잭션 커밋 후 이벤트 발행
+        //eventPublisher.publishEvent(OutboxEvent.of(outbox));
         return savedMember;
     }
 

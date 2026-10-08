@@ -1,6 +1,6 @@
 package com.bkrc.bkrcv3.like.application;
 
-import com.bkrc.bkrcv3.like.entity.LikeCount;
+import com.bkrc.bkrcv3.like.domain.LikeCount;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

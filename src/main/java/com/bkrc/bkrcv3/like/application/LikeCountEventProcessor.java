@@ -1,7 +1,8 @@
 package com.bkrc.bkrcv3.like.application;
 
 import com.bkrc.bkrcv3.adapter.payload.BookLikeEventPayload;
-import com.bkrc.bkrcv3.like.entity.LikeCount;
+import com.bkrc.bkrcv3.like.application.provided.LikeCountUpdater;
+import com.bkrc.bkrcv3.like.domain.LikeCount;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -14,7 +15,7 @@ import java.util.Objects;
 public class LikeCountEventProcessor {
 
     private final LikeCountRepository likeCountRepository;
-    private final LikeService likeService;
+    private final LikeCountUpdater likeCountUpdater;
     private final TransactionTemplate transactionTemplate;
 
     public void process(BookLikeEventPayload payload, Duration redisTtl) {
@@ -31,7 +32,7 @@ public class LikeCountEventProcessor {
         });
 
         Objects.requireNonNull(snapshot, "Like count transaction returned null");
-        likeService.createOrUpdate(
+        likeCountUpdater.createOrUpdate(
                 payload.getBookId(),
                 snapshot.likeCount(),
                 snapshot.eventVersion(),

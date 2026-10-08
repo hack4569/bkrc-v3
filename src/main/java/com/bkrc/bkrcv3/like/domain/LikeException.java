@@ -1,4 +1,4 @@
-package com.bkrc.bkrcv3.like.entity;
+package com.bkrc.bkrcv3.like.domain;
 
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.exception.BusinessException;

@@ -1,7 +1,6 @@
-package com.bkrc.bkrcv3.like.application.response;
+package com.bkrc.bkrcv3.adapter.webapi.dto;
 
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
-import com.bkrc.bkrcv3.like.entity.Like;
+import com.bkrc.bkrcv3.like.domain.Like;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "내가 좋아요한 도서 응답")
@@ -14,7 +13,8 @@ public record MyLikeResponse(
         @Schema(description = "출판사", example = "인사이트") String publisher,
         @Schema(description = "도서 상세 페이지 링크") String link
 ) {
-    public static MyLikeResponse of(Like like, AladinBook book) {
+    public static MyLikeResponse of(Like like) {
+        var book = like.getBook();
         return new MyLikeResponse(
                 like.getLikeId(),
                 book.getItemId(),

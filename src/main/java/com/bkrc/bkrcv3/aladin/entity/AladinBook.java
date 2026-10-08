@@ -2,7 +2,7 @@ package com.bkrc.bkrcv3.aladin.entity;
 
 import com.bkrc.bkrcv3.history.entity.History;
 import java.util.Objects;
-import com.bkrc.bkrcv3.like.entity.Like;
+import com.bkrc.bkrcv3.like.domain.Like;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
