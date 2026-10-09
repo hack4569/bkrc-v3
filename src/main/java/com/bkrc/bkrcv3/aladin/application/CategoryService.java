@@ -1,6 +1,6 @@
 package com.bkrc.bkrcv3.aladin.application;
 
-import com.bkrc.bkrcv3.aladin.entity.Category;
+import com.bkrc.bkrcv3.aladin.domain.Category;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.env.Environment;

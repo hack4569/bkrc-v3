@@ -1,14 +1,17 @@
 package com.bkrc.bkrcv3.aladin.application;
 
 import com.bkrc.bkrcv3.aladin.application.request.AladinRecommendForUserRequest;
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
-import com.bkrc.bkrcv3.aladin.entity.BookComment;
+import com.bkrc.bkrcv3.aladin.domain.AladinBook;
+import com.bkrc.bkrcv3.aladin.domain.BookComment;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
-import com.bkrc.bkrcv3.aladin.entity.AladinException;
-import com.bkrc.bkrcv3.history.application.HistoryService;
-import com.bkrc.bkrcv3.history.entity.History;
-import com.bkrc.bkrcv3.member.application.response.RecommendView;
+import com.bkrc.bkrcv3.aladin.domain.AladinException;
+import com.bkrc.bkrcv3.history.application.provided.HistoryFinder;
+import com.bkrc.bkrcv3.history.application.provided.HistoryRegister;
+import com.bkrc.bkrcv3.history.domain.History;
+import com.bkrc.bkrcv3.adapter.webapi.dto.RecommendView;
+import com.bkrc.bkrcv3.aladin.application.provided.BookRecommender;
+import com.bkrc.bkrcv3.aladin.application.provided.AladinFinder;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,30 +23,21 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class BookRecommendationService {
+public class BookRecommendationService implements BookRecommender {
 
-    private static final Map<String, Integer> COMMENT_TYPE_ORDER = Map.of(
-            "phrase", 6,
-            "description", 3,
-            "descriptionInsight", 2,
-            "aiRecommend", 4,
-            "mdRecommend", 5,
-            "user", 1,
-            "toc", 7
-    );
+    private final AladinFinder aladinFinder;
+    private final HistoryFinder historyFinder;
+    private final HistoryRegister historyRegister;
 
-    private final AladinService aladinService;
-    private final HistoryService historyService;
-
-    public List<RecommendView> getRecommendBooksForUser(
-            @Nullable Long memberId,
-            AladinRecommendForUserRequest request
+    @Override
+    public List<AladinBook> getRecommendBooksForUser(
+            @Nullable Long memberId
     ) {
         List<History> histories = memberId == null
-                ? request.getHistories()
-                : historyService.getHistoryByMemberId(memberId);
+                ? null
+                : historyFinder.getHistoryByMemberId(memberId);
 
-        var response = aladinService.findAll();
+        var response = aladinFinder.findAll();
         if (response == null || response.getCount() == 0) {
             throw new AladinException(ErrorCode.ALADIN_NOT_FOUND);
         }
@@ -54,47 +48,16 @@ public class BookRecommendationService {
         List<AladinBook> filteredBooks = filterForUser(books, histories);
 
         if (filteredBooks.isEmpty() && memberId != null) {
-            historyService.deleteHistoryByMemberId(memberId);
+            historyRegister.deleteHistoryByMemberId(memberId);
             filteredBooks = books;
         }
 
-        return filteredBooks.stream()
-                .limit(RcmdConst.SHOW_BOOKS_COUNT)
-                .map(this::toRecommendView)
-                .toList();
+        return filteredBooks;
     }
 
     private List<AladinBook> filterForUser(List<AladinBook> books, List<History> histories) {
         return books.stream()
                 .filter(AladinBook.historyFilter(histories))
-                .toList();
-    }
-
-    private RecommendView toRecommendView(AladinBook book) {
-        return RecommendView.builder()
-                .itemId(book.getItemId())
-                .title(book.getTitle())
-                .link(book.getLink())
-                .cover(book.getCover())
-                .recommendCommentList(sortBookComments(book.getBookCommentList()))
-                .author(book.getAuthor())
-                .categoryName(book.getCategoryName())
-                .build();
-    }
-
-    private List<BookComment> sortBookComments(List<BookComment> comments) {
-        if (CollectionUtils.isEmpty(comments)) {
-            return List.of();
-        }
-
-        return comments.stream()
-                .sorted(Comparator
-                        .comparingInt((BookComment comment) ->
-                                COMMENT_TYPE_ORDER.getOrDefault(comment.getType(), Integer.MAX_VALUE))
-                        .thenComparing(
-                                BookComment::getBookCommentId,
-                                Comparator.nullsLast(Comparator.naturalOrder())
-                        ))
                 .toList();
     }
 }

@@ -1,6 +1,6 @@
 package com.bkrc.bkrcv3.like.domain;
 
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
+import com.bkrc.bkrcv3.aladin.domain.AladinBook;
 import com.bkrc.bkrcv3.common.shared.BaseEntity;
 import com.bkrc.bkrcv3.member.domain.Member;
 import com.fasterxml.jackson.annotation.JsonIgnore;

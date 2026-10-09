@@ -1,6 +1,6 @@
 package com.bkrc.bkrcv3.aladin.application.response;
 
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
+import com.bkrc.bkrcv3.aladin.domain.AladinBook;
 
 public record AladinBookSearchResponse(
         Integer itemId,

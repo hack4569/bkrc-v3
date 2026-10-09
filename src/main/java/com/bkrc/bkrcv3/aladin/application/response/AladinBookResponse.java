@@ -1,8 +1,8 @@
 package com.bkrc.bkrcv3.aladin.application.response;
 
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
-import com.bkrc.bkrcv3.aladin.entity.BookComment;
-import com.bkrc.bkrcv3.aladin.entity.SubInfo;
+import com.bkrc.bkrcv3.aladin.domain.AladinBook;
+import com.bkrc.bkrcv3.aladin.domain.BookComment;
+import com.bkrc.bkrcv3.aladin.domain.SubInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

@@ -1,10 +1,10 @@
 package com.bkrc.bkrcv3.batch;
 
 import com.bkrc.bkrcv3.aladin.application.AladinBookRepository;
-import com.bkrc.bkrcv3.aladin.application.AladinService;
+import com.bkrc.bkrcv3.aladin.application.provided.AladinFinder;
 import com.bkrc.bkrcv3.aladin.application.CategoryService;
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
-import com.bkrc.bkrcv3.aladin.entity.Category;
+import com.bkrc.bkrcv3.aladin.domain.AladinBook;
+import com.bkrc.bkrcv3.aladin.domain.Category;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ExecutionContext;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AladinApiItemProcessor implements ItemProcessor<AladinBook, AladinBook>, ItemStream {
 
-    private final AladinService aladinService;
+    private final AladinFinder aladinFinder;
     private final AladinBookRepository aladinBookRepository;
     private final CategoryService categoryService;
     private Set<Integer> allowedCategoryIds; // 캐싱
@@ -43,7 +43,7 @@ public class AladinApiItemProcessor implements ItemProcessor<AladinBook, AladinB
         if (!item.publishDateFilter()) return null;
 
         // 알라딘 API로 상세 정보 보강
-        AladinBook detail = aladinService.settingAladinDetail(item.getIsbn13());
+        AladinBook detail = aladinFinder.settingAladinDetail(item.getIsbn13());
         return detail;
     }
 }

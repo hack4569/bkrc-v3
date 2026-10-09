@@ -1,7 +1,6 @@
 package com.bkrc.bkrcv3.aladin.application.request;
 
-import com.bkrc.bkrcv3.history.application.HistoryResponse;
-import com.bkrc.bkrcv3.history.entity.History;
+import com.bkrc.bkrcv3.history.domain.History;
 import lombok.*;
 
 import java.util.HashSet;

@@ -2,8 +2,8 @@ package com.bkrc.bkrcv3.like.application.provided;
 
 import com.bkrc.bkrcv3.aladin.application.AladinBookRepository;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
-import com.bkrc.bkrcv3.aladin.entity.AladinException;
+import com.bkrc.bkrcv3.aladin.domain.AladinBook;
+import com.bkrc.bkrcv3.aladin.domain.AladinException;
 import com.bkrc.bkrcv3.api.CommonApiTest;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.like.domain.Like;

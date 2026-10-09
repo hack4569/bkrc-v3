@@ -5,8 +5,9 @@ import com.bkrc.bkrcv3.aladin.application.response.AladinBookPageResponse;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookSearchResponse;
 import com.bkrc.bkrcv3.aladin.application.response.AladinResponse;
 import com.bkrc.bkrcv3.aladin.client.AladinClient;
-import com.bkrc.bkrcv3.aladin.entity.*;
+import com.bkrc.bkrcv3.aladin.domain.*;
 import com.bkrc.bkrcv3.aladin.infrastructure.cache.AladinBookCache;
+import com.bkrc.bkrcv3.aladin.application.provided.AladinFinder;
 import com.bkrc.bkrcv3.common.constants.RcmdConst;
 import com.bkrc.bkrcv3.exception.AladinClientException;
 import com.bkrc.bkrcv3.required.Ai;
@@ -25,7 +26,7 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class AladinService {
+public class AladinService implements AladinFinder {
     private final AladinClient aladinClient;
     private final Ai ai;
     private final AladinBookRepository aladinBookRepository;
@@ -34,23 +35,24 @@ public class AladinService {
 
     @Retry(name = "aladin")
     @CircuitBreaker(name = "aladin", fallbackMethod = "getAladinItemListFallback")
+    @Override
     public List<AladinBook> getAladinItemList(AladinRequest aladinRequest) {
         return aladinClient.getApi(AladinConstants.ITEM_LIST, aladinRequest).getItem();
     }
 
     @Retry(name = "aladin")
     @CircuitBreaker(name = "aladin", fallbackMethod = "searchBooksFallback")
-    public List<AladinBookSearchResponse> searchBooks(String query) {
+    @Override
+    public List<AladinBook> searchBooks(String query) {
         AladinResponse response = aladinClient.searchBooks(query);
         if (response == null || CollectionUtils.isEmpty(response.getItem())) {
             return List.of();
         }
 
-        return response.getItem().stream()
-                .map(AladinBookSearchResponse::from)
-                .toList();
+        return response.getItem();
     }
 
+    @Override
     public AladinBookPageResponse findAll() {
         return aladinBookCache.find()
                 .orElseGet(() -> {
@@ -70,19 +72,14 @@ public class AladinService {
         );
     }
 
-    public List<AladinBook> findAll(AladinBookPageResponse aladinBookPageResponse) {
-        if (aladinBookPageResponse.getCount() == 0) return null;
-        return aladinBookPageResponse.getAladinBookResponseList().stream()
-                .map(AladinBook::toEntity)
-                .toList();
-    }
-
+    @Override
     public AladinBook getAladinBook(Integer itemId) {
         return aladinBookRepository.findById(itemId).orElse(null);
     }
 
     @Retry(name = "aladin")
     @CircuitBreaker(name = "aladin", fallbackMethod = "settingAladinDetailFallback")
+    @Override
     public AladinBook settingAladinDetail(String isbn13) {
         var aladinDetail = aladinClient.bookDetail(AladinRequest.create(isbn13));
         //코멘트 세팅
@@ -164,6 +161,7 @@ public class AladinService {
         }
         throw new AladinClientException(throwable);
     }
+    @Override
     public void saveListForRedis(List<AladinBook> diverseBooks) {
         AladinBookPageResponse response = AladinBookPageResponse.of(
                 diverseBooks.stream()

@@ -1,8 +1,8 @@
 package com.bkrc.bkrcv3.batch;
 
 import com.bkrc.bkrcv3.aladin.application.CategoryRepository;
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
-import com.bkrc.bkrcv3.aladin.entity.Category;
+import com.bkrc.bkrcv3.aladin.domain.AladinBook;
+import com.bkrc.bkrcv3.aladin.domain.Category;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;

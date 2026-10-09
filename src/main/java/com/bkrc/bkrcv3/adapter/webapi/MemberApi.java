@@ -10,7 +10,8 @@ import com.bkrc.bkrcv3.adapter.webapi.dto.MemberInfoResponse;
 import com.bkrc.bkrcv3.adapter.webapi.dto.MemberModifyResponse;
 import com.bkrc.bkrcv3.adapter.webapi.dto.MemberRegisterResponse;
 import com.bkrc.bkrcv3.adapter.webapi.dto.MyLikeResponse;
-import com.bkrc.bkrcv3.recommendation.application.MemberRecommendationService;
+import com.bkrc.bkrcv3.adapter.webapi.dto.MyRecommendationResponse;
+import com.bkrc.bkrcv3.recommendation.application.provided.RecommendationFinder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,7 +34,7 @@ public class MemberApi {
     private final MemberRegister memberRegister;
     private final MemberFinder memberFinder;
     private final LikeFinder likeFinder;
-    private final MemberRecommendationService memberRecommendationService;
+    private final RecommendationFinder recommendationFinder;
 
     @Operation(summary = "회원 가입", description = "새로운 회원을 등록합니다.")
     @ApiResponses({
@@ -79,7 +80,8 @@ public class MemberApi {
         return MemberInfoResponse.of(
                 member.getLoginId(),
                 likeFinder.getMyLikes(memberId).stream().map(MyLikeResponse::of).toList(),
-                memberRecommendationService.getMyRecommendations(member)
+                recommendationFinder.getMyRecommendations(member.getMemberId()).stream()
+                        .map(MyRecommendationResponse::from).toList()
         );
     }
 

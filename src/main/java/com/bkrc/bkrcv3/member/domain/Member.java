@@ -2,7 +2,7 @@ package com.bkrc.bkrcv3.member.domain;
 
 import com.bkrc.bkrcv3.common.shared.BaseEntity;
 import com.bkrc.bkrcv3.like.domain.Like;
-import com.bkrc.bkrcv3.recommendation.entity.BookRecommendation;
+import com.bkrc.bkrcv3.recommendation.domain.BookRecommendation;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -32,15 +32,15 @@ public class Member extends BaseEntity {
     @NotEmpty
     private String password;
 
-    @JsonIgnore
-    @Schema(description = "회원이 좋아요한 도서 목록")
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Like> myLikes;
-
-    @JsonIgnore
-    @Schema(description = "회원이 추천한 도서 목록")
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<BookRecommendation> myBookRecommendations;
+//    @JsonIgnore
+//    @Schema(description = "회원이 좋아요한 도서 목록")
+//    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    private List<Like> myLikes;
+//
+//    @JsonIgnore
+//    @Schema(description = "회원이 추천한 도서 목록")
+//    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    private List<BookRecommendation> myBookRecommendations;
 
     @Schema(description = "회원 유형", example = "NORMAL")
     private String memberType;

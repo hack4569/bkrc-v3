@@ -1,6 +1,6 @@
 package com.bkrc.bkrcv3.recommendation.application;
 
-import com.bkrc.bkrcv3.recommendation.entity.BookRecommendation;
+import com.bkrc.bkrcv3.recommendation.domain.BookRecommendation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;

@@ -3,7 +3,7 @@ package com.bkrc.bkrcv3.hotbook.application;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.common.event.EventHandlerException;
 import com.bkrc.bkrcv3.required.HotBookEventHandler;
-import com.bkrc.bkrcv3.aladin.application.AladinService;
+import com.bkrc.bkrcv3.aladin.application.provided.AladinFinder;
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
 import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.required.EventPayload;
@@ -23,7 +23,7 @@ public class HotBookService {
     private final List<HotBookEventHandler> eventHandlers;
     private final HotBookCalculator hotBookCalculator;
     private final HotBookRepository hotBookRepository;
-    private final AladinService aladinService;
+    private final AladinFinder aladinFinder;
 
     private static final long HOT_ARTICLE_COUNT = 10;
     private static final Duration HOT_ARTICLE_TTL = Duration.ofDays(10);
@@ -47,7 +47,7 @@ public class HotBookService {
 
     public List<AladinBookResponse> readAll(String dateStr) {
         return hotBookRepository.readAll(dateStr).stream()
-                .map(aladinService::getAladinBook)
+                .map(aladinFinder::getAladinBook)
                 .filter(Objects::nonNull)
                 .map(AladinBookResponse::from)
                 .toList();

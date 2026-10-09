@@ -1,6 +1,6 @@
 package com.bkrc.bkrcv3.batch;
 
-import com.bkrc.bkrcv3.aladin.entity.Category;
+import com.bkrc.bkrcv3.aladin.domain.Category;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;

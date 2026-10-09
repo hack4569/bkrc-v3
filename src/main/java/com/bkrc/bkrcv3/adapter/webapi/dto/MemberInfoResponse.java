@@ -1,6 +1,5 @@
 package com.bkrc.bkrcv3.adapter.webapi.dto;
 
-import com.bkrc.bkrcv3.member.application.response.MyRecommendationResponse;
 
 import java.util.List;
 

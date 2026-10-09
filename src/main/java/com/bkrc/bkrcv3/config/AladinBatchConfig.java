@@ -1,7 +1,7 @@
 package com.bkrc.bkrcv3.config;
 
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
-import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
+import com.bkrc.bkrcv3.aladin.domain.AladinBook;
+import com.bkrc.bkrcv3.aladin.domain.AladinConstants;
 import com.bkrc.bkrcv3.batch.AladinApiItemProcessor;
 import com.bkrc.bkrcv3.batch.AladinApiItemReader;
 import com.bkrc.bkrcv3.batch.AladinApiItemWriter;

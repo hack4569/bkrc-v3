@@ -1,7 +1,7 @@
 package com.bkrc.bkrcv3.batch;
 
 import com.bkrc.bkrcv3.aladin.application.AladinBookRepository;
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
+import com.bkrc.bkrcv3.aladin.domain.AladinBook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.Chunk;

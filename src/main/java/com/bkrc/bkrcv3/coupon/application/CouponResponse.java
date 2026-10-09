@@ -1,7 +1,7 @@
 package com.bkrc.bkrcv3.coupon.application;
 
-import com.bkrc.bkrcv3.coupon.entity.Coupon;
-import com.bkrc.bkrcv3.coupon.entity.MemberCoupon;
+import com.bkrc.bkrcv3.coupon.domain.Coupon;
+import com.bkrc.bkrcv3.coupon.domain.MemberCoupon;
 
 import java.time.LocalDateTime;
 

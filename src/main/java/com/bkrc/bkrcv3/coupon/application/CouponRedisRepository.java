@@ -1,8 +1,8 @@
 package com.bkrc.bkrcv3.coupon.application;
 
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
-import com.bkrc.bkrcv3.coupon.entity.Coupon;
-import com.bkrc.bkrcv3.coupon.entity.CouponException;
+import com.bkrc.bkrcv3.coupon.domain.Coupon;
+import com.bkrc.bkrcv3.coupon.domain.CouponException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;

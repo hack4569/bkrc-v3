@@ -1,11 +1,11 @@
 package com.bkrc.bkrcv3.batch;
 
-import com.bkrc.bkrcv3.aladin.application.AladinService;
+import com.bkrc.bkrcv3.aladin.application.provided.AladinFinder;
 import com.bkrc.bkrcv3.aladin.application.request.AladinRequest;
 import com.bkrc.bkrcv3.aladin.client.AladinClient;
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
-import com.bkrc.bkrcv3.aladin.entity.AladinConstants;
-import com.bkrc.bkrcv3.aladin.entity.QueryType;
+import com.bkrc.bkrcv3.aladin.domain.AladinBook;
+import com.bkrc.bkrcv3.aladin.domain.AladinConstants;
+import com.bkrc.bkrcv3.aladin.domain.QueryType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.*;
@@ -18,7 +18,7 @@ import java.util.*;
 @RequiredArgsConstructor
 @Component
 public class AladinApiItemReader implements ItemReader<AladinBook> {
-    private final AladinService aladinService;
+    private final AladinFinder aladinFinder;
     private int page = 1;
     private Queue<AladinBook> buffer = new LinkedList<>();
     private Set<Integer> seenIsbnSet = new HashSet<>();
@@ -26,7 +26,7 @@ public class AladinApiItemReader implements ItemReader<AladinBook> {
     @Override
     public AladinBook read() {
         while (buffer.isEmpty()) {
-            List<AladinBook> aladinItemList = aladinService.getAladinItemList(
+            List<AladinBook> aladinItemList = aladinFinder.getAladinItemList(
                     AladinRequest.builder()
                             .querytype(QueryType.BEST_SELLER.getQueryType())
                             .maxResults(AladinConstants.ITEM_LIST_PAGE)

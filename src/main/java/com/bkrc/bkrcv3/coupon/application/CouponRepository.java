@@ -1,6 +1,6 @@
 package com.bkrc.bkrcv3.coupon.application;
 
-import com.bkrc.bkrcv3.coupon.entity.Coupon;
+import com.bkrc.bkrcv3.coupon.domain.Coupon;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

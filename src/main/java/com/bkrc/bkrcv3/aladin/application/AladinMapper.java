@@ -1,7 +1,7 @@
 package com.bkrc.bkrcv3.aladin.application;
 
 import com.bkrc.bkrcv3.aladin.application.response.AladinBookResponse;
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
+import com.bkrc.bkrcv3.aladin.domain.AladinBook;
 import org.springframework.stereotype.Component;
 
 /**

@@ -1,6 +1,6 @@
 package com.bkrc.bkrcv3.history.application;
 
-import com.bkrc.bkrcv3.history.entity.History;
+import com.bkrc.bkrcv3.history.domain.History;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -2,7 +2,7 @@ package com.bkrc.bkrcv3.like.application;
 
 import com.bkrc.bkrcv3.adapter.payload.BookLikeEventPayload;
 import com.bkrc.bkrcv3.aladin.application.AladinBookRepository;
-import com.bkrc.bkrcv3.aladin.entity.AladinException;
+import com.bkrc.bkrcv3.aladin.domain.AladinException;
 import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.common.event.EventType;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;

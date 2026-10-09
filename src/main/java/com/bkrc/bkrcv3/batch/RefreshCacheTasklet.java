@@ -1,8 +1,8 @@
 package com.bkrc.bkrcv3.batch;
 
 import com.bkrc.bkrcv3.aladin.application.AladinBookRepository;
-import com.bkrc.bkrcv3.aladin.application.AladinService;
-import com.bkrc.bkrcv3.aladin.entity.AladinBook;
+import com.bkrc.bkrcv3.aladin.application.provided.AladinFinder;
+import com.bkrc.bkrcv3.aladin.domain.AladinBook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.StepContribution;
@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RefreshCacheTasklet implements Tasklet {
 
-    private final AladinService aladinService;
+    private final AladinFinder aladinFinder;
     private final AladinBookRepository aladinBookRepository;
     private final DiverseBookOrderer diverseBookOrderer;
 
@@ -26,7 +26,7 @@ public class RefreshCacheTasklet implements Tasklet {
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
         var all = aladinBookRepository.findAll();
         var diverseBooks = diverseBookOrderer.order(all);
-        aladinService.saveListForRedis(diverseBooks);
+        aladinFinder.saveListForRedis(diverseBooks);
         log.info("[Batch] 장르 분산 캐시 갱신 완료 count={}", diverseBooks.size());
         return RepeatStatus.FINISHED;
     }

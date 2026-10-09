@@ -3,9 +3,11 @@ package com.bkrc.bkrcv3.coupon.application;
 import com.bkrc.bkrcv3.adapter.payload.CouponIssuedEventPayload;
 import com.bkrc.bkrcv3.common.event.Event;
 import com.bkrc.bkrcv3.common.event.EventType;
-import com.bkrc.bkrcv3.coupon.entity.Coupon;
-import com.bkrc.bkrcv3.coupon.entity.CouponException;
-import com.bkrc.bkrcv3.coupon.entity.MemberCoupon;
+import com.bkrc.bkrcv3.coupon.domain.Coupon;
+import com.bkrc.bkrcv3.coupon.domain.CouponException;
+import com.bkrc.bkrcv3.coupon.domain.MemberCoupon;
+import com.bkrc.bkrcv3.coupon.application.provided.CouponFinder;
+import com.bkrc.bkrcv3.coupon.application.provided.CouponRegister;
 import com.bkrc.bkrcv3.common.shared.ErrorCode;
 import com.bkrc.bkrcv3.common.shared.Snowflake;
 import com.bkrc.bkrcv3.config.RabbitMQConfig;
@@ -31,7 +33,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 /** 쿠폰 노출, 발급, 보유 내역 조회 및 사용 처리를 담당합니다. */
-public class CouponService {
+public class CouponService implements CouponFinder, CouponRegister {
     private final CouponRepository couponRepository;
     private final MemberCouponRepository memberCouponRepository;
     private final CouponRedisRepository couponRedisRepository;
@@ -41,6 +43,7 @@ public class CouponService {
     private final Snowflake snowflake;
 
     @Transactional(readOnly = true)
+    @Override
     public List<CouponResponse> getDownloadable() {
         // 서버 기본 타임존과 무관하게 쿠폰 정책은 한국 시각을 사용합니다.
         return couponRepository.findVisible(LocalDateTime.now(couponClock)).stream()
@@ -51,6 +54,7 @@ public class CouponService {
 
     /** Redis Lua로 발급을 예약하고, DB 저장 명령은 Outbox를 통해 RabbitMQ로 전달합니다. */
     @Transactional
+    @Override
     public CouponResponse.Issued download(Long couponId, Long memberId) {
         LocalDateTime now = LocalDateTime.now(couponClock);
         Coupon coupon = couponRepository.findById(couponId)
@@ -101,6 +105,7 @@ public class CouponService {
     }
 
     @Transactional(readOnly = true)
+    @Override
     public List<CouponResponse.Issued> getMine(Long memberId) {
         List<MemberCoupon> issuedCoupons = memberCouponRepository.findByMemberIdOrderByIssuedAtDesc(memberId);
         Map<Long, Coupon> couponsById = couponRepository.findAllById(
@@ -113,6 +118,7 @@ public class CouponService {
     }
 
     @Transactional
+    @Override
     public CouponResponse.Issued use(Long memberCouponId, Long memberId) {
         // memberId를 조건에 포함해 본인에게 발급된 쿠폰만 사용할 수 있게 합니다.
         MemberCoupon value = memberCouponRepository.findByMemberCouponIdAndMemberId(memberCouponId, memberId)
