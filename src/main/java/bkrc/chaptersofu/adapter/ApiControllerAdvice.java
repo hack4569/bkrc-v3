@@ -1,7 +1,7 @@
 package bkrc.chaptersofu.adapter;
 
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
-import bkrc.chaptersofu.domain.exception.BusinessException;
+import bkrc.chaptersofu.domain.common.shared.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;

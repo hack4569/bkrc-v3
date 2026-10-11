@@ -1,10 +1,10 @@
 package bkrc.chaptersofu.application.coupon;
 
-import bkrc.chaptersofu.application.event.payload.CouponIssuedEventPayload;
-import bkrc.chaptersofu.domain.shared.event.Event;
+import bkrc.chaptersofu.application.coupon.event.payload.CouponIssuedEventPayload;
+import bkrc.chaptersofu.application.shared.event.Event;
 import bkrc.chaptersofu.application.messaging.RabbitMQConfig;
 import bkrc.chaptersofu.domain.coupon.MemberCoupon;
-import bkrc.chaptersofu.application.required.EventPayload;
+import bkrc.chaptersofu.application.shared.event.EventPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -24,7 +24,7 @@ public class CouponIssueConsumer {
     @RabbitListener(queues = RabbitMQConfig.COUPON_ISSUE_QUEUE)
     @Transactional
     public void listen(String message) {
-        Event<EventPayload> event = Event.fromJson(message);
+        Event<EventPayload> event = Event.fromJson(message, CouponIssuedEventPayload.class);
         if (event == null || !(event.getPayload() instanceof CouponIssuedEventPayload payload)) {
             throw new IllegalArgumentException("유효하지 않은 쿠폰 발급 이벤트입니다.");
         }

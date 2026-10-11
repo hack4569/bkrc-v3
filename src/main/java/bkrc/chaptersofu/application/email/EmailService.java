@@ -1,9 +1,9 @@
 package bkrc.chaptersofu.application.email;
 
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
-import bkrc.chaptersofu.domain.shared.event.EventHandlerException;
-import bkrc.chaptersofu.domain.shared.event.Event;
-import bkrc.chaptersofu.application.required.EventPayload;
+import bkrc.chaptersofu.domain.common.shared.EventHandlerException;
+import bkrc.chaptersofu.application.shared.event.Event;
+import bkrc.chaptersofu.application.shared.event.EventPayload;
 import bkrc.chaptersofu.application.required.EmailEventHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

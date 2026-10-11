@@ -1,10 +1,10 @@
 package bkrc.chaptersofu.application.like;
 
-import bkrc.chaptersofu.application.event.payload.BookLikeEventPayload;
+import bkrc.chaptersofu.application.like.event.payload.BookLikeEventPayload;
 import bkrc.chaptersofu.application.aladin.AladinBookRepository;
 import bkrc.chaptersofu.domain.aladin.AladinException;
-import bkrc.chaptersofu.domain.shared.event.Event;
-import bkrc.chaptersofu.domain.shared.event.EventType;
+import bkrc.chaptersofu.application.shared.event.Event;
+import bkrc.chaptersofu.application.shared.event.EventType;
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
 import bkrc.chaptersofu.domain.common.shared.Snowflake;
 import bkrc.chaptersofu.application.messaging.RabbitMQConfig;

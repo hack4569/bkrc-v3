@@ -1,7 +1,7 @@
 package bkrc.chaptersofu.domain.aladin;
 
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
-import bkrc.chaptersofu.domain.exception.BusinessException;
+import bkrc.chaptersofu.domain.common.shared.BusinessException;
 
 public class AladinException extends BusinessException {
     public AladinException(ErrorCode errorCode) {

@@ -1,9 +1,9 @@
 package bkrc.chaptersofu.application.coupon;
 
-import bkrc.chaptersofu.domain.shared.event.Event;
-import bkrc.chaptersofu.domain.shared.event.EventType;
+import bkrc.chaptersofu.application.shared.event.Event;
+import bkrc.chaptersofu.application.shared.event.EventType;
 import bkrc.chaptersofu.application.coupon.provided.CouponRegister;
-import bkrc.chaptersofu.application.event.payload.CouponIssuedEventPayload;
+import bkrc.chaptersofu.application.coupon.event.payload.CouponIssuedEventPayload;
 import bkrc.chaptersofu.application.messaging.RabbitMQConfig;
 import bkrc.chaptersofu.application.outbox.Outbox;
 import bkrc.chaptersofu.application.outbox.OutboxEvent;

@@ -1,13 +1,13 @@
 package bkrc.chaptersofu.application.hotbook;
 
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
-import bkrc.chaptersofu.domain.shared.event.EventHandlerException;
+import bkrc.chaptersofu.domain.common.shared.EventHandlerException;
 import bkrc.chaptersofu.application.required.HotBookEventHandler;
 import bkrc.chaptersofu.application.aladin.provided.AladinFinder;
 import bkrc.chaptersofu.application.hotbook.provided.HotBookFinder;
 import bkrc.chaptersofu.domain.aladin.AladinBook;
-import bkrc.chaptersofu.domain.shared.event.Event;
-import bkrc.chaptersofu.application.required.EventPayload;
+import bkrc.chaptersofu.application.shared.event.Event;
+import bkrc.chaptersofu.application.shared.event.EventPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

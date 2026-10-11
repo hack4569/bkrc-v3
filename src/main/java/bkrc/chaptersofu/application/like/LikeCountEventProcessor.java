@@ -1,6 +1,6 @@
 package bkrc.chaptersofu.application.like;
 
-import bkrc.chaptersofu.application.event.payload.BookLikeEventPayload;
+import bkrc.chaptersofu.application.like.event.payload.BookLikeEventPayload;
 import bkrc.chaptersofu.application.like.provided.LikeCountUpdater;
 import bkrc.chaptersofu.domain.like.LikeCount;
 import lombok.RequiredArgsConstructor;

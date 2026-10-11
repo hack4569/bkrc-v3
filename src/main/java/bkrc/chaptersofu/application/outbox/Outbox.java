@@ -1,6 +1,6 @@
 package bkrc.chaptersofu.application.outbox;
 
-import bkrc.chaptersofu.domain.shared.event.EventType;
+import bkrc.chaptersofu.application.shared.event.EventType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

@@ -1,7 +1,7 @@
 package bkrc.chaptersofu.domain.recommendation;
 
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
-import bkrc.chaptersofu.domain.exception.BusinessException;
+import bkrc.chaptersofu.domain.common.shared.BusinessException;
 
 public class RecommendationException extends BusinessException {
     public RecommendationException(ErrorCode errorCode) {

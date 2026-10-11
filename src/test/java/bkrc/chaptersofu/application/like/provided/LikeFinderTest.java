@@ -1,0 +1,79 @@
+package bkrc.chaptersofu.application.like.provided;
+
+import bkrc.chaptersofu.application.like.provided.*;
+
+import bkrc.chaptersofu.application.aladin.AladinBookRepository;
+import bkrc.chaptersofu.domain.aladin.AladinBookResponse;
+import bkrc.chaptersofu.domain.aladin.AladinBook;
+import bkrc.chaptersofu.adapter.webapi.CommonApiTest;
+import bkrc.chaptersofu.application.member.provided.MemberRegister;
+import bkrc.chaptersofu.application.member.provided.MemberRegisterRequest;
+import bkrc.chaptersofu.domain.member.Member;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@CommonApiTest
+@Transactional
+class LikeFinderTest {
+    private static final int FIRST_BOOK_ID = 200_001;
+    private static final int SECOND_BOOK_ID = 200_002;
+
+    @Autowired
+    private LikeFinder likeFinder;
+    @Autowired
+    private LikeRegister likeRegister;
+    @Autowired
+    private MemberRegister memberRegister;
+    @Autowired
+    private AladinBookRepository aladinBookRepository;
+    @Autowired
+    private EntityManager entityManager;
+
+    private Member member;
+
+    @BeforeEach
+    void setUp() {
+        member = memberRegister.saveMember(
+                new MemberRegisterRequest("likeFinderUser", "password", "password"));
+        aladinBookRepository.save(createBook(FIRST_BOOK_ID, "첫 번째 테스트 도서"));
+        aladinBookRepository.save(createBook(SECOND_BOOK_ID, "두 번째 테스트 도서"));
+        entityManager.flush();
+        entityManager.clear();
+    }
+
+    @Test
+    void 나의_좋아요_목록을_조회한다() {
+        likeRegister.like(FIRST_BOOK_ID, member.getMemberId());
+        likeRegister.like(SECOND_BOOK_ID, member.getMemberId());
+        entityManager.flush();
+        entityManager.clear();
+
+        var likes = likeFinder.getMyLikes(member.getMemberId());
+
+        assertThat(likes)
+                .hasSize(2)
+                .extracting(like -> like.getBook().getItemId())
+                .containsExactlyInAnyOrder(FIRST_BOOK_ID, SECOND_BOOK_ID);
+    }
+
+    @Test
+    void 회원의_좋아요가_없으면_빈_목록을_반환한다() {
+        assertThat(likeFinder.getMyLikes(member.getMemberId())).isEmpty();
+    }
+
+    private AladinBook createBook(Integer itemId, String title) {
+        AladinBookResponse response = new AladinBookResponse();
+        response.setItemId(itemId);
+        response.setTitle(title);
+        response.setAuthor("테스트 저자");
+        response.setPublisher("테스트 출판사");
+        response.setLink("https://example.com/books/" + itemId);
+        response.setCover("https://example.com/books/" + itemId + ".jpg");
+        return AladinBook.toEntity(response);
+    }
+}

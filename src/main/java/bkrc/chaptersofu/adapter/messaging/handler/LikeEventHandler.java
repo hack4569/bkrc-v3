@@ -1,8 +1,8 @@
 package bkrc.chaptersofu.adapter.messaging.handler;
 
-import bkrc.chaptersofu.domain.shared.event.Event;
-import bkrc.chaptersofu.domain.shared.event.EventType;
-import bkrc.chaptersofu.application.event.payload.BookLikeEventPayload;
+import bkrc.chaptersofu.application.shared.event.Event;
+import bkrc.chaptersofu.application.shared.event.EventType;
+import bkrc.chaptersofu.application.like.event.payload.BookLikeEventPayload;
 import bkrc.chaptersofu.application.required.HotBookEventHandler;
 import bkrc.chaptersofu.application.like.LikeCountEventProcessor;
 import lombok.RequiredArgsConstructor;

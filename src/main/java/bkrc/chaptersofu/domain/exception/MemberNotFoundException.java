@@ -1,5 +1,6 @@
 package bkrc.chaptersofu.domain.exception;
 
+import bkrc.chaptersofu.domain.common.shared.BusinessException;
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
 import lombok.Getter;
 

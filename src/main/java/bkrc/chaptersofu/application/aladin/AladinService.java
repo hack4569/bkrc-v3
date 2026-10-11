@@ -1,7 +1,6 @@
 package bkrc.chaptersofu.application.aladin;
 
 import bkrc.chaptersofu.application.aladin.provided.AladinRequest;
-import bkrc.chaptersofu.adapter.client.aladin.dto.AladinBookSearchResponse;
 import bkrc.chaptersofu.application.required.BookInfo;
 import bkrc.chaptersofu.domain.aladin.*;
 import bkrc.chaptersofu.application.aladin.cache.AladinBookCache;
@@ -144,7 +143,7 @@ public class AladinService implements AladinFinder {
         return List.of();
     }
 
-    private List<AladinBookSearchResponse> searchBooksFallback(String query, Throwable throwable) {
+    private List<AladinBook> searchBooksFallback(String query, Throwable throwable) {
         log.warn("[알라딘] 책 검색 fallback query={}", query, throwable);
         return List.of();
     }

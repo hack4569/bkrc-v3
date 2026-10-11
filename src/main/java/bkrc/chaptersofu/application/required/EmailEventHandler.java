@@ -1,6 +1,7 @@
 package bkrc.chaptersofu.application.required;
 
-import bkrc.chaptersofu.domain.shared.event.Event;
+import bkrc.chaptersofu.application.shared.event.EventPayload;
+import bkrc.chaptersofu.application.shared.event.Event;
 
 public interface EmailEventHandler<T extends EventPayload > {
     void handle(Event<T> event);

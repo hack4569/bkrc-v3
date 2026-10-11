@@ -1,7 +1,7 @@
 package bkrc.chaptersofu.domain.like;
 
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
-import bkrc.chaptersofu.domain.exception.BusinessException;
+import bkrc.chaptersofu.domain.common.shared.BusinessException;
 
 public class LikeException extends BusinessException {
     public LikeException(ErrorCode errorCode) {

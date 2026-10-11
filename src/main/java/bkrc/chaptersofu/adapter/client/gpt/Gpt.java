@@ -2,7 +2,7 @@ package bkrc.chaptersofu.adapter.client.gpt;
 
 import bkrc.chaptersofu.application.required.Ai;
 import bkrc.chaptersofu.application.required.BookDescriptionSummary;
-import bkrc.chaptersofu.domain.shared.dataserializer.DataSerializer;
+import bkrc.chaptersofu.domain.common.shared.DataSerializer;
 import bkrc.chaptersofu.adapter.client.gpt.dto.GptMessage;
 import bkrc.chaptersofu.adapter.client.gpt.dto.GptRequest;
 import bkrc.chaptersofu.adapter.client.gpt.dto.GptResponse;
