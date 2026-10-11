@@ -1,0 +1,120 @@
+package bkrc.chaptersofu.adapter.security;
+
+import bkrc.chaptersofu.domain.common.shared.ErrorCode;
+import bkrc.chaptersofu.application.member.provided.MemberFinder;
+import bkrc.chaptersofu.application.member.provided.LoginForm;
+import bkrc.chaptersofu.adapter.security.dto.LoginResponse;
+import bkrc.chaptersofu.domain.member.Member;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import javax.crypto.SecretKey;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Date;
+
+@Slf4j
+public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+    private final MemberFinder memberFinder;
+    private final Environment environment;
+    private final ObjectMapper objectMapper;
+
+    public AuthenticationFilter(AuthenticationManager authenticationManager,
+                                MemberFinder memberFinder,
+                                Environment environment,
+                                ObjectMapper objectMapper) {
+        super(authenticationManager);
+        this.memberFinder = memberFinder;
+        this.environment = environment;
+        this.objectMapper = objectMapper;
+    }
+
+    @Override
+    public Authentication attemptAuthentication(HttpServletRequest req,
+                                                HttpServletResponse res) throws AuthenticationException {
+            // 요청 바디를 파싱할 때는 필드로 주입된 ObjectMapper를 사용하고,
+            // 실패 시 form 파라미터에서 읽어오는 폴백을 둡니다.
+            LoginForm creds = null;
+            try {
+                creds = this.objectMapper.readValue(req.getInputStream(), LoginForm.class);
+            } catch (IOException e) {
+                throw new BadCredentialsException(ErrorCode.AUTHENTICATION_FAILED.getMessage(), e);
+            }catch (Exception e) {
+                // JSON 파싱 실패 시 로그와 함께 form 파라미터에서 값을 꺼내 시도
+                log.debug("attemptAuthentication: failed to parse JSON body, contentType={}; error={}", req.getContentType(), e.toString());
+                String loginId = req.getParameter("loginId");
+                String password = req.getParameter("password");
+                if (loginId != null && password != null) {
+                    creds = new LoginForm(loginId, password, false);
+                } else {
+                    throw e; // 둘 다 없으면 원래 예외를 처리하기 위해 던짐
+                }
+            }
+
+            return getAuthenticationManager().authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            creds.getLoginId(),
+                            creds.getPassword(),
+                            new ArrayList<>()
+                    )
+            );
+    }
+
+    @Override
+    protected void successfulAuthentication(HttpServletRequest req, HttpServletResponse res,
+                                            FilterChain chain, Authentication authResult)
+            throws IOException, ServletException {
+        String loginId = ((User) authResult.getPrincipal()).getUsername();
+        Member member = memberFinder.getMemberByLoginId(loginId);
+
+        byte[] secretKeyBytes = environment.getProperty("token.secret").getBytes(StandardCharsets.UTF_8);
+
+        SecretKey secretKey = Keys.hmacShaKeyFor(secretKeyBytes);
+
+        Instant now = Instant.now();
+
+        String token = Jwts.builder()
+                .subject(String.valueOf(member.getMemberId()))
+                .expiration(Date.from(now.plusMillis(Long.parseLong(environment.getProperty("token.expiration-time")))))
+                .issuedAt(Date.from(now))
+                .signWith(secretKey)
+                .compact();
+
+        log.info("successfulAuthentication - generated token for memberId={}", member.getMemberId());
+
+        res.setContentType("application/json; charset=UTF-8");
+        // 실제 토큰과 로그인 ID를 담은 응답 인스턴스를 반환하도록 수정
+        objectMapper.writeValue(res.getWriter(), new LoginResponse(token, member.getLoginId()));
+    }
+
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest req, HttpServletResponse res,
+                                              AuthenticationException failed)
+            throws IOException, ServletException {
+        res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        res.setContentType("application/json; charset=UTF-8");
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
+        problem.setDetail(ErrorCode.AUTHENTICATION_FAILED.getMessage());
+
+        objectMapper.writeValue(res.getWriter(), problem);
+    }
+}

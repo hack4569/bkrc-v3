@@ -1,0 +1,20 @@
+package bkrc.chaptersofu.domain.exception;
+
+import bkrc.chaptersofu.domain.common.shared.ErrorCode;
+import lombok.Getter;
+
+@Getter
+public class MemberNotFoundException extends BusinessException {
+
+    private final Long memberId;
+
+    public MemberNotFoundException() {
+        super(ErrorCode.USER_NOT_FOUND);
+        this.memberId = null;
+    }
+
+    public MemberNotFoundException(Long memberId) {
+        super(ErrorCode.USER_NOT_FOUND);
+        this.memberId = memberId;
+    }
+}

@@ -1,0 +1,55 @@
+package bkrc.chaptersofu.adapter.batch;
+
+import bkrc.chaptersofu.application.aladin.provided.AladinFinder;
+import bkrc.chaptersofu.application.aladin.provided.AladinRequest;
+import bkrc.chaptersofu.domain.aladin.AladinBook;
+import bkrc.chaptersofu.domain.aladin.AladinConstants;
+import bkrc.chaptersofu.domain.aladin.QueryType;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.item.*;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import java.util.*;
+
+@Slf4j
+@RequiredArgsConstructor
+@Component
+public class AladinApiItemReader implements ItemReader<AladinBook> {
+    private final AladinFinder aladinFinder;
+    private int page = 1;
+    private Queue<AladinBook> buffer = new LinkedList<>();
+    private Set<Integer> seenIsbnSet = new HashSet<>();
+
+    @Override
+    public AladinBook read() {
+        while (buffer.isEmpty()) {
+            List<AladinBook> aladinItemList = aladinFinder.getAladinItemList(
+                    AladinRequest.builder()
+                            .querytype(QueryType.BEST_SELLER.getQueryType())
+                            .maxResults(AladinConstants.ITEM_LIST_PAGE)
+                            .start(page).build()
+            );
+
+            if (CollectionUtils.isEmpty(aladinItemList)) return null;
+
+            // 이번 페이지 isbn이 전부 이미 본 것이면 → 중복 페이지 → 종료
+            boolean allDuplicated = aladinItemList.stream()
+                    .map(AladinBook::getItemId)
+                    .anyMatch(seenIsbnSet::contains);
+
+            if (allDuplicated) return null;
+
+            // 새로운 isbn만 등록하고 buffer에 추가
+            aladinItemList.stream()
+                    .filter(book -> seenIsbnSet.add(book.getItemId())) // add()가 false면 중복
+                    .forEach(buffer::add);
+
+            page++;
+        }
+
+        return buffer.poll();
+    }
+
+}

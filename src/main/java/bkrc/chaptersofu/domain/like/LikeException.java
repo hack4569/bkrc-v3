@@ -1,0 +1,14 @@
+package bkrc.chaptersofu.domain.like;
+
+import bkrc.chaptersofu.domain.common.shared.ErrorCode;
+import bkrc.chaptersofu.domain.exception.BusinessException;
+
+public class LikeException extends BusinessException {
+    public LikeException(ErrorCode errorCode) {
+        super(errorCode);
+    }
+
+    public LikeException(ErrorCode errorCode, Throwable cause) {
+        super(errorCode, cause);
+    }
+}

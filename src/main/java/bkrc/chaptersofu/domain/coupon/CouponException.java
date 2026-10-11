@@ -1,0 +1,14 @@
+package bkrc.chaptersofu.domain.coupon;
+
+import bkrc.chaptersofu.domain.common.shared.ErrorCode;
+import bkrc.chaptersofu.domain.exception.BusinessException;
+
+public class CouponException extends BusinessException {
+    public CouponException(ErrorCode errorCode) {
+        super(errorCode);
+    }
+
+    public CouponException(ErrorCode errorCode, Throwable cause) {
+        super(errorCode, cause);
+    }
+}
