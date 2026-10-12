@@ -1,5 +1,7 @@
-package bkrc.chaptersofu.application.coupon;
+package bkrc.chaptersofu.adapter.messaging.consumer;
 
+import bkrc.chaptersofu.application.coupon.CouponRedisRepository;
+import bkrc.chaptersofu.application.coupon.MemberCouponRepository;
 import bkrc.chaptersofu.application.coupon.event.payload.CouponIssuedEventPayload;
 import bkrc.chaptersofu.application.shared.event.Event;
 import bkrc.chaptersofu.application.messaging.RabbitMQConfig;

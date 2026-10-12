@@ -65,11 +65,11 @@ gpt:
 
 external-api:
   aladin:
-    connect-timeout: 3s
-    read-timeout: 5s
+    connect-timeout: 10s
+    read-timeout: 20s
   gpt:
-    connect-timeout: 5s
-    read-timeout: 60s
+    connect-timeout: 15s
+    read-timeout: 300s
 
 token:
   expiration-time: 86400000 #10 days

@@ -17,7 +17,6 @@ public class OutboxRecoveryScheduler {
     private static final int RETRY_DELAY_MINUTES = 5;
 
     private final OutboxRepository outboxRepository;
-    private final OutboxStatusUpdater outboxStatusUpdater;
     private final OutboxPublisher outboxPublisher;
 
     @Scheduled(fixedDelayString = "${outbox.recovery.fixed-delay-ms:300000}")
@@ -34,9 +33,8 @@ public class OutboxRecoveryScheduler {
         if (!targets.isEmpty()) {
             log.info("Retrying pending outboxes - count: {}", targets.size());
         }
-        targets.forEach(outbox -> {
-            outboxStatusUpdater.markFailed(outbox);
-            outboxPublisher.publish(outbox);
-        });
+        // ACK를 받기 전까지 PENDING 상태를 유지한다.
+        // NACK, 발행 예외, Confirm 응답 유실 시 다음 스케줄에서 다시 조회해 재발행한다.
+        targets.forEach(outboxPublisher::publish);
     }
 }
