@@ -135,6 +135,17 @@ services:
     networks:
       - bkrc-network
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - n8n
+    networks:
+      - bkrc-network
 networks:
   bkrc-network:
     driver: bridge
