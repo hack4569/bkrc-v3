@@ -3,7 +3,7 @@ package bkrc.chaptersofu.application.recommendation;
 import bkrc.chaptersofu.application.recommendation.provided.CreateRecommendationRequest;
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
 import bkrc.chaptersofu.domain.common.shared.Snowflake;
-import bkrc.chaptersofu.domain.exception.MemberNotFoundException;
+import bkrc.chaptersofu.domain.member.MemberNotFoundException;
 import bkrc.chaptersofu.application.member.MemberRepository;
 import bkrc.chaptersofu.domain.recommendation.BookRecommendation;
 import bkrc.chaptersofu.domain.recommendation.RecommendationException;

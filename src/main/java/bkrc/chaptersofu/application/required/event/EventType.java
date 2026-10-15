@@ -1,4 +1,4 @@
-package bkrc.chaptersofu.application.shared.event;
+package bkrc.chaptersofu.application.required.event;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

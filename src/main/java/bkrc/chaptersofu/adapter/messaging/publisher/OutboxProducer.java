@@ -1,8 +1,8 @@
 package bkrc.chaptersofu.adapter.messaging.publisher;
 
-import bkrc.chaptersofu.application.outbox.Outbox;
-import bkrc.chaptersofu.application.outbox.OutboxEvent;
-import bkrc.chaptersofu.application.outbox.OutboxPublisher;
+import bkrc.chaptersofu.application.required.outbox.Outbox;
+import bkrc.chaptersofu.application.required.outbox.OutboxEvent;
+import bkrc.chaptersofu.application.required.outbox.OutboxPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

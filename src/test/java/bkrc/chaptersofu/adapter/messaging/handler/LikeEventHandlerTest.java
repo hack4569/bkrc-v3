@@ -2,9 +2,8 @@ package bkrc.chaptersofu.adapter.messaging.handler;
 
 import bkrc.chaptersofu.application.like.LikeCountEventProcessor;
 import bkrc.chaptersofu.application.like.event.payload.BookLikeEventPayload;
-import bkrc.chaptersofu.application.shared.event.Event;
-import bkrc.chaptersofu.application.shared.event.EventPayload;
-import bkrc.chaptersofu.application.shared.event.EventType;
+import bkrc.chaptersofu.application.required.event.Event;
+import bkrc.chaptersofu.application.required.event.EventType;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;

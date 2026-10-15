@@ -1,13 +1,13 @@
 package bkrc.chaptersofu.adapter.messaging.consumer;
 
 import bkrc.chaptersofu.application.messaging.RabbitMQConfig;
-import bkrc.chaptersofu.application.shared.event.Event;
-import bkrc.chaptersofu.application.shared.event.EventPayload;
-import bkrc.chaptersofu.application.email.EmailService;
-import bkrc.chaptersofu.application.member.event.payload.MemberJoinEventPayload;
-import bkrc.chaptersofu.application.member.event.payload.MemberModifyEventPayload;
-import bkrc.chaptersofu.application.member.event.payload.MemberWithdrawEventPayload;
-import bkrc.chaptersofu.application.shared.event.EventType;
+import bkrc.chaptersofu.application.required.event.Event;
+import bkrc.chaptersofu.application.required.event.EventPayload;
+import bkrc.chaptersofu.application.required.email.EmailService;
+import bkrc.chaptersofu.application.required.event.payload.MemberJoinEventPayload;
+import bkrc.chaptersofu.application.required.event.payload.MemberModifyEventPayload;
+import bkrc.chaptersofu.application.required.event.payload.MemberWithdrawEventPayload;
+import bkrc.chaptersofu.application.required.event.EventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

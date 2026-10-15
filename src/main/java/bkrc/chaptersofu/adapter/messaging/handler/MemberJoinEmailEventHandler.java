@@ -1,9 +1,9 @@
 package bkrc.chaptersofu.adapter.messaging.handler;
 
-import bkrc.chaptersofu.application.required.EmailEventHandler;
-import bkrc.chaptersofu.application.shared.event.Event;
-import bkrc.chaptersofu.application.shared.event.EventType;
-import bkrc.chaptersofu.application.member.event.payload.MemberJoinEventPayload;
+import bkrc.chaptersofu.application.required.email.EmailEventHandler;
+import bkrc.chaptersofu.application.required.event.Event;
+import bkrc.chaptersofu.application.required.event.EventType;
+import bkrc.chaptersofu.application.required.event.payload.MemberJoinEventPayload;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

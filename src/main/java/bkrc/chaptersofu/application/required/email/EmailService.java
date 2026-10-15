@@ -1,10 +1,9 @@
-package bkrc.chaptersofu.application.email;
+package bkrc.chaptersofu.application.required.email;
 
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
 import bkrc.chaptersofu.domain.common.shared.EventHandlerException;
-import bkrc.chaptersofu.application.shared.event.Event;
-import bkrc.chaptersofu.application.shared.event.EventPayload;
-import bkrc.chaptersofu.application.required.EmailEventHandler;
+import bkrc.chaptersofu.application.required.event.Event;
+import bkrc.chaptersofu.application.required.event.EventPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

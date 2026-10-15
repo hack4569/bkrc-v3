@@ -6,7 +6,7 @@ import bkrc.chaptersofu.application.required.BookInfo;
 import bkrc.chaptersofu.domain.aladin.AladinBook;
 import bkrc.chaptersofu.domain.aladin.AladinConstants;
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
-import bkrc.chaptersofu.domain.exception.AladinClientException;
+import bkrc.chaptersofu.domain.aladin.AladinClientException;
 import bkrc.chaptersofu.domain.aladin.AladinException;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;

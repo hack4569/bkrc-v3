@@ -1,6 +1,6 @@
 package bkrc.chaptersofu.application.messaging;
 
-import bkrc.chaptersofu.application.outbox.OutboxStatusUpdater;
+import bkrc.chaptersofu.application.required.outbox.OutboxStatusUpdater;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;

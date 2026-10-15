@@ -1,4 +1,4 @@
-package bkrc.chaptersofu.application.outbox;
+package bkrc.chaptersofu.application.required.outbox;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDateTime;

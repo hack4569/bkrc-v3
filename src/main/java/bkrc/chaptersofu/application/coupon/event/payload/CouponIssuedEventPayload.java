@@ -1,6 +1,6 @@
 package bkrc.chaptersofu.application.coupon.event.payload;
 
-import bkrc.chaptersofu.application.shared.event.EventPayload;
+import bkrc.chaptersofu.application.required.event.EventPayload;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

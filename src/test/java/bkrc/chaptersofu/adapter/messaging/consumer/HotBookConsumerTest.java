@@ -2,9 +2,9 @@ package bkrc.chaptersofu.adapter.messaging.consumer;
 
 import bkrc.chaptersofu.application.hotbook.HotBookService;
 import bkrc.chaptersofu.application.like.event.payload.BookLikeEventPayload;
-import bkrc.chaptersofu.application.shared.event.Event;
-import bkrc.chaptersofu.application.shared.event.EventPayload;
-import bkrc.chaptersofu.application.shared.event.EventType;
+import bkrc.chaptersofu.application.required.event.Event;
+import bkrc.chaptersofu.application.required.event.EventPayload;
+import bkrc.chaptersofu.application.required.event.EventType;
 import org.junit.jupiter.api.Test;
 
 import static org.mockito.ArgumentMatchers.argThat;

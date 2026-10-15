@@ -1,6 +1,6 @@
 package bkrc.chaptersofu.application.like.event.payload;
 
-import bkrc.chaptersofu.application.shared.event.EventPayload;
+import bkrc.chaptersofu.application.required.event.EventPayload;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

@@ -1,10 +1,10 @@
 package bkrc.chaptersofu.adapter.messaging.consumer;
 
-import bkrc.chaptersofu.application.shared.event.Event;
+import bkrc.chaptersofu.application.required.event.Event;
 import bkrc.chaptersofu.application.messaging.RabbitMQConfig;
 import bkrc.chaptersofu.application.hotbook.HotBookService;
 import bkrc.chaptersofu.application.like.event.payload.BookLikeEventPayload;
-import bkrc.chaptersofu.application.shared.event.EventPayload;
+import bkrc.chaptersofu.application.required.event.EventPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

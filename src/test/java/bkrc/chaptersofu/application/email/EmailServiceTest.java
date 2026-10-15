@@ -1,9 +1,10 @@
 package bkrc.chaptersofu.application.email;
 
-import bkrc.chaptersofu.application.required.EmailEventHandler;
-import bkrc.chaptersofu.application.shared.event.Event;
-import bkrc.chaptersofu.application.shared.event.EventPayload;
-import bkrc.chaptersofu.application.shared.event.EventType;
+import bkrc.chaptersofu.application.required.email.EmailEventHandler;
+import bkrc.chaptersofu.application.required.email.EmailService;
+import bkrc.chaptersofu.application.required.event.Event;
+import bkrc.chaptersofu.application.required.event.EventPayload;
+import bkrc.chaptersofu.application.required.event.EventType;
 import bkrc.chaptersofu.domain.common.shared.EventHandlerException;
 import org.junit.jupiter.api.Test;
 

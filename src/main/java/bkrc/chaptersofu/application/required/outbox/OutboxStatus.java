@@ -1,4 +1,4 @@
-package bkrc.chaptersofu.application.outbox;
+package bkrc.chaptersofu.application.required.outbox;
 
 public enum OutboxStatus {
     PENDING,

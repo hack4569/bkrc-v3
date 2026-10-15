@@ -1,13 +1,13 @@
 package bkrc.chaptersofu.application.coupon;
 
-import bkrc.chaptersofu.application.shared.event.Event;
-import bkrc.chaptersofu.application.shared.event.EventType;
+import bkrc.chaptersofu.application.required.event.Event;
+import bkrc.chaptersofu.application.required.event.EventType;
 import bkrc.chaptersofu.application.coupon.provided.CouponRegister;
 import bkrc.chaptersofu.application.coupon.event.payload.CouponIssuedEventPayload;
 import bkrc.chaptersofu.application.messaging.RabbitMQConfig;
-import bkrc.chaptersofu.application.outbox.Outbox;
-import bkrc.chaptersofu.application.outbox.OutboxEvent;
-import bkrc.chaptersofu.application.outbox.OutboxRepository;
+import bkrc.chaptersofu.application.required.outbox.Outbox;
+import bkrc.chaptersofu.application.required.outbox.OutboxEvent;
+import bkrc.chaptersofu.application.required.outbox.OutboxRepository;
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
 import bkrc.chaptersofu.domain.common.shared.Snowflake;
 import bkrc.chaptersofu.domain.coupon.Coupon;

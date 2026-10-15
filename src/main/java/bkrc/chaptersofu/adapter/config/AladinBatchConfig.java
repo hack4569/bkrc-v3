@@ -6,7 +6,7 @@ import bkrc.chaptersofu.adapter.batch.AladinApiItemProcessor;
 import bkrc.chaptersofu.adapter.batch.AladinApiItemReader;
 import bkrc.chaptersofu.adapter.batch.AladinApiItemWriter;
 import bkrc.chaptersofu.adapter.batch.RefreshCacheTasklet;
-import bkrc.chaptersofu.domain.exception.AladinClientException;
+import bkrc.chaptersofu.domain.aladin.AladinClientException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;

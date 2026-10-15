@@ -2,9 +2,9 @@ package bkrc.chaptersofu.application.hotbook;
 
 import bkrc.chaptersofu.application.aladin.provided.AladinFinder;
 import bkrc.chaptersofu.application.required.HotBookEventHandler;
-import bkrc.chaptersofu.application.shared.event.Event;
-import bkrc.chaptersofu.application.shared.event.EventPayload;
-import bkrc.chaptersofu.application.shared.event.EventType;
+import bkrc.chaptersofu.application.required.event.Event;
+import bkrc.chaptersofu.application.required.event.EventPayload;
+import bkrc.chaptersofu.application.required.event.EventType;
 import bkrc.chaptersofu.domain.aladin.AladinBook;
 import bkrc.chaptersofu.domain.common.shared.EventHandlerException;
 import org.junit.jupiter.api.Test;

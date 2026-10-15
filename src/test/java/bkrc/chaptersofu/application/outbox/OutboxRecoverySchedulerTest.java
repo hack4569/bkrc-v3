@@ -1,5 +1,6 @@
 package bkrc.chaptersofu.application.outbox;
 
+import bkrc.chaptersofu.application.required.outbox.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

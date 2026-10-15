@@ -1,4 +1,4 @@
-package bkrc.chaptersofu.domain.exception;
+package bkrc.chaptersofu.domain.member;
 
 import bkrc.chaptersofu.domain.common.shared.BusinessException;
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;

@@ -1,6 +1,10 @@
 package bkrc.chaptersofu.application.outbox;
 
-import bkrc.chaptersofu.application.shared.event.EventType;
+import bkrc.chaptersofu.application.required.event.EventType;
+import bkrc.chaptersofu.application.required.outbox.Outbox;
+import bkrc.chaptersofu.application.required.outbox.OutboxRepository;
+import bkrc.chaptersofu.application.required.outbox.OutboxStatus;
+import bkrc.chaptersofu.application.required.outbox.OutboxStatusUpdater;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -1,4 +1,4 @@
-package bkrc.chaptersofu.application.shared.event;
+package bkrc.chaptersofu.application.required.event;
 
 import bkrc.chaptersofu.domain.common.shared.DataSerializer;
 import lombok.Getter;

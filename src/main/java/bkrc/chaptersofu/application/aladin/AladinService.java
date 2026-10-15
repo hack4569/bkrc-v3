@@ -6,7 +6,7 @@ import bkrc.chaptersofu.domain.aladin.*;
 import bkrc.chaptersofu.application.aladin.cache.AladinBookCache;
 import bkrc.chaptersofu.application.aladin.provided.AladinFinder;
 import bkrc.chaptersofu.domain.common.constants.RcmdConst;
-import bkrc.chaptersofu.domain.exception.AladinClientException;
+import bkrc.chaptersofu.domain.aladin.AladinClientException;
 import bkrc.chaptersofu.application.required.Ai;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;

@@ -1,6 +1,9 @@
 package bkrc.chaptersofu.application.shared.event;
 
 import bkrc.chaptersofu.application.coupon.event.payload.CouponIssuedEventPayload;
+import bkrc.chaptersofu.application.required.event.Event;
+import bkrc.chaptersofu.application.required.event.EventPayload;
+import bkrc.chaptersofu.application.required.event.EventType;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
