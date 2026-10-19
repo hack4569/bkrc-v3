@@ -2,7 +2,6 @@ package bkrc.chaptersofu.application.aladin.provided;
 
 import bkrc.chaptersofu.application.aladin.AladinService;
 import bkrc.chaptersofu.application.aladin.AladinBookRepository;
-import bkrc.chaptersofu.application.aladin.cache.AladinBookCache;
 import bkrc.chaptersofu.application.required.Ai;
 import bkrc.chaptersofu.application.required.BookInfo;
 import bkrc.chaptersofu.domain.aladin.AladinBook;
@@ -19,7 +18,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,13 +25,12 @@ class AladinFinderTest {
     @Mock BookInfo bookInfo;
     @Mock Ai ai;
     @Mock AladinBookRepository aladinBookRepository;
-    @Mock AladinBookCache aladinBookCache;
 
     private AladinFinder aladinFinder;
 
     @BeforeEach
     void setUp() {
-        aladinFinder = new AladinService(bookInfo, ai, aladinBookRepository, aladinBookCache);
+        aladinFinder = new AladinService(bookInfo, ai, aladinBookRepository);
     }
 
     @Test
@@ -65,25 +62,6 @@ class AladinFinderTest {
     }
 
     @Test
-    void 전체_도서가_캐시에_있으면_DB를_조회하지_않는다() {
-        List<AladinBook> cached = List.of(mock(AladinBook.class));
-        when(aladinBookCache.find()).thenReturn(Optional.of(cached));
-
-        assertThat(aladinFinder.findAll()).isSameAs(cached);
-        verifyNoInteractions(aladinBookRepository);
-    }
-
-    @Test
-    void 전체_도서_캐시가_없으면_DB_결과를_캐시에_저장한다() {
-        List<AladinBook> books = List.of(mock(AladinBook.class));
-        when(aladinBookCache.find()).thenReturn(Optional.empty());
-        when(aladinBookRepository.findAllWithBookComments()).thenReturn(books);
-
-        assertThat(aladinFinder.findAll()).isSameAs(books);
-        verify(aladinBookCache).save(books);
-    }
-
-    @Test
     void 도서_ID로_알라딘_도서를_조회한다() {
         AladinBook book = mock(AladinBook.class);
         when(aladinBookRepository.findById(10)).thenReturn(Optional.of(book));
@@ -111,12 +89,4 @@ class AladinFinderTest {
         verify(detail).settingBookCommentList(List.of());
     }
 
-    @Test
-    void 도서_목록을_Redis에_저장한다() {
-        List<AladinBook> books = List.of(mock(AladinBook.class));
-
-        aladinFinder.saveListForRedis(books);
-
-        verify(aladinBookCache).save(books);
-    }
 }
