@@ -27,7 +27,6 @@ public class AladinBookModifyService implements AladinBookCacheRegister {
     public void saveListForRedis(List<AladinBook> books) {
         try {
             String json = objectMapper.writeValueAsString(books);
-            System.out.println("Redis 캐시 저장 데이터: " + json);
             redisTemplate.opsForValue().set(CACHE_KEY_ALL_BOOKS, json, CACHE_TTL);
         } catch (JsonProcessingException e) {
             log.warn("[알라딘] 캐시 저장 실패. key={}", CACHE_KEY_ALL_BOOKS, e);
