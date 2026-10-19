@@ -3,7 +3,6 @@ package bkrc.chaptersofu.application.aladin;
 import bkrc.chaptersofu.application.aladin.provided.AladinRequest;
 import bkrc.chaptersofu.application.required.BookInfo;
 import bkrc.chaptersofu.domain.aladin.*;
-import bkrc.chaptersofu.application.aladin.cache.AladinBookCache;
 import bkrc.chaptersofu.application.aladin.provided.AladinFinder;
 import bkrc.chaptersofu.domain.common.constants.RcmdConst;
 import bkrc.chaptersofu.domain.aladin.AladinClientException;
@@ -27,7 +26,6 @@ public class AladinService implements AladinFinder {
     private final BookInfo bookInfo;
     private final Ai ai;
     private final AladinBookRepository aladinBookRepository;
-    private final AladinBookCache aladinBookCache;
 
     @Retry(name = "aladin")
     @CircuitBreaker(name = "aladin", fallbackMethod = "getAladinItemListFallback")
@@ -50,20 +48,6 @@ public class AladinService implements AladinFinder {
         }
 
         return books;
-    }
-
-    @Override
-    public List<AladinBook> findAll() {
-        return aladinBookCache.find()
-                .orElseGet(() -> {
-                    List<AladinBook> books = findAllFromDb();
-                    aladinBookCache.save(books);
-                    return books;
-                });
-    }
-
-    private List<AladinBook> findAllFromDb() {
-        return aladinBookRepository.findAllWithBookComments();
     }
 
     @Override
@@ -154,9 +138,5 @@ public class AladinService implements AladinFinder {
             throw aladinClientException;
         }
         throw new AladinClientException(throwable);
-    }
-    @Override
-    public void saveListForRedis(List<AladinBook> diverseBooks) {
-        aladinBookCache.save(diverseBooks);
     }
 }

@@ -7,7 +7,7 @@ import bkrc.chaptersofu.application.history.provided.HistoryFinder;
 import bkrc.chaptersofu.application.history.provided.HistoryRegister;
 import bkrc.chaptersofu.domain.history.History;
 import bkrc.chaptersofu.application.aladin.provided.BookRecommender;
-import bkrc.chaptersofu.application.aladin.provided.AladinFinder;
+import bkrc.chaptersofu.application.aladin.provided.AladinBookCacheFinder;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BookRecommendationService implements BookRecommender {
 
-    private final AladinFinder aladinFinder;
+    private final AladinBookCacheFinder aladinBookCacheFinder;
     private final HistoryFinder historyFinder;
     private final HistoryRegister historyRegister;
 
@@ -31,7 +31,7 @@ public class BookRecommendationService implements BookRecommender {
                 ? null
                 : historyFinder.getHistoryByMemberId(memberId);
 
-        var books = aladinFinder.findAll();
+        var books = aladinBookCacheFinder.findAll();
         if (books == null || books.isEmpty()) {
             throw new AladinException(ErrorCode.ALADIN_NOT_FOUND);
         }

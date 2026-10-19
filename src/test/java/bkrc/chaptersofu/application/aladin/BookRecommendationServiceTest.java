@@ -1,6 +1,6 @@
 package bkrc.chaptersofu.application.aladin;
 
-import bkrc.chaptersofu.application.aladin.provided.AladinFinder;
+import bkrc.chaptersofu.application.aladin.provided.AladinBookCacheFinder;
 import bkrc.chaptersofu.application.history.provided.HistoryFinder;
 import bkrc.chaptersofu.application.history.provided.HistoryRegister;
 import bkrc.chaptersofu.domain.aladin.AladinBook;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BookRecommendationServiceTest {
-    @Mock AladinFinder aladinFinder;
+    @Mock AladinBookCacheFinder aladinBookCacheFinder;
     @Mock HistoryFinder historyFinder;
     @Mock HistoryRegister historyRegister;
     @InjectMocks BookRecommendationService service;
@@ -33,7 +33,7 @@ class BookRecommendationServiceTest {
         when(firstBook.hasNotBeenViewedBefore(isNull(), any(LocalDate.class))).thenReturn(true);
         when(secondBook.hasNotBeenViewedBefore(isNull(), any(LocalDate.class))).thenReturn(true);
         List<AladinBook> books = List.of(firstBook, secondBook);
-        when(aladinFinder.findAll()).thenReturn(books);
+        when(aladinBookCacheFinder.findAll()).thenReturn(books);
 
         assertThat(service.getRecommendBooksForUser(null)).containsExactlyElementsOf(books);
         verifyNoInteractions(historyFinder, historyRegister);
@@ -42,7 +42,7 @@ class BookRecommendationServiceTest {
     @Test
     void 추천할_도서가_없으면_예외가_발생한다() {
         when(historyFinder.getHistoryByMemberId(1L)).thenReturn(List.of());
-        when(aladinFinder.findAll()).thenReturn(List.of());
+        when(aladinBookCacheFinder.findAll()).thenReturn(List.of());
 
         assertThatThrownBy(() -> service.getRecommendBooksForUser(1L))
                 .isInstanceOf(AladinException.class)
@@ -58,7 +58,7 @@ class BookRecommendationServiceTest {
         when(viewedBook.hasNotBeenViewedBefore(eq(histories), any(LocalDate.class))).thenReturn(false);
         when(newBook.hasNotBeenViewedBefore(eq(histories), any(LocalDate.class))).thenReturn(true);
         when(historyFinder.getHistoryByMemberId(10L)).thenReturn(histories);
-        when(aladinFinder.findAll()).thenReturn(List.of(viewedBook, newBook));
+        when(aladinBookCacheFinder.findAll()).thenReturn(List.of(viewedBook, newBook));
 
         assertThat(service.getRecommendBooksForUser(10L)).containsExactly(newBook);
         verify(historyRegister, never()).deleteHistoryByMemberId(anyLong());
@@ -71,7 +71,7 @@ class BookRecommendationServiceTest {
         List<bkrc.chaptersofu.domain.history.History> histories = List.of(history);
         when(book.hasNotBeenViewedBefore(eq(histories), any(LocalDate.class))).thenReturn(false);
         when(historyFinder.getHistoryByMemberId(10L)).thenReturn(histories);
-        when(aladinFinder.findAll()).thenReturn(List.of(book));
+        when(aladinBookCacheFinder.findAll()).thenReturn(List.of(book));
 
         assertThat(service.getRecommendBooksForUser(10L)).containsExactly(book);
         verify(historyRegister).deleteHistoryByMemberId(10L);
