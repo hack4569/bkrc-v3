@@ -12,6 +12,7 @@ import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -46,8 +47,9 @@ public class BookRecommendationService implements BookRecommender {
     }
 
     private List<AladinBook> filterForUser(List<AladinBook> books, List<History> histories) {
+        LocalDate today = LocalDate.now();
         return books.stream()
-                .filter(AladinBook.historyFilter(histories))
+                .filter(book -> book.hasNotBeenViewedBefore(histories, today))
                 .toList();
     }
 }

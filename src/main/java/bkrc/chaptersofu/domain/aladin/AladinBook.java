@@ -9,14 +9,12 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "알라딘 도서 엔티티")
@@ -148,8 +146,8 @@ public class AladinBook {
         return categoryId != null && allowedCategoryIds.contains(categoryId);
     }
 
-    /** 1년전 출간된 책인지 (도메인 규칙) */
-    public boolean publishDateFilter() {
+    /** 기준일로부터 1년보다 이전에 출간된 책인지 확인한다. */
+    public boolean wasPublishedBeforeOneYearAgo(LocalDate referenceDate) {
         if (!StringUtils.hasText(pubDate)) {
             return false;
         }
@@ -158,26 +156,22 @@ public class AladinBook {
                     pubDate.replaceAll("[^0-9]", "").substring(0, 8),
                     DateTimeFormatter.ofPattern("yyyyMMdd")
             );
-            return pubLocalDate.isBefore(LocalDate.now().minusYears(1));
+            return pubLocalDate.isBefore(referenceDate.minusYears(1));
         } catch (Exception e) {
             return false;
         }
     }
 
-    /** 히스토리에 없는 책을 필터링하는 Predicate (도메인 규칙) */
-    public static Predicate historyFilter(List<History> histories) {
-        // 히스토리에 없는 책을 필터링하는 Predicate
-        if (ObjectUtils.isEmpty(histories)) return book -> true;
+    /** 기준일 이전에 조회한 이력이 없는 책인지 확인한다. */
+    public boolean hasNotBeenViewedBefore(List<History> histories, LocalDate referenceDate) {
+        if (histories == null || histories.isEmpty()) {
+            return true;
+        }
 
-        // 히스토리에 없는 책을 필터링하는 Predicate
-        Predicate<AladinBook> historyFilter = book -> {
-
-            return !(histories.stream().anyMatch(history ->
-                    Objects.equals(book.getItemId(), history.getItemId()) &&
-                            !LocalDate.now().isEqual(history.getCreated().toLocalDate())
-            ));
-        };
-        return historyFilter;
+        return histories.stream().noneMatch(history ->
+                Objects.equals(itemId, history.getItemId())
+                        && !referenceDate.isEqual(history.getCreated().toLocalDate())
+        );
     }
     public String getDescForRecommend() {
         String fullDescription = StringUtils.hasText(this.getFullDescription2()) ? this.getFullDescription2() : this.getFullDescription();
@@ -186,5 +180,4 @@ public class AladinBook {
         }
         return null;
     }
-    // test124
 }
