@@ -1,6 +1,7 @@
 package bkrc.chaptersofu.adapter.client.aladin;
 
 import bkrc.chaptersofu.application.aladin.provided.AladinRequest;
+import bkrc.chaptersofu.adapter.client.ExternalApiLoggingInterceptor;
 import bkrc.chaptersofu.adapter.client.aladin.dto.AladinResponse;
 import bkrc.chaptersofu.application.required.BookInfo;
 import bkrc.chaptersofu.domain.aladin.AladinBook;
@@ -11,7 +12,6 @@ import bkrc.chaptersofu.domain.aladin.AladinException;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -23,7 +23,6 @@ import java.util.List;
 
 
 @Component
-@Slf4j
 public class AladinClient implements BookInfo {
     private RestClient aladinApi;
     @Value("${aladin.host}")
@@ -48,6 +47,7 @@ public class AladinClient implements BookInfo {
         aladinApi = RestClient.builder()
                 .baseUrl(aladinHost)
                 .requestFactory(requestFactory)
+                .requestInterceptor(new ExternalApiLoggingInterceptor("aladin"))
                 .messageConverters(converters -> {
                     converters.removeIf(c -> c instanceof MappingJackson2HttpMessageConverter);
                     converters.add(converter);
@@ -70,7 +70,6 @@ public class AladinClient implements BookInfo {
                     .toEntity(AladinResponse.class);
             return response.getBody();
         } catch (Exception e) {
-            log.error("[알라딘] 에러 메세지 파싱 에러 errorMessage={}", e.getMessage(), e);
             throw new AladinClientException(e);
         }
     }
