@@ -44,10 +44,18 @@ public class MemberCoupon {
 
     public void use(LocalDateTime now, Coupon coupon) {
         // 사용 완료 여부를 먼저 확인해 같은 쿠폰의 재사용을 막습니다.
-        if (usedAt != null) throw new CouponException(ErrorCode.COUPON_ALREADY_USED);
+        if (usedAt != null) {
+            throw new CouponException(
+                    ErrorCode.COUPON_ALREADY_USED,
+                    "memberCouponId=" + memberCouponId + ", couponId=" + couponId + ", memberId=" + memberId
+            );
+        }
         // 게시 기간과 관계없이 실제 사용 가능 여부는 쿠폰 유효기간으로 판단합니다.
         if (now.isBefore(coupon.getValidFrom()) || now.isAfter(coupon.getValidUntil()))
-            throw new CouponException(ErrorCode.COUPON_NOT_VALID);
+            throw new CouponException(
+                    ErrorCode.COUPON_NOT_VALID,
+                    "memberCouponId=" + memberCouponId + ", couponId=" + couponId + ", now=" + now
+            );
         usedAt = now;
     }
 }

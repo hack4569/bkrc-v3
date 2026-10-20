@@ -80,7 +80,8 @@ public class WebSecurity {
 //        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setExposedHeaders(List.of("token")); // JWT 응답 헤더 노출
+        // 클라이언트가 장애 문의 시 응답의 추적 ID를 확인할 수 있도록 노출합니다.
+        config.setExposedHeaders(List.of("token", "X-Trace-Id"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

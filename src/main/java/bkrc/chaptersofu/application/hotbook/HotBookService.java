@@ -58,6 +58,9 @@ public class HotBookService implements HotBookFinder {
         return eventHandlers.stream()
                 .filter(eventHandler -> eventHandler.supports(event))
                 .findAny()
-                .orElseThrow(() -> new EventHandlerException(ErrorCode.EVENT_HANDLER_NOT_FOUND));
+                .orElseThrow(() -> new EventHandlerException(
+                        ErrorCode.EVENT_HANDLER_NOT_FOUND,
+                        "eventType=" + String.valueOf(event.getType())
+                ));
     }
 }

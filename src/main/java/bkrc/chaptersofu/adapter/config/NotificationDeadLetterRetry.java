@@ -1,6 +1,5 @@
 package bkrc.chaptersofu.adapter.config;
 
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
@@ -15,10 +14,5 @@ public class NotificationDeadLetterRetry {
 
     //@RabbitListener(queues = RabbitMQConfig.DLQ)
     public void processDlqMessage(String failedMessage) {
-        try {
-            System.out.println("processDlqMessage");
-        } catch (Exception e) {
-            System.err.println("Error processDlqMessage : " + e);
-        }
     }
 }

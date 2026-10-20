@@ -8,6 +8,7 @@ import bkrc.chaptersofu.application.messaging.RabbitMQConfig;
 import bkrc.chaptersofu.application.required.outbox.Outbox;
 import bkrc.chaptersofu.application.required.outbox.OutboxEvent;
 import bkrc.chaptersofu.application.required.outbox.OutboxRepository;
+import bkrc.chaptersofu.application.support.AfterCommitExecutor;
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
 import bkrc.chaptersofu.domain.common.shared.Snowflake;
 import bkrc.chaptersofu.domain.coupon.Coupon;
@@ -41,7 +42,7 @@ public class CouponModifyService implements CouponRegister {
     public MemberCoupon download(Long couponId, Long memberId) {
         LocalDateTime now = LocalDateTime.now(couponClock);
         Coupon coupon = couponRepository.findById(couponId)
-                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_NOT_FOUND));
+                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_NOT_FOUND, "couponId=" + couponId));
         long databaseIssuedCount = initialIssuedCount(couponId);
         couponRedisRepository.issue(coupon, memberId, now, databaseIssuedCount);
         registerRedisRollback(couponId, memberId);
@@ -56,17 +57,34 @@ public class CouponModifyService implements CouponRegister {
         ));
         eventPublisher.publishEvent(OutboxEvent.of(outbox));
 
-        return MemberCoupon.issue(memberCouponId, couponId, memberId, now);
+        MemberCoupon issued = MemberCoupon.issue(memberCouponId, couponId, memberId, now);
+        // 이 시점은 최종 DB 발급이 아니라 Redis 예약과 Outbox 저장이 완료된 상태입니다.
+        AfterCommitExecutor.execute(() -> log.info(
+                "COUPON_DOWNLOAD_RESERVED memberCouponId={} couponId={} memberId={} outboxId={}",
+                memberCouponId, couponId, memberId, outbox.getOutboxId()
+        ));
+        return issued;
     }
 
     @Override
     public MemberCoupon use(Long memberCouponId, Long memberId) {
         MemberCoupon memberCoupon = memberCouponRepository
                 .findByMemberCouponIdAndMemberId(memberCouponId, memberId)
-                .orElseThrow(() -> new CouponException(ErrorCode.MEMBER_COUPON_NOT_FOUND));
+                .orElseThrow(() -> new CouponException(
+                        ErrorCode.MEMBER_COUPON_NOT_FOUND,
+                        "memberCouponId=" + memberCouponId + ", memberId=" + memberId
+                ));
         Coupon coupon = couponRepository.findById(memberCoupon.getCouponId())
-                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_NOT_FOUND));
+                .orElseThrow(() -> new CouponException(
+                        ErrorCode.COUPON_NOT_FOUND,
+                        "couponId=" + memberCoupon.getCouponId() + ", memberCouponId=" + memberCouponId
+                ));
         memberCoupon.use(LocalDateTime.now(couponClock), coupon);
+        // 쿠폰 사용 상태 변경이 실제 커밋된 이후 완료 로그를 남깁니다.
+        AfterCommitExecutor.execute(() -> log.info(
+                "COUPON_USED memberCouponId={} couponId={} memberId={}",
+                memberCouponId, memberCoupon.getCouponId(), memberId
+        ));
         return memberCoupon;
     }
 

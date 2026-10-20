@@ -5,6 +5,10 @@ public class EventHandlerException extends BusinessException {
         super(errorCode);
     }
 
+    public EventHandlerException(ErrorCode errorCode, String message) {
+        super(errorCode, message);
+    }
+
     public EventHandlerException(ErrorCode errorCode, Throwable cause) {
         super(errorCode, cause);
     }

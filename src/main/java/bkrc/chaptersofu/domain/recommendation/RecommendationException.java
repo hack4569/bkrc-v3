@@ -8,6 +8,10 @@ public class RecommendationException extends BusinessException {
         super(errorCode);
     }
 
+    public RecommendationException(ErrorCode errorCode, String message) {
+        super(errorCode, message);
+    }
+
     public RecommendationException(ErrorCode errorCode, Throwable cause) {
         super(errorCode, cause);
     }

@@ -7,6 +7,7 @@ import bkrc.chaptersofu.application.required.event.payload.MemberJoinEventPayloa
 import bkrc.chaptersofu.application.required.outbox.Outbox;
 import bkrc.chaptersofu.application.required.outbox.OutboxEvent;
 import bkrc.chaptersofu.application.required.outbox.OutboxRepository;
+import bkrc.chaptersofu.application.support.AfterCommitExecutor;
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
 import bkrc.chaptersofu.domain.common.shared.Snowflake;
 import bkrc.chaptersofu.domain.member.MemberNotFoundException;
@@ -19,6 +20,7 @@ import bkrc.chaptersofu.domain.member.Member;
 import bkrc.chaptersofu.domain.member.PasswordEncoder;
 import bkrc.chaptersofu.domain.member.PasswordNotEquals;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,7 @@ import org.springframework.validation.annotation.Validated;
 @Transactional
 @Validated
 @RequiredArgsConstructor
+@Slf4j
 public class MemberModifyService implements MemberRegister {
     private final MemberRepository memberRepository;
     private final Snowflake snowflake;
@@ -54,6 +57,11 @@ public class MemberModifyService implements MemberRegister {
 
         // 트랜잭션 커밋 후 이벤트 발행
         eventPublisher.publishEvent(OutboxEvent.of(outbox));
+        // 회원과 Outbox가 모두 저장된 경우에만 가입 성공으로 기록합니다.
+        AfterCommitExecutor.execute(() -> log.info(
+                "MEMBER_REGISTERED memberId={} loginId={} outboxId={}",
+                savedMember.getMemberId(), savedMember.getLoginId(), outbox.getOutboxId()
+        ));
         return savedMember;
     }
 
@@ -67,6 +75,8 @@ public class MemberModifyService implements MemberRegister {
         this.checkPwd(request.newPassword(), request.newPasswordCheck());
         member.modify(request.newPassword(), passwordEncoder);
         var modifiedMember = memberRepository.save(member);
+        // 비밀번호 자체는 기록하지 않고 변경된 회원 식별자만 남깁니다.
+        AfterCommitExecutor.execute(() -> log.info("MEMBER_MODIFIED memberId={}", memberId));
 //        Outbox outbox = outboxRepository.save(Outbox.of(
 //                        EventType.MEMBER_MODIFY,
 //                        RabbitMQConfig.NOTIFICATION_DIRECT_EXCHANGE,
@@ -91,6 +101,8 @@ public class MemberModifyService implements MemberRegister {
         }
         //historyRepository.deleteByMemberId(memberId);
         memberRepository.deleteById(memberId);
+        // 삭제 트랜잭션이 커밋된 이후에만 탈퇴 완료 로그를 남깁니다.
+        AfterCommitExecutor.execute(() -> log.info("MEMBER_WITHDRAWN memberId={}", memberId));
 
 //        Outbox outbox = outboxRepository.save(Outbox.of(
 //                EventType.MEMBER_WITHDRAW,

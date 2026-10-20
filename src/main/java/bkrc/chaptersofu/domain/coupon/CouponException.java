@@ -8,6 +8,10 @@ public class CouponException extends BusinessException {
         super(errorCode);
     }
 
+    public CouponException(ErrorCode errorCode, String message) {
+        super(errorCode, message);
+    }
+
     public CouponException(ErrorCode errorCode, Throwable cause) {
         super(errorCode, cause);
     }
