@@ -45,6 +45,7 @@ public class AladinBookQueryService implements AladinBookCacheFinder {
     private Optional<List<AladinBook>> findFromCache() {
         String cached = redisTemplate.opsForValue().get(CACHE_KEY_ALL_BOOKS);
 
+        System.out.println("Redis 캐시 저장 데이터: " + cached);
         if (!StringUtils.hasText(cached)) {
             cacheMissCounter.increment();
             return Optional.empty();
