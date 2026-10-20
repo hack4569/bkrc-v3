@@ -2,6 +2,7 @@ package bkrc.chaptersofu.adapter;
 
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
 import bkrc.chaptersofu.domain.common.shared.BusinessException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -15,15 +16,37 @@ import java.time.LocalDateTime;
 @Slf4j
 public class ApiControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(BusinessException.class)
-    public ProblemDetail handleException(BusinessException e) {
-        log.error("[ERROR Class : {}] " + e.getClass() + " ERROR MSG : {}", e.getMessage());
-        return getProblemDetail(e.getErrorCode().getStatus(), e.getErrorCode().getCode(), e);
+    public ProblemDetail handleBusinessException(BusinessException exception, HttpServletRequest request) {
+        log.warn(
+                exception.getClass().getSimpleName() + " errorCode={} status={} method={} uri={} message={}",
+                exception.getErrorCode().getCode(),
+                exception.getErrorCode().getStatus().value(),
+                request.getMethod(),
+                request.getRequestURI(),
+                exception.getMessage()
+        );
+        return getProblemDetail(
+                exception.getErrorCode().getStatus(),
+                exception.getErrorCode().getCode(),
+                exception
+        );
     }
 
     @ExceptionHandler(Exception.class)
-    public ProblemDetail handleException(Exception e) {
-        log.error("[ERROR Class : {}] " + e.getClass() + " ERROR MSG : {}", e.getMessage(), e);
-        return getProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.SERVER_ERROR.getCode(), e);
+    public ProblemDetail handleUnexpectedException(Exception exception, HttpServletRequest request) {
+        log.error(
+                "UNHANDLED_EXCEPTION method={} uri={} exceptionType={} message={}",
+                request.getMethod(),
+                request.getRequestURI(),
+                exception.getClass().getSimpleName(),
+                exception.getMessage(),
+                exception
+        );
+        return getProblemDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                ErrorCode.SERVER_ERROR.getCode(),
+                exception
+        );
     }
 
     private static ProblemDetail getProblemDetail(HttpStatus status, String errorCode, Exception exception) {

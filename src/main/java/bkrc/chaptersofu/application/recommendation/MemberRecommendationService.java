@@ -42,16 +42,25 @@ public class MemberRecommendationService implements RecommendationFinder, Recomm
     @Override
     public BookRecommendation get(Long memberId, Integer itemId) {
         return recommendationRepository.findByItemIdAndMemberMemberId(itemId, memberId)
-                .orElseThrow(() -> new RecommendationException(ErrorCode.BOOK_NOT_FOUND));
+                .orElseThrow(() -> new RecommendationException(
+                        ErrorCode.BOOK_NOT_FOUND,
+                        "bookId=" + itemId + ", memberId=" + memberId
+                ));
     }
 
     @Transactional
     @Override
     public BookRecommendation update(Long memberId, Integer itemId, String content) {
         var value = recommendationRepository.findByItemIdAndMemberMemberId(itemId, memberId)
-                .orElseThrow(() -> new RecommendationException(ErrorCode.BOOK_NOT_FOUND));
+                .orElseThrow(() -> new RecommendationException(
+                        ErrorCode.BOOK_NOT_FOUND,
+                        "bookId=" + itemId + ", memberId=" + memberId
+                ));
         if (!"N".equals(value.getApproved())) {
-            throw new RecommendationException(ErrorCode.RECOMMENDATION_NOT_EDITABLE);
+            throw new RecommendationException(
+                    ErrorCode.RECOMMENDATION_NOT_EDITABLE,
+                    "bookId=" + itemId + ", memberId=" + memberId + ", approved=" + value.getApproved()
+            );
         }
         value.updateRecommendation(content);
         return value;

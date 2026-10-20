@@ -11,4 +11,8 @@ public class HistoryException extends BusinessException {
     public HistoryException(ErrorCode errorCode, Throwable cause) {
         super(errorCode, cause);
     }
+
+    public HistoryException(ErrorCode errorCode, String message, Throwable cause) {
+        super(errorCode, message, cause);
+    }
 }

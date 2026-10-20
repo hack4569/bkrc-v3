@@ -25,7 +25,7 @@ public class CouponQueryService implements CouponFinder {
     @Override
     public Coupon getCoupon(Long couponId) {
         return couponRepository.findById(couponId)
-                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_NOT_FOUND));
+                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_NOT_FOUND, "couponId=" + couponId));
     }
 
     @Override

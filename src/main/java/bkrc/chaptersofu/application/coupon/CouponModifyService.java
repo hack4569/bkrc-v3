@@ -41,7 +41,7 @@ public class CouponModifyService implements CouponRegister {
     public MemberCoupon download(Long couponId, Long memberId) {
         LocalDateTime now = LocalDateTime.now(couponClock);
         Coupon coupon = couponRepository.findById(couponId)
-                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_NOT_FOUND));
+                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_NOT_FOUND, "couponId=" + couponId));
         long databaseIssuedCount = initialIssuedCount(couponId);
         couponRedisRepository.issue(coupon, memberId, now, databaseIssuedCount);
         registerRedisRollback(couponId, memberId);
@@ -63,9 +63,15 @@ public class CouponModifyService implements CouponRegister {
     public MemberCoupon use(Long memberCouponId, Long memberId) {
         MemberCoupon memberCoupon = memberCouponRepository
                 .findByMemberCouponIdAndMemberId(memberCouponId, memberId)
-                .orElseThrow(() -> new CouponException(ErrorCode.MEMBER_COUPON_NOT_FOUND));
+                .orElseThrow(() -> new CouponException(
+                        ErrorCode.MEMBER_COUPON_NOT_FOUND,
+                        "memberCouponId=" + memberCouponId + ", memberId=" + memberId
+                ));
         Coupon coupon = couponRepository.findById(memberCoupon.getCouponId())
-                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_NOT_FOUND));
+                .orElseThrow(() -> new CouponException(
+                        ErrorCode.COUPON_NOT_FOUND,
+                        "couponId=" + memberCoupon.getCouponId() + ", memberCouponId=" + memberCouponId
+                ));
         memberCoupon.use(LocalDateTime.now(couponClock), coupon);
         return memberCoupon;
     }

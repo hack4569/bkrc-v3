@@ -90,7 +90,9 @@ public class AladinClient implements BookInfo {
     @Override
     public AladinBook getBookDetail(String isbn13) {
         var aladinBooks = this.getApi(AladinConstants.ITEM_LOOKUP, AladinRequest.create(isbn13)).getItem();
-        if (aladinBooks.isEmpty()) throw new AladinException(ErrorCode.ALADIN_NOT_READY);
+        if (aladinBooks.isEmpty()) {
+            throw new AladinException(ErrorCode.ALADIN_NOT_READY, "isbn13=" + isbn13);
+        }
 
         var aladinbook = aladinBooks.get(0);
 

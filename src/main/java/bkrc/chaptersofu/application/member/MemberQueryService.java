@@ -1,8 +1,8 @@
 package bkrc.chaptersofu.application.member;
 
-import bkrc.chaptersofu.domain.common.shared.ErrorCode;
 import bkrc.chaptersofu.application.member.provided.MemberFinder;
 import bkrc.chaptersofu.domain.member.Member;
+import bkrc.chaptersofu.domain.member.MemberNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,13 +23,13 @@ public class MemberQueryService implements MemberFinder {
     @Override
     public Member getMemberByLoginId(String loginId) {
         return memberRepository.findMemberByLoginId(loginId)
-                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.USER_NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new MemberNotFoundException(loginId));
     }
 
     @Override
     public Member getMemberById(Long memberId) {
         return memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.USER_NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new MemberNotFoundException(memberId));
 //        return MemberInfoResponse.of(
 //                member.getLoginId(),
 //                likeService.getMyLikes(member),

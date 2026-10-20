@@ -8,6 +8,10 @@ public class AladinException extends BusinessException {
         super(errorCode);
     }
 
+    public AladinException(ErrorCode errorCode, String message) {
+        super(errorCode, message);
+    }
+
     public AladinException(ErrorCode errorCode, Throwable cause) {
         super(errorCode, cause);
     }

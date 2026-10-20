@@ -33,9 +33,17 @@ public class HistoryService implements HistoryFinder, HistoryRegister {
         try {
             historyRepository.saveAndFlush(History.create(itemId, memberId, snowflake.nextId()));
         } catch (DataIntegrityViolationException de) {
-            throw new HistoryException(ErrorCode.HISTORY_ALREADY_EXISTS, de);
+            throw new HistoryException(
+                    ErrorCode.HISTORY_ALREADY_EXISTS,
+                    "bookId=" + itemId + ", memberId=" + memberId,
+                    de
+            );
         } catch (Exception ex) {
-            throw new HistoryException(ErrorCode.SERVER_ERROR, ex);
+            throw new HistoryException(
+                    ErrorCode.SERVER_ERROR,
+                    "operation=saveHistory, bookId=" + itemId + ", memberId=" + memberId,
+                    ex
+            );
         }
     }
 }

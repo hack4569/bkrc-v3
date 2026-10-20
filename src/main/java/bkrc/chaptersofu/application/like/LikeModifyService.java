@@ -36,11 +36,14 @@ public class LikeModifyService implements LikeRegister {
     @Override
     public Like like(Integer itemId, Long memberId) {
         if (likeRepository.findByBookItemIdAndMemberMemberId(itemId, memberId).isPresent()) {
-            throw new LikeException(ErrorCode.LIKE_ALREADY_EXISTS);
+            throw new LikeException(
+                    ErrorCode.LIKE_ALREADY_EXISTS,
+                    "operation=like, bookId=" + itemId + ", memberId=" + memberId
+            );
         }
 
         var book = aladinBookRepository.findById(itemId)
-                .orElseThrow(() -> new AladinException(ErrorCode.BOOK_NOT_FOUND));
+                .orElseThrow(() -> new AladinException(ErrorCode.BOOK_NOT_FOUND, "bookId=" + itemId));
         var member = memberFinder.getMemberById(memberId);
         Like like = likeRepository.save(Like.create(snowflake.nextId(), book, member));
         publishLikeCountChanged(itemId, memberId, 1);
@@ -50,7 +53,10 @@ public class LikeModifyService implements LikeRegister {
     @Override
     public void unLike(Integer itemId, Long memberId) {
         Like like = likeRepository.findByBookItemIdAndMemberMemberId(itemId, memberId)
-                .orElseThrow(() -> new LikeException(ErrorCode.LIKE_ALREADY_EXISTS));
+                .orElseThrow(() -> new LikeException(
+                        ErrorCode.LIKE_ALREADY_EXISTS,
+                        "operation=unlike, bookId=" + itemId + ", memberId=" + memberId
+                ));
         likeRepository.delete(like);
         publishLikeCountChanged(itemId, memberId, -1);
     }

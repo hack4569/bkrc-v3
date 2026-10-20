@@ -8,6 +8,10 @@ public class LikeException extends BusinessException {
         super(errorCode);
     }
 
+    public LikeException(ErrorCode errorCode, String message) {
+        super(errorCode, message);
+    }
+
     public LikeException(ErrorCode errorCode, Throwable cause) {
         super(errorCode, cause);
     }

@@ -6,6 +6,7 @@ import bkrc.chaptersofu.application.required.event.Event;
 import bkrc.chaptersofu.application.required.event.EventPayload;
 import bkrc.chaptersofu.application.required.event.EventType;
 import bkrc.chaptersofu.domain.aladin.AladinBook;
+import bkrc.chaptersofu.domain.common.shared.ErrorCode;
 import bkrc.chaptersofu.domain.common.shared.EventHandlerException;
 import org.junit.jupiter.api.Test;
 
@@ -55,6 +56,15 @@ class HotBookServiceTest {
                 mock(HotBookRepository.class), mock(AladinFinder.class));
         Event<EventPayload> event = Event.of(EventType.BOOK_LIKE, mock(EventPayload.class));
 
-        assertThatThrownBy(() -> service.handleEvent(event)).isInstanceOf(EventHandlerException.class);
+        assertThatThrownBy(() -> service.handleEvent(event))
+                .isInstanceOf(EventHandlerException.class)
+                .hasMessage(ErrorCode.EVENT_HANDLER_NOT_FOUND.getMessage() + ": eventType=BOOK_LIKE")
+                .satisfies(exception -> {
+                    EventHandlerException eventHandlerException = (EventHandlerException) exception;
+                    assertThat(eventHandlerException.getErrorCode())
+                            .isEqualTo(ErrorCode.EVENT_HANDLER_NOT_FOUND);
+                    assertThat(eventHandlerException.getMessage())
+                            .contains("eventType=BOOK_LIKE");
+                });
     }
 }

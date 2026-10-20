@@ -5,6 +5,7 @@ import bkrc.chaptersofu.application.member.provided.MemberFinder;
 import bkrc.chaptersofu.application.member.provided.MemberRegister;
 import bkrc.chaptersofu.application.member.provided.MemberRegisterRequest;
 import bkrc.chaptersofu.domain.member.Member;
+import bkrc.chaptersofu.domain.member.MemberNotFoundException;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,8 @@ class MemberFinderTest {
     @Test
     void 존재하지_않는_회원_ID_조회는_실패한다() {
         assertThatThrownBy(() -> memberFinder.getMemberById(9999L))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(MemberNotFoundException.class)
+                .hasMessageContaining("memberId=9999");
 
     }
 
@@ -55,6 +57,7 @@ class MemberFinderTest {
     @Test
     void 존재하지_않는_로그인_ID_조회는_실패한다() {
         assertThatThrownBy(() -> memberFinder.getMemberByLoginId("testuser"))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(MemberNotFoundException.class)
+                .hasMessageContaining("loginId=testuser");
     }
 }
