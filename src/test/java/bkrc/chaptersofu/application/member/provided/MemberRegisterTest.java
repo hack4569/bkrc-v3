@@ -9,6 +9,7 @@ import bkrc.chaptersofu.application.member.provided.MemberRegisterRequest;
 import bkrc.chaptersofu.application.member.provided.MemberWithdrawRequest;
 import bkrc.chaptersofu.domain.member.DuplicateMemberException;
 import bkrc.chaptersofu.domain.member.Member;
+import bkrc.chaptersofu.domain.member.MemberNotFoundException;
 import bkrc.chaptersofu.domain.member.PasswordEncoder;
 import bkrc.chaptersofu.domain.member.PasswordNotEquals;
 import jakarta.persistence.EntityManager;
@@ -88,6 +89,6 @@ class MemberRegisterTest {
         entityManager.clear();
 
         assertThatThrownBy(() -> memberFinder.getMemberById(member.getMemberId()))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(MemberNotFoundException.class);
     }
 }

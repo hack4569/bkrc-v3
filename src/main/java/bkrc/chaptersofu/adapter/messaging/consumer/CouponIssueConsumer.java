@@ -7,6 +7,7 @@ import bkrc.chaptersofu.application.required.event.Event;
 import bkrc.chaptersofu.application.messaging.RabbitMQConfig;
 import bkrc.chaptersofu.domain.coupon.MemberCoupon;
 import bkrc.chaptersofu.application.required.event.EventPayload;
+import bkrc.chaptersofu.application.support.AfterCommitExecutor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -48,6 +49,13 @@ public class CouponIssueConsumer {
             log.info("중복 쿠폰 발급 예약을 Redis에서 보상했습니다. 요청 memberCouponId={}, " +
                             "기존 memberCouponId={}",
                     payload.getMemberCouponId(), existing.getMemberCouponId());
+            return;
         }
+
+        // member_coupon 저장 트랜잭션이 커밋된 시점을 최종 쿠폰 발급 완료로 기록합니다.
+        AfterCommitExecutor.execute(() -> log.info(
+                "COUPON_ISSUED memberCouponId={} couponId={} memberId={}",
+                payload.getMemberCouponId(), payload.getCouponId(), payload.getMemberId()
+        ));
     }
 }
