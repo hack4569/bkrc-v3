@@ -1,12 +1,11 @@
 package bkrc.chaptersofu.application.member;
 
 import bkrc.chaptersofu.application.messaging.RabbitMQConfig;
-import bkrc.chaptersofu.application.required.event.Event;
+
 import bkrc.chaptersofu.application.required.event.EventType;
 import bkrc.chaptersofu.application.required.event.payload.MemberJoinEventPayload;
 import bkrc.chaptersofu.application.required.outbox.Outbox;
-import bkrc.chaptersofu.application.required.outbox.OutboxEvent;
-import bkrc.chaptersofu.application.required.outbox.OutboxRepository;
+import bkrc.chaptersofu.application.required.outbox.OutboxEventRecorder;
 import bkrc.chaptersofu.application.support.AfterCommitExecutor;
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
 import bkrc.chaptersofu.domain.common.shared.Snowflake;
@@ -21,7 +20,6 @@ import bkrc.chaptersofu.domain.member.PasswordEncoder;
 import bkrc.chaptersofu.domain.member.PasswordNotEquals;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -35,8 +33,7 @@ public class MemberModifyService implements MemberRegister {
     private final MemberRepository memberRepository;
     private final Snowflake snowflake;
     private final PasswordEncoder passwordEncoder;
-    private final OutboxRepository outboxRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final OutboxEventRecorder eventRecorder;
 
     @Override
     public Member saveMember(MemberRegisterRequest request) {
@@ -45,18 +42,12 @@ public class MemberModifyService implements MemberRegister {
 
         var member = Member.register(snowflake.nextId(), request.loginId(), request.password(), passwordEncoder);
         var savedMember = memberRepository.save(member);
-        Outbox outbox = outboxRepository.save(Outbox.of(
-                EventType.MEMBER_JOIN,
-                RabbitMQConfig.NOTIFICATION_DIRECT_EXCHANGE,
-                RabbitMQConfig.JOIN_ROUTING_KEY,
-                Event.of(EventType.MEMBER_JOIN, MemberJoinEventPayload.builder()
+        Outbox outbox = eventRecorder.record(EventType.MEMBER_JOIN,
+                RabbitMQConfig.NOTIFICATION_DIRECT_EXCHANGE, RabbitMQConfig.JOIN_ROUTING_KEY,
+                MemberJoinEventPayload.builder()
                         .loginId(savedMember.getLoginId())
                         .created(savedMember.getCreated())
-                        .build()).toJson()
-        ));
-
-        // 트랜잭션 커밋 후 이벤트 발행
-        eventPublisher.publishEvent(OutboxEvent.of(outbox));
+                        .build());
         // 회원과 Outbox가 모두 저장된 경우에만 가입 성공으로 기록합니다.
         AfterCommitExecutor.execute(() -> log.info(
                 "MEMBER_REGISTERED memberId={} loginId={} outboxId={}",
