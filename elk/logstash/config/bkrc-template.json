@@ -1,0 +1,23 @@
+{
+  "index_patterns": ["bkrc-logs-*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    },
+    "mappings": {
+      "properties": {
+        "@timestamp": { "type": "date" },
+        "message": { "type": "text" },
+        "service": { "properties": { "name": { "type": "keyword" } } },
+        "log": {
+          "properties": {
+            "level": { "type": "keyword" },
+            "logger": { "type": "keyword" }
+          }
+        },
+        "trace": { "properties": { "id": { "type": "keyword" } } }
+      }
+    }
+  }
+}

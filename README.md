@@ -6,6 +6,8 @@
 
 ## 목차
 
+Docker ELK 실행 및 로그 조회: [ELK 설정 안내](elk/README.md)
+
 - [🌐 운영 환경](#운영-환경)
 - [🏗️ 시스템 Structure](#시스템-structure)
 - [🛠️ 기술 스택](#기술-스택)
