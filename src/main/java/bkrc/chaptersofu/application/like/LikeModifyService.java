@@ -1,24 +1,22 @@
 package bkrc.chaptersofu.application.like;
 
+import bkrc.chaptersofu.application.messaging.RabbitMQConfig;
+
 import bkrc.chaptersofu.application.like.event.payload.BookLikeEventPayload;
 import bkrc.chaptersofu.application.aladin.AladinBookRepository;
 import bkrc.chaptersofu.domain.aladin.AladinException;
-import bkrc.chaptersofu.application.required.event.Event;
 import bkrc.chaptersofu.application.required.event.EventType;
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
 import bkrc.chaptersofu.domain.common.shared.Snowflake;
-import bkrc.chaptersofu.application.messaging.RabbitMQConfig;
 import bkrc.chaptersofu.application.like.provided.LikeRegister;
 import bkrc.chaptersofu.domain.like.Like;
 import bkrc.chaptersofu.domain.like.LikeException;
 import bkrc.chaptersofu.application.member.provided.MemberFinder;
 import bkrc.chaptersofu.application.required.outbox.Outbox;
-import bkrc.chaptersofu.application.required.outbox.OutboxEvent;
-import bkrc.chaptersofu.application.required.outbox.OutboxRepository;
+import bkrc.chaptersofu.application.required.outbox.OutboxEventRecorder;
 import bkrc.chaptersofu.application.support.AfterCommitExecutor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,8 +28,7 @@ import java.time.LocalDateTime;
 @Slf4j
 public class LikeModifyService implements LikeRegister {
     private final LikeRepository likeRepository;
-    private final OutboxRepository outboxRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final OutboxEventRecorder eventRecorder;
     private final AladinBookRepository aladinBookRepository;
     private final Snowflake snowflake;
     private final MemberFinder memberFinder;
@@ -74,20 +71,13 @@ public class LikeModifyService implements LikeRegister {
     }
 
     private Outbox publishLikeCountChanged(Integer itemId, Long memberId, int delta) {
-        Outbox outbox = outboxRepository.save(Outbox.of(
-                EventType.BOOK_LIKE,
-                RabbitMQConfig.HOTBOOK_DIRECT_EXCHANGE,
-                RabbitMQConfig.LIKE_ROUTING_KEY,
-                Event.of(EventType.BOOK_LIKE,
-                        BookLikeEventPayload.builder()
-                                .memberId(memberId)
-                                .bookId(itemId)
-                                .delta(delta)
-                                .createdAt(LocalDateTime.now())
-                                .build()
-                ).toJson()
-        ));
-        eventPublisher.publishEvent(OutboxEvent.of(outbox));
-        return outbox;
+        return eventRecorder.record(EventType.BOOK_LIKE,
+                RabbitMQConfig.HOTBOOK_DIRECT_EXCHANGE, RabbitMQConfig.LIKE_ROUTING_KEY,
+                BookLikeEventPayload.builder()
+                        .memberId(memberId)
+                        .bookId(itemId)
+                        .delta(delta)
+                        .createdAt(LocalDateTime.now())
+                        .build());
     }
 }

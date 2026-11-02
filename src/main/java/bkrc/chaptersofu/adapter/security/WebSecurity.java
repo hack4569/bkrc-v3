@@ -2,7 +2,7 @@ package bkrc.chaptersofu.adapter.security;
 
 import bkrc.chaptersofu.application.member.provided.MemberFinder;
 import bkrc.chaptersofu.application.member.provided.MemberRegister;
-import bkrc.chaptersofu.domain.member.PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +29,7 @@ public class WebSecurity {
     private final MemberFinder memberFinder;
     private final Environment env;
     private final ObjectMapper objectMapper;
+    // 로그인 인증은 Spring Security 계약으로 동일한 암호화 어댑터를 주입받습니다.
     private final PasswordEncoder passwordEncoder;
 
     @Bean
