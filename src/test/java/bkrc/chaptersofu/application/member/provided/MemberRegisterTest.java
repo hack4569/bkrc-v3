@@ -74,7 +74,8 @@ class MemberRegisterTest {
 
         var found = memberFinder.getMemberById(member.getMemberId());
         var modifiedMember = memberRegister.modifyMember(found.getMemberId(), new MemberModifyRequest("testuser", "password", "newpassword", "newpassword"));
-        assertTrue(passwordEncoder.matches("newpassword", modifiedMember.getPassword()));
+        // 회원 기능은 Spring Security가 아닌 도메인의 비밀번호 검증 계약을 사용합니다.
+        assertTrue(passwordEncoder.checkPassword("newpassword", modifiedMember.getPassword()));
     }
 
     @Test

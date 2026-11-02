@@ -1,26 +1,8 @@
 package bkrc.chaptersofu.domain.member;
 
-import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.stereotype.Component;
+// 도메인은 암호화 알고리즘과 Spring Security를 알지 않고 이 계약만 사용합니다.
+public interface PasswordEncoder {
+    String hashPassword(String plainTextPassword);
 
-@Component
-public class PasswordEncoder implements org.springframework.security.crypto.password.PasswordEncoder {
-
-    @Override
-    public String encode(CharSequence rawPassword) {
-        return BCrypt.hashpw(rawPassword.toString(), BCrypt.gensalt(12));
-    }
-
-    @Override
-    public boolean matches(CharSequence rawPassword, String encodedPassword) {
-        return BCrypt.checkpw(rawPassword.toString(), encodedPassword);
-    }
-
-    public String hashPassword(String plainTextPassword) {
-        return encode(plainTextPassword);
-    }
-
-    public boolean checkPassword(String plainTextPassword, String hashedPassword) {
-        return matches(plainTextPassword, hashedPassword);
-    }
+    boolean checkPassword(String plainTextPassword, String hashedPassword);
 }
