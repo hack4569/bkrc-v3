@@ -4,11 +4,11 @@ global:
 
 scrape_configs:
   # Spring Boot 메트릭 수집
-  - job_name: 'bkrc'
+  - job_name: 'book'
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['host.docker.internal:8080']
         labels:
-          app: 'bkrc'
+          app: 'book'
         # Mac/Windows: host.docker.internal
         # Linux: 172.17.0.1

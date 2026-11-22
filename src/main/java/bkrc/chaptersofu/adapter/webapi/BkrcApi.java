@@ -1,10 +1,12 @@
 package bkrc.chaptersofu.adapter.webapi;
 
 import bkrc.chaptersofu.adapter.client.aladin.dto.RecommendView;
-import bkrc.chaptersofu.application.aladin.provided.AladinFinder;
+import bkrc.chaptersofu.adapter.webapi.dto.BookSearchResponse;
 import bkrc.chaptersofu.application.aladin.provided.BookRecommender;
 import bkrc.chaptersofu.adapter.client.aladin.dto.AladinBookSearchResponse;
+import bkrc.chaptersofu.application.bkrc.provided.BkrcFinder;
 import bkrc.chaptersofu.domain.aladin.AladinBook;
+import bkrc.chaptersofu.domain.book.Book;
 import bkrc.chaptersofu.domain.common.constants.RcmdConst;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,11 +18,11 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-public class AladinApi {
-    private final AladinFinder aladinFinder;
+public class BkrcApi {
     private final BookRecommender bookRecommender;
+    private final BkrcFinder bkrcFinder;
 
-    @GetMapping("/v1/aladin/books/recommend/user")
+    @GetMapping("/v1/books/recommend/user")
     public List<RecommendView> getRecommendBooksForUser(
             @AuthenticationPrincipal Long memberId) {
         var filteredBooks = bookRecommender.getRecommendBooksForUser(memberId);
@@ -30,11 +32,11 @@ public class AladinApi {
                 .toList();
     }
 
-    @GetMapping("/v1/aladin/books/search")
-    public List<AladinBookSearchResponse> searchBooks(@RequestParam String query) {
-        List<AladinBook> books = query == null || query.isBlank() ? List.of() : aladinFinder.searchBooks(query);
+    @GetMapping("/v1/books/search")
+    public List<BookSearchResponse> searchBooks(@RequestParam String query) {
+        List<Book> books = query == null || query.isBlank() ? List.of() : bkrcFinder.searchBooks(query);
         return books.stream()
-                .map(AladinBookSearchResponse::from)
+                .map(BookSearchResponse::from)
                 .toList();
     }
 }

@@ -1,13 +1,14 @@
 package bkrc.chaptersofu.application.required;
 
 import bkrc.chaptersofu.domain.aladin.AladinBook;
+import bkrc.chaptersofu.domain.book.Book;
 
 import java.util.List;
 
 public interface BookInfo {
-    List<AladinBook> getBooks(String queryType, int maxResults, int start);
+    List<Book> getBestSellerBooks(int maxResults, int start);
 
-    AladinBook getBookDetail(String isbn13);
+    Book getBookDetail(String isbn13);
 
-    List<AladinBook> searchBooks(String query);
+    List<Book> searchBooks(String query);
 }

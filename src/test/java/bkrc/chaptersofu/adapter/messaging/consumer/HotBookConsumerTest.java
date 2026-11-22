@@ -16,7 +16,7 @@ class HotBookConsumerTest {
         HotBookService service = mock(HotBookService.class);
         HotBookConsumer consumer = new HotBookConsumer(service);
         Event<EventPayload> event = Event.of(EventType.BOOK_LIKE,
-                BookLikeEventPayload.builder().bookId(10).memberId(20L).delta(1).build());
+                BookLikeEventPayload.builder().bookId(10L).memberId(20L).delta(1).build());
 
         consumer.listen(event.toJson());
 

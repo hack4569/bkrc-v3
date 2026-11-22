@@ -13,7 +13,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uk_history_item_member",
-                        columnNames = {"member_id", "item_id"}
+                        columnNames = {"member_id", "book_id"}
                 )
         }
 )
@@ -33,16 +33,16 @@ public class History extends BaseEntity {
     @Column(nullable = false)
     private Long memberId;
 
-    @Schema(description = "열람한 도서 ID (itemId)", example = "123456789")
-    @Column(nullable = false)
-    private Integer itemId;
+    @Schema(description = "열람한 내부 도서 ID", example = "1")
+    @Column(name = "book_id", nullable = false)
+    private Long bookId;
 
 
-    public static History create(Integer itemId, Long memberId, Long historyId) {
+    public static History create(Long bookId, Long memberId, Long historyId) {
         History history = new History();
         history.setId(historyId);
         history.setMemberId(memberId);
-        history.setItemId(itemId);
+        history.setBookId(bookId);
         return history;
     }
 }

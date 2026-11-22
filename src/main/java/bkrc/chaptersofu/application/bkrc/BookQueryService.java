@@ -1,8 +1,10 @@
-package bkrc.chaptersofu.application.aladin;
+package bkrc.chaptersofu.application.bkrc;
 
+import bkrc.chaptersofu.application.aladin.AladinBookRepository;
 import bkrc.chaptersofu.application.aladin.provided.AladinBookCacheFinder;
 import bkrc.chaptersofu.application.aladin.provided.AladinBookCacheRegister;
 import bkrc.chaptersofu.domain.aladin.AladinBook;
+import bkrc.chaptersofu.domain.book.Book;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,45 +23,46 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Slf4j
-public class AladinBookQueryService implements AladinBookCacheFinder {
+public class BookQueryService implements BookCacheFinder {
 
-    private static final String CACHE_KEY_ALL_BOOKS = "aladin:books:all";
+    private static final String CACHE_KEY_ALL_BOOKS = "books:all";
 
-    private final AladinBookRepository aladinBookRepository;
+    private final BookRepository bookRepository;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
     private final Counter cacheHitCounter;
     private final Counter cacheMissCounter;
-    private final AladinBookCacheRegister aladinBookCacheRegister;
+    private final BookCacheRegister bookCacheRegister;
 
     @Override
-    public List<AladinBook> findAll() {
+    public List<Book> findAll() {
         return findFromCache()
                 .orElseGet(() -> {
-                    List<AladinBook> books = aladinBookRepository.findAllWithBookComments();
-                    aladinBookCacheRegister.saveListForRedis(books);
+                    List<Book> books = bookRepository.findAll();
+                    bookCacheRegister.saveListForRedis(books);
                     return books;
                 });
     }
 
-    private Optional<List<AladinBook>> findFromCache() {
+    private Optional<List<Book>> findFromCache() {
         String cached = redisTemplate.opsForValue().get(CACHE_KEY_ALL_BOOKS);
 
-        if (!StringUtils.hasText(cached)) {
+        // JSON 빈 배열도 조회할 도서가 없는 캐시로 간주해 최신 DB 결과를 다시 확인한다.
+        if (!StringUtils.hasText(cached) || "[]".equals(cached.strip())) {
             cacheMissCounter.increment();
             return Optional.empty();
         }
 
         try {
-            List<AladinBook> books = objectMapper.readValue(
+            List<Book> books = objectMapper.readValue(
                     cached,
-                    new TypeReference<List<AladinBook>>() {}
+                    new TypeReference<List<Book>>() {}
             );
             cacheHitCounter.increment();
             return Optional.of(books);
         } catch (JsonProcessingException e) {
             cacheMissCounter.increment();
-            log.warn("[알라딘] 캐시 역직렬화 실패. key={}", CACHE_KEY_ALL_BOOKS, e);
+            log.warn("캐시 역직렬화 실패. key={}", CACHE_KEY_ALL_BOOKS, e);
             return Optional.empty();
         }
     }

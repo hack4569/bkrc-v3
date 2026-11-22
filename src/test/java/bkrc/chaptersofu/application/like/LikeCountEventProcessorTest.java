@@ -22,26 +22,26 @@ class LikeCountEventProcessorTest {
         LikeCountRepository repository = mock(LikeCountRepository.class);
         LikeCountUpdater updater = mock(LikeCountUpdater.class);
         TransactionTemplate transaction = mock(TransactionTemplate.class);
-        LikeCount count = LikeCount.create(7, 3);
+        LikeCount count = LikeCount.create(7L, 3);
         count.increase();
-        when(repository.findById(7)).thenReturn(Optional.of(count));
+        when(repository.findById(7L)).thenReturn(Optional.of(count));
         when(transaction.execute(any())).thenAnswer(invocation ->
                 invocation.<TransactionCallback<?>>getArgument(0)
                         .doInTransaction(mock(TransactionStatus.class)));
-        BookLikeEventPayload payload = BookLikeEventPayload.builder().bookId(7).delta(1).build();
+        BookLikeEventPayload payload = BookLikeEventPayload.builder().bookId(7L).delta(1).build();
         Duration ttl = Duration.ofMinutes(5);
 
         new LikeCountEventProcessor(repository, updater, transaction).process(payload, ttl);
 
-        verify(repository).applyDelta(7, 1);
-        verify(updater).createOrUpdate(7, 4, 1L, ttl);
+        verify(repository).applyDelta(7L, 1);
+        verify(updater).createOrUpdate(7L, 4, 1L, ttl);
     }
 
     @Test
     void delta가_1이나_minus1이_아니면_거부한다() {
         LikeCountEventProcessor processor = new LikeCountEventProcessor(
                 mock(LikeCountRepository.class), mock(LikeCountUpdater.class), mock(TransactionTemplate.class));
-        BookLikeEventPayload payload = BookLikeEventPayload.builder().bookId(7).delta(2).build();
+        BookLikeEventPayload payload = BookLikeEventPayload.builder().bookId(7L).delta(2).build();
 
         assertThatThrownBy(() -> processor.process(payload, Duration.ofMinutes(1)))
                 .isInstanceOf(IllegalArgumentException.class)

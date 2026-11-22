@@ -1,13 +1,13 @@
-package bkrc.chaptersofu.application.aladin;
+package bkrc.chaptersofu.application.bkrc;
 
 import bkrc.chaptersofu.domain.aladin.AladinBook;
+import bkrc.chaptersofu.domain.book.Book;
+import bkrc.chaptersofu.domain.book.BookException;
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
-import bkrc.chaptersofu.domain.aladin.AladinException;
 import bkrc.chaptersofu.application.history.provided.HistoryFinder;
 import bkrc.chaptersofu.application.history.provided.HistoryRegister;
 import bkrc.chaptersofu.domain.history.History;
 import bkrc.chaptersofu.application.aladin.provided.BookRecommender;
-import bkrc.chaptersofu.application.aladin.provided.AladinBookCacheFinder;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,24 +19,24 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BookRecommendationService implements BookRecommender {
 
-    private final AladinBookCacheFinder aladinBookCacheFinder;
+    private final BookCacheFinder bookCacheFinder;
     private final HistoryFinder historyFinder;
     private final HistoryRegister historyRegister;
 
     @Override
-    public List<AladinBook> getRecommendBooksForUser(
+    public List<Book> getRecommendBooksForUser(
             @Nullable Long memberId
     ) {
         List<History> histories = memberId == null
                 ? null
                 : historyFinder.getHistoryByMemberId(memberId);
 
-        var books = aladinBookCacheFinder.findAll();
+        var books = bookCacheFinder.findAll();
         if (books == null || books.isEmpty()) {
-            throw new AladinException(ErrorCode.ALADIN_NOT_FOUND);
+            throw new BookException(ErrorCode.BOOK_NOT_FOUND, "추천할 책이 없습니다.");
         }
 
-        List<AladinBook> filteredBooks = filterForUser(books, histories);
+        List<Book> filteredBooks = filterForUser(books, histories);
 
         if (filteredBooks.isEmpty() && memberId != null) {
             historyRegister.deleteHistoryByMemberId(memberId);
@@ -46,7 +46,7 @@ public class BookRecommendationService implements BookRecommender {
         return filteredBooks;
     }
 
-    private List<AladinBook> filterForUser(List<AladinBook> books, List<History> histories) {
+    private List<Book> filterForUser(List<Book> books, List<History> histories) {
         LocalDate today = LocalDate.now();
         return books.stream()
                 .filter(book -> book.hasNotBeenViewedBefore(histories, today))

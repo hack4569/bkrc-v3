@@ -81,7 +81,8 @@ class AladinBookTest {
 
     private History history(Integer itemId, LocalDateTime createdAt) {
         History history = History.builder()
-                .itemId(itemId)
+                // 레거시 AladinBook 테스트는 기존 숫자 ID를 내부 bookId로 대응시켜 검증한다.
+                .bookId(itemId.longValue())
                 .memberId(1L)
                 .build();
         history.setCreated(createdAt);

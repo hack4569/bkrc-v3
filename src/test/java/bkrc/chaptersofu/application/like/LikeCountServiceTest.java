@@ -12,7 +12,7 @@ class LikeCountServiceTest {
     @Test
     void 이벤트_버전이_없으면_갱신을_거부한다() {
         LikeCountService service = new LikeCountService(mock(LikeCountStore.class));
-        assertThatThrownBy(() -> service.createOrUpdate(7, 3, null, Duration.ofMinutes(1)))
+        assertThatThrownBy(() -> service.createOrUpdate(7L, 3, null, Duration.ofMinutes(1)))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("eventVersion");
     }

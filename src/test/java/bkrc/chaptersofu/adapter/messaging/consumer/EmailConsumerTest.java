@@ -33,7 +33,7 @@ class EmailConsumerTest {
     @Test
     void 이메일과_관계없는_이벤트는_무시한다() {
         Event<EventPayload> event = Event.of(EventType.BOOK_LIKE,
-                BookLikeEventPayload.builder().bookId(10).memberId(20L).delta(1).build());
+                BookLikeEventPayload.builder().bookId(10L).memberId(20L).delta(1).build());
 
         consumer.listen(event.toJson());
 

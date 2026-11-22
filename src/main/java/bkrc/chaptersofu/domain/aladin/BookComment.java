@@ -1,5 +1,6 @@
 package bkrc.chaptersofu.domain.aladin;
 
+import bkrc.chaptersofu.domain.book.Book;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -32,10 +33,15 @@ public class BookComment {
 //    @Column(name = "item_id", insertable = false, updatable = false)
 //    private Integer itemId;
 
+    /**
+     * 공통 도서가 코멘트 연관관계의 실제 소유자이며 book_id 외래키를 저장한다.
+     * Book.bookCommentList의 mappedBy 값과 필드명을 일치시켜 Hibernate 매핑 오류를 방지한다.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_id")
+    @JoinColumn(name = "book_id", nullable = false)
     @JsonIgnore
-    private AladinBook aladinBook;
+    private Book book;
+
 
     public static BookComment create(String comment, String type) {
         BookComment bookComment = new BookComment();

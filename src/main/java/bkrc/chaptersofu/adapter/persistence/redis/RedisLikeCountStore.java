@@ -26,13 +26,13 @@ public class RedisLikeCountStore implements LikeCountStore {
     private final StringRedisTemplate redisTemplate;
 
     @Override
-    public Long readLikeCount(Integer bookId) {
+    public Long readLikeCount(Long bookId) {
         String result = redisTemplate.opsForValue().get(generateKey(bookId));
         return result == null ? null : Long.valueOf(result);
     }
 
     @Override
-    public boolean createOrUpdate(Integer bookId, Integer likeCount, Long eventVersion, Duration ttl) {
+    public boolean createOrUpdate(Long bookId, Integer likeCount, Long eventVersion, Duration ttl) {
         Long applied = redisTemplate.execute(
                 APPLY_LIKE_COUNT_SCRIPT,
                 List.of(generateKey(bookId), generateVersionKey(bookId)),
@@ -43,11 +43,11 @@ public class RedisLikeCountStore implements LikeCountStore {
         return Long.valueOf(1L).equals(applied);
     }
 
-    private String generateKey(Integer bookId) {
+    private String generateKey(Long bookId) {
         return KEY_FORMAT.formatted(bookId);
     }
 
-    private String generateVersionKey(Integer bookId) {
+    private String generateVersionKey(Long bookId) {
         return generateKey(bookId) + "::version";
     }
 }

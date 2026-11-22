@@ -1,7 +1,7 @@
 package bkrc.chaptersofu.adapter.webapi;
 
 import bkrc.chaptersofu.application.hotbook.provided.HotBookFinder;
-import bkrc.chaptersofu.domain.aladin.AladinBookResponse;
+import bkrc.chaptersofu.adapter.webapi.dto.BookResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,12 +33,13 @@ public class HotBookApi {
                     content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping("/v1/hot-books/books/date/{dateStr}")
-    public List<AladinBookResponse> readAll(
+    public List<BookResponse> readAll(
             @Parameter(description = "조회 날짜 (yyyyMMdd 형식)", required = true, example = "20240101")
             @PathVariable("dateStr") String dateStr
     ) {
         return hotBookFinder.readAll(dateStr).stream()
-                .map(AladinBookResponse::from)
+                // 공통 Book을 API 응답 DTO로 변환해 특정 서점의 응답 모델 노출을 방지한다.
+                .map(BookResponse::from)
                 .toList();
     }
 }

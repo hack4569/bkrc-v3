@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface LikeRepository extends JpaRepository<Like, Long> {
-    Optional<Like> findByBookItemIdAndMemberMemberId(int itemId, Long memberId);
+    Optional<Like> findByBookBookIdAndMemberMemberId(Long bookId, Long memberId);
 
     @EntityGraph(attributePaths = "book")
     List<Like> findByMemberMemberId(Long memberId);

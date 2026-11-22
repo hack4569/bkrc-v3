@@ -27,17 +27,17 @@ public class RecommendationApi {
         return MyRecommendationResponse.from(recommendationRegister.create(memberId, request));
     }
 
-    @GetMapping("/v1/aladin/books/recommend/{itemId}")
+    @GetMapping("/v1/books/recommend/{bookId}")
     public MyRecommendationResponse get(@AuthenticationPrincipal Long memberId,
-                                        @PathVariable Integer itemId) {
-        return MyRecommendationResponse.from(recommendationFinder.get(memberId, itemId));
+                                        @PathVariable Long bookId) {
+        return MyRecommendationResponse.from(recommendationFinder.get(memberId, bookId));
     }
 
-    @PutMapping("/v1/aladin/books/recommend/{itemId}")
+    @PutMapping("/v1/books/recommend/{bookId}")
     public MyRecommendationResponse update(@AuthenticationPrincipal Long memberId,
-                                           @PathVariable Integer itemId,
+                                           @PathVariable Long bookId,
                                            @RequestBody @Valid UpdateRecommendationRequest request) {
         return MyRecommendationResponse.from(
-                recommendationRegister.update(memberId, itemId, request.recommendation()));
+                recommendationRegister.update(memberId, bookId, request.recommendation()));
     }
 }

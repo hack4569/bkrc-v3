@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface RecommendationRepository extends JpaRepository<BookRecommendation, Long> {
     List<BookRecommendation> findByMemberMemberIdOrderByCreatedDesc(Long memberId);
-    Optional<BookRecommendation> findByItemIdAndMemberMemberId(Integer itemId, Long memberId);
+    Optional<BookRecommendation> findByBookIdAndMemberMemberId(Long bookId, Long memberId);
 }

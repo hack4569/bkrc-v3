@@ -17,12 +17,12 @@ import java.util.List;
 import java.util.Set;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Schema(description = "알라딘 도서 엔티티")
+//@Schema(description = "알라딘 도서 엔티티")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name="aladin_book")
+//@Table(name="aladin_book")
 public class AladinBook {
 
     @Schema(description = "도서 고유 ID (알라딘 itemId)", example = "123456789")
@@ -87,7 +87,8 @@ public class AladinBook {
     @Schema(description = "목차")
     private String toc;
     @Schema(description = "AI/MD 추천 코멘트 목록")
-    @OneToMany(mappedBy = "aladinBook", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // 코멘트 영속 관계는 공통 Book으로 이전되었으므로 레거시 응답용 목록은 DB 매핑에서 제외한다.
+    @Transient
     private List<BookComment> bookCommentList;
 
 
@@ -134,7 +135,7 @@ public class AladinBook {
     }
 
     public void settingBookCommentList(List<BookComment> bookCommentList) {
-        bookCommentList.forEach(i -> i.setAladinBook(this));
+        // 코멘트 FK의 소유권은 공통 Book으로 이전되었으므로 레거시 알라딘 모델에는 목록만 유지한다.
         this.bookCommentList = bookCommentList;
     }
 
@@ -169,7 +170,8 @@ public class AladinBook {
         }
 
         return histories.stream().noneMatch(history ->
-                Objects.equals(itemId, history.getItemId())
+                // 레거시 추천 캐시가 제거되기 전까지 기존 숫자 ID 비교 동작을 임시로 유지한다.
+                Objects.equals(Long.valueOf(itemId), history.getBookId())
                         && !referenceDate.isEqual(history.getCreated().toLocalDate())
         );
     }

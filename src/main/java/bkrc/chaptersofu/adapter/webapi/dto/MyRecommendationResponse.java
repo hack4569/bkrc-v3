@@ -4,7 +4,7 @@ import bkrc.chaptersofu.domain.recommendation.BookRecommendation;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record MyRecommendationResponse(
-        @Schema(description = "도서 ID") Integer itemId,
+        @Schema(description = "내부 도서 ID") Long bookId,
         @Schema(description = "도서 커버 이미지 URL") String cover,
         @Schema(description = "도서 제목") String title,
         @Schema(description = "도서 상세 페이지 링크") String link,
@@ -13,7 +13,7 @@ public record MyRecommendationResponse(
         @Schema(description = "추천 내용") String recommendation
 ) {
     public static MyRecommendationResponse from(BookRecommendation value) {
-        return new MyRecommendationResponse(value.getItemId(), value.getCover(), value.getTitle(),
+        return new MyRecommendationResponse(value.getBookId(), value.getCover(), value.getTitle(),
                 value.getLink(), value.getApproved(), value.getRecommendation());
     }
 }

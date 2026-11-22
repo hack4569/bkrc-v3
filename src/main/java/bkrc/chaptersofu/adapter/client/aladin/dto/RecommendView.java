@@ -2,6 +2,7 @@ package bkrc.chaptersofu.adapter.client.aladin.dto;
 
 import bkrc.chaptersofu.domain.aladin.AladinBook;
 import bkrc.chaptersofu.domain.aladin.BookComment;
+import bkrc.chaptersofu.domain.book.Book;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +68,7 @@ public class RecommendView {
         return categoryName;
     }
 
-    public static RecommendView from(AladinBook book) {
+    public static RecommendView from(Book book) {
         return RecommendView.builder()
                 .itemId(book.getItemId())
                 .title(book.getTitle())

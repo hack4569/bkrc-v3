@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface RecommendationFinder {
     List<BookRecommendation> getMyRecommendations(Long memberId);
-    BookRecommendation get(Long memberId, Integer itemId);
+    BookRecommendation get(Long memberId, Long bookId);
 }

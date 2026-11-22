@@ -15,12 +15,12 @@ public class LikeCountService implements LikeCountFinder, LikeCountUpdater {
     private final LikeCountStore likeCountStore;
 
     @Override
-    public Long readLikeCount(Integer bookId) {
+    public Long readLikeCount(Long bookId) {
         return likeCountStore.readLikeCount(bookId);
     }
 
     @Override
-    public boolean createOrUpdate(Integer bookId, Integer likeCount, Long eventVersion, Duration ttl) {
+    public boolean createOrUpdate(Long bookId, Integer likeCount, Long eventVersion, Duration ttl) {
         Objects.requireNonNull(eventVersion, "BOOK_LIKE eventVersion must not be null");
         return likeCountStore.createOrUpdate(bookId, likeCount, eventVersion, ttl);
     }

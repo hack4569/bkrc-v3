@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BookLikeEventPayload implements EventPayload {
-    private Integer bookId;
+    private Long bookId;
     private Long memberId;
     private LocalDateTime createdAt;
     private Integer delta;

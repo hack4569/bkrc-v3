@@ -17,12 +17,12 @@ class HistoryFinderTest {
 
     @Test
     void 회원_ID로_이력_목록을_조회한다() {
-        historyRegister.saveHistory(1001, 2001L);
-        historyRegister.saveHistory(1002, 2001L);
+        historyRegister.saveHistory(1001L, 2001L);
+        historyRegister.saveHistory(1002L, 2001L);
 
         assertThat(historyFinder.getHistoryByMemberId(2001L))
-                .extracting(history -> history.getItemId())
-                .containsExactlyInAnyOrder(1001, 1002);
+                .extracting(history -> history.getBookId())
+                .containsExactlyInAnyOrder(1001L, 1002L);
     }
 
     @Test

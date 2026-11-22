@@ -20,7 +20,8 @@ public class HistoryApi {
     @PostMapping("/v1/history")
     public void saveHistory(
             @AuthenticationPrincipal Long memberId,
-            @RequestParam @NotNull(message = "itemId는 필수입니다.") Integer itemId) {
-        historyRegister.saveHistory(itemId, memberId);
+            @RequestParam @NotNull(message = "bookId는 필수입니다.") Long bookId) {
+        // 외부 itemId가 아닌 내부 bookId를 저장해 판매처 간 ID 충돌을 방지한다.
+        historyRegister.saveHistory(bookId, memberId);
     }
 }

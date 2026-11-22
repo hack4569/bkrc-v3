@@ -3,9 +3,9 @@ package bkrc.chaptersofu.application.hotbook;
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
 import bkrc.chaptersofu.domain.common.shared.EventHandlerException;
 import bkrc.chaptersofu.application.required.HotBookEventHandler;
-import bkrc.chaptersofu.application.aladin.provided.AladinFinder;
+import bkrc.chaptersofu.application.bkrc.provided.BkrcFinder;
 import bkrc.chaptersofu.application.hotbook.provided.HotBookFinder;
-import bkrc.chaptersofu.domain.aladin.AladinBook;
+import bkrc.chaptersofu.domain.book.Book;
 import bkrc.chaptersofu.application.required.event.Event;
 import bkrc.chaptersofu.application.required.event.EventPayload;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,8 @@ public class HotBookService implements HotBookFinder {
     private final List<HotBookEventHandler> eventHandlers;
     private final HotBookCalculator hotBookCalculator;
     private final HotBookRepository hotBookRepository;
-    private final AladinFinder aladinFinder;
+    // 특정 서점에 종속되지 않은 포트를 사용해 현재 활성화된 도서 공급자의 저장 데이터를 조회한다.
+    private final BkrcFinder bkrcFinder;
 
     private static final long HOT_ARTICLE_COUNT = 10;
     private static final Duration HOT_ARTICLE_TTL = Duration.ofDays(10);
@@ -32,7 +33,7 @@ public class HotBookService implements HotBookFinder {
     public void handleEvent(Event<EventPayload> event) {
         HotBookEventHandler<EventPayload> eventHandler = findEventHandler(event);
 
-        Integer bookId = eventHandler.findBookId(event);
+        Long bookId = eventHandler.findBookId(event);
 
         eventHandler.handle(event);
 
@@ -47,9 +48,9 @@ public class HotBookService implements HotBookFinder {
     }
 
     @Override
-    public List<AladinBook> readAll(String dateStr) {
+    public List<Book> readAll(String dateStr) {
         return hotBookRepository.readAll(dateStr).stream()
-                .map(aladinFinder::getAladinBook)
+                .map(bkrcFinder::getBook)
                 .filter(Objects::nonNull)
                 .toList();
     }

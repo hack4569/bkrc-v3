@@ -14,9 +14,10 @@ import lombok.ToString;
 @Entity
 @ToString
 public class LikeCount {
-    @Schema(description = "도서 ID (itemId)", example = "123456789")
+    @Schema(description = "내부 도서 ID", example = "1")
     @Id
-    private Integer itemId;
+    @Column(name = "book_id")
+    private Long bookId;
 
     @Schema(description = "좋아요 수", example = "42")
     private Integer likeCount;
@@ -28,9 +29,9 @@ public class LikeCount {
     protected LikeCount() {
     }
 
-    public static LikeCount create(Integer itemId, Integer likeCount) {
+    public static LikeCount create(Long bookId, Integer likeCount) {
         LikeCount count = new LikeCount();
-        count.itemId = itemId;
+        count.bookId = bookId;
         count.likeCount = likeCount;
         return count;
     }

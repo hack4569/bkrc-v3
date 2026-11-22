@@ -42,7 +42,7 @@ class RecommendationTest {
         entityManager.flush();
         entityManager.clear();
 
-        var found = recommendationFinder.get(member.getMemberId(), 3001);
+        var found = recommendationFinder.get(member.getMemberId(), 3001L);
 
         assertThat(found.getRecommendationId()).isEqualTo(saved.getRecommendationId());
         assertThat(recommendationFinder.getMyRecommendations(member.getMemberId())).hasSize(1);
@@ -54,7 +54,7 @@ class RecommendationTest {
 
         RecommendationException exception = catchThrowableOfType(
                 RecommendationException.class,
-                () -> recommendationRegister.update(member.getMemberId(), 3001, "수정 추천 내용"));
+                () -> recommendationRegister.update(member.getMemberId(), 3001L, "수정 추천 내용"));
 
         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.RECOMMENDATION_NOT_EDITABLE);
     }
@@ -63,13 +63,13 @@ class RecommendationTest {
     void 존재하지_않는_추천_조회는_실패한다() {
         RecommendationException exception = catchThrowableOfType(
                 RecommendationException.class,
-                () -> recommendationFinder.get(member.getMemberId(), 9999));
+                () -> recommendationFinder.get(member.getMemberId(), 9999L));
 
         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.BOOK_NOT_FOUND);
     }
 
     private CreateRecommendationRequest request(Integer itemId) {
-        return new CreateRecommendationRequest(itemId, "cover", "title", "https://example.com/" + itemId,
+        return new CreateRecommendationRequest(itemId.longValue(), "cover", "title", "https://example.com/" + itemId,
                 "추천 내용");
     }
 }

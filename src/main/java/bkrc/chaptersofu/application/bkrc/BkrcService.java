@@ -1,14 +1,12 @@
-package bkrc.chaptersofu.application.aladin;
+package bkrc.chaptersofu.application.bkrc;
 
-import bkrc.chaptersofu.application.aladin.provided.AladinRequest;
+import bkrc.chaptersofu.application.bkrc.provided.BkrcFinder;
+import bkrc.chaptersofu.application.bkrc.provided.BkrcRequest;
+import bkrc.chaptersofu.application.required.Ai;
 import bkrc.chaptersofu.application.required.BookInfo;
 import bkrc.chaptersofu.domain.aladin.*;
-import bkrc.chaptersofu.application.aladin.provided.AladinFinder;
+import bkrc.chaptersofu.domain.book.Book;
 import bkrc.chaptersofu.domain.common.constants.RcmdConst;
-import bkrc.chaptersofu.domain.aladin.AladinClientException;
-import bkrc.chaptersofu.application.required.Ai;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,27 +20,29 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class AladinService implements AladinFinder {
+public class BkrcService implements BkrcFinder {
     private final BookInfo bookInfo;
     private final Ai ai;
-    private final AladinBookRepository aladinBookRepository;
+    private final BookRepository bookRepository;
 
-    @Retry(name = "aladin")
-    @CircuitBreaker(name = "aladin", fallbackMethod = "getAladinItemListFallback")
     @Override
-    public List<AladinBook> getAladinItemList(AladinRequest aladinRequest) {
-        return bookInfo.getBooks(
-                aladinRequest.getQuerytype(),
-                aladinRequest.getMaxResults(),
-                aladinRequest.getStart()
+    public List<Book> getBestSeller(BkrcRequest request) {
+        return bookInfo.getBestSellerBooks(
+                request.getMaxResults(),
+                request.getStart()
         );
     }
 
-    @Retry(name = "aladin")
-    @CircuitBreaker(name = "aladin", fallbackMethod = "searchBooksFallback")
     @Override
-    public List<AladinBook> searchBooks(String query) {
-        List<AladinBook> books = bookInfo.searchBooks(query);
+    public Book getBook(Long bookId) {
+        // 인기 도서에 저장된 ID가 삭제된 경우 호출부에서 제외할 수 있도록 null을 반환한다.
+        return bookRepository.findById(bookId).orElse(null);
+    }
+
+    @Override
+    public List<Book> searchBooks(String query) {
+        // 외부 도서 공급자와 무관한 공통 도서 타입으로 검색 결과를 처리한다.
+        List<Book> books = bookInfo.searchBooks(query);
         if (CollectionUtils.isEmpty(books)) {
             return List.of();
         }
@@ -51,25 +51,18 @@ public class AladinService implements AladinFinder {
     }
 
     @Override
-    public AladinBook getAladinBook(Integer itemId) {
-        return aladinBookRepository.findById(itemId).orElse(null);
-    }
-
-    @Retry(name = "aladin")
-    @CircuitBreaker(name = "aladin", fallbackMethod = "settingAladinDetailFallback")
-    @Override
-    public AladinBook settingAladinDetail(String isbn13) {
-        var aladinDetail = bookInfo.getBookDetail(isbn13);
+    public Book settingBookDetail(String isbn13) {
+        var bookDetail = bookInfo.getBookDetail(isbn13);
         //코멘트 세팅
-        this.filterContentsByAi(aladinDetail);
-        return aladinDetail;
+        this.filterContentsByAi(bookDetail);
+        return bookDetail;
     }
 
     //ai 적용
-    private void filterContentsByAi(AladinBook aladinDetail) {
+    private void filterContentsByAi(Book bookDetail) {
         List<BookComment> bookCommentList = new ArrayList<>();
 
-        String description = aladinDetail.getDescForRecommend();
+        String description = bookDetail.getDescForRecommend();
         if (StringUtils.hasText(description)) {
             var summary = ai.summarizeDescriptions(description);
             if (StringUtils.hasText(summary.overview())) {
@@ -80,19 +73,19 @@ public class AladinService implements AladinFinder {
             }
         }
 
-        List<MdRecommend> mdRecommendList = aladinDetail.getSubInfo().getMdRecommendList();
+        List<MdRecommend> mdRecommendList = bookDetail.getSubInfo().getMdRecommendList();
         if (!ObjectUtils.isEmpty(mdRecommendList)) {
             for (MdRecommend mdRecommend : mdRecommendList) {
                 bookCommentList.add(BookComment.create(ai.filteringContent(mdRecommend.getComment()), "mdRecommend"));
             }
         }
 
-        List<String> recommendations = ai.getRecommend(aladinDetail.getTitle());
+        List<String> recommendations = ai.getRecommend(bookDetail.getTitle());
         if (!CollectionUtils.isEmpty(recommendations)) {
             bookCommentList.add(BookComment.create(String.join("<br>", recommendations), "aiRecommend"));
         }
 
-        List<Phrase> phraseList = aladinDetail.getSubInfo().getPhraseList();
+        List<Phrase> phraseList = bookDetail.getSubInfo().getPhraseList();
         if (!ObjectUtils.isEmpty(phraseList)) {
             for (int i = 1; i < phraseList.size(); i++) {
                 String filteredPhrase = stripHtmlTags(phraseList.get(i).getPhrase());
@@ -108,35 +101,17 @@ public class AladinService implements AladinFinder {
             }
         }
 
-        String toc = aladinDetail.getSubInfo().getToc();
+        String toc = bookDetail.getSubInfo().getToc();
         if (StringUtils.hasText(toc)) {
             String filteredToc = toc.replaceAll("<(/)?([pP]*)(\\s[pP]*=[^>]*)?(\\s)*(/)?>", "");
             bookCommentList.add(BookComment.create(filteredToc, "toc"));
         }
 
-        aladinDetail.settingBookCommentList(bookCommentList);
+        bookDetail.settingBookCommentList(bookCommentList);
     }
 
     private String stripHtmlTags(String value) {
         if (!StringUtils.hasText(value)) return "";
         return value.replaceAll("<[^>]*>", "");
-    }
-
-    private List<AladinBook> getAladinItemListFallback(AladinRequest request, Throwable throwable) {
-        log.warn("[알라딘] 목록 조회 fallback", throwable);
-        return List.of();
-    }
-
-    private List<AladinBook> searchBooksFallback(String query, Throwable throwable) {
-        log.warn("[알라딘] 책 검색 fallback query={}", query, throwable);
-        return List.of();
-    }
-
-    private AladinBook settingAladinDetailFallback(String isbn13, Throwable throwable) {
-        log.error("[알라딘] 상세 조회 fallback isbn13={}", isbn13, throwable);
-        if (throwable instanceof AladinClientException aladinClientException) {
-            throw aladinClientException;
-        }
-        throw new AladinClientException(throwable);
     }
 }

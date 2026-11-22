@@ -34,7 +34,7 @@ public class LikeEventHandler implements HotBookEventHandler<BookLikeEventPayloa
     }
 
     @Override
-    public Integer findBookId(Event<BookLikeEventPayload> event) {
+    public Long findBookId(Event<BookLikeEventPayload> event) {
         return event.getPayload().getBookId();
     }
 }

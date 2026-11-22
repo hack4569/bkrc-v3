@@ -21,12 +21,12 @@ public class BatchService {
     private final Job aladinRecommendJob;
     private final JobExplorer jobExplorer;
 
-    @Scheduled(cron = "0 00 03 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0  22  11 *  *  *", zone = "Asia/Seoul")
     public void recommendScheduler() throws Exception {
-        if (isJobRunning()) {
-            log.info("알라딘 추천 배치의 이전 실행이 아직 진행 중이므로 이번 실행을 건너뜁니다.");
-            return;
-        }
+//        if (isJobRunning()) {
+//            log.info("알라딘 추천 배치의 이전 실행이 아직 진행 중이므로 이번 실행을 건너뜁니다.");
+//            return;
+//        }
 
         JobParameters jobParameters = new JobParametersBuilder()
                 .addLocalDate("date", LocalDate.now())
