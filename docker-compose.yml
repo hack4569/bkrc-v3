@@ -1,21 +1,5 @@
 services:
-  bkrc:
-    build: .                                 # Dockerfile 위치
-    container_name: book
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    env_file:
-      - .env
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    depends_on:
-      - rabbitmq
-      - redis
-    networks:
-      - bkrc-network
+#  dock
 #  jenkins:
 #    image: jenkins/jenkins:lts
 #    container_name: jenkins

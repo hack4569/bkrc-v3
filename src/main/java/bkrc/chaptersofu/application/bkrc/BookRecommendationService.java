@@ -27,6 +27,7 @@ public class BookRecommendationService implements BookRecommender {
     public List<Book> getRecommendBooksForUser(
             @Nullable Long memberId
     ) {
+
         List<History> histories = memberId == null
                 ? null
                 : historyFinder.getHistoryByMemberId(memberId);

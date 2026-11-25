@@ -26,6 +26,9 @@ public class Yes24Client implements BookInfo {
 
     private static final String STEADY_BESTSELLER_PATH = "/v1/category/bestsellerSteady";
     private static final String ITEM_DETAIL_PATH = "/v1/goods/itemDetail";
+    private static final String ITEM_LIST_PATH = "/v1/goods/itemList";
+    private static final int SEARCH_PAGE_SIZE = 10;
+    private static final String NO_SEARCH_RESULT_ERROR_CODE = "SEARCH_001";
     private static final int MIN_PAGE_SIZE = 1;
     private static final int MAX_PAGE_SIZE = 100;
 
@@ -150,7 +153,47 @@ public class Yes24Client implements BookInfo {
 
     @Override
     public List<Book> searchBooks(String query) {
-        // YES24 검색 API 연동은 별도 작업 범위이므로 빈 결과를 반환한다.
-        return List.of();
+        validateSearchQuery(query);
+
+        try {
+            Yes24Response response = yes24Api.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path(ITEM_LIST_PATH)
+                            .queryParam("query", query.trim())
+                            .queryParam("category", "BOOK")
+                            .queryParam("sort", "DEFAULT")
+                            .queryParam("page", 1)
+                            .queryParam("pageSize", SEARCH_PAGE_SIZE)
+                            .queryParam("detail", "Y")
+                            .build())
+                    .retrieve()
+                    // YES24는 검색 결과가 없어도 404 본문에 SEARCH_001을 담으므로 응답을 역직렬화해 구분한다.
+                    .onStatus(statusCode -> statusCode.value() == 404, (request, clientResponse) -> { })
+                    .body(Yes24Response.class);
+
+            if (response != null && NO_SEARCH_RESULT_ERROR_CODE.equals(response.errorCode())) {
+                return List.of();
+            }
+
+            // HTTP 200이어도 업무 오류가 포함될 수 있으므로 success 값을 별도로 확인한다.
+            if (response == null || !Boolean.TRUE.equals(response.success())) {
+                String message = response == null ? "응답 본문이 없습니다." : response.message();
+                throw new Yes24ClientException("상품 검색에 실패했습니다: " + message);
+            }
+
+            return Yes24BookMapper.toBooks(response.data() == null ? null : response.data().items());
+        } catch (Yes24ClientException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            // 인증, 네트워크, 역직렬화 실패를 공급자 전용 예외로 통일한다.
+            throw new Yes24ClientException("상품 검색 API 호출에 실패했습니다: query=" + query, exception);
+        }
+    }
+
+    private void validateSearchQuery(String query) {
+        // 공백 검색어는 YES24의 PARAM_003 오류를 유발하므로 외부 호출 전에 명확히 거부한다.
+        if (query == null || query.isBlank()) {
+            throw new IllegalArgumentException("query는 공백일 수 없습니다.");
+        }
     }
 }

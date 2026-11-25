@@ -21,6 +21,7 @@ public record Yes24BookItem(
         Double starScore,
         String cover,
         String link,
+        String addOnLink,
         ContentDetail contentDetail
 ) {
 

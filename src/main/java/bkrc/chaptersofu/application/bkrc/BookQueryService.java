@@ -5,6 +5,7 @@ import bkrc.chaptersofu.application.aladin.provided.AladinBookCacheFinder;
 import bkrc.chaptersofu.application.aladin.provided.AladinBookCacheRegister;
 import bkrc.chaptersofu.domain.aladin.AladinBook;
 import bkrc.chaptersofu.domain.book.Book;
+import bkrc.chaptersofu.domain.book.BookMall;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,7 +39,8 @@ public class BookQueryService implements BookCacheFinder {
     public List<Book> findAll() {
         return findFromCache()
                 .orElseGet(() -> {
-                    List<Book> books = bookRepository.findAll();
+                    // 현재 공통 도서 캐시는 YES24 도서만 제공하므로 DB 조회 단계에서 판매처를 제한합니다.
+                    List<Book> books = bookRepository.findAllByMallName(BookMall.YES24);
                     bookCacheRegister.saveListForRedis(books);
                     return books;
                 });

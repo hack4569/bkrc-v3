@@ -1,16 +1,18 @@
 package bkrc.chaptersofu.adapter.client.yes24;
 
+import bkrc.chaptersofu.domain.book.BookMall;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
-import bkrc.chaptersofu.domain.book.BookMall;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 
 class Yes24ClientTest {
 
@@ -86,6 +88,64 @@ class Yes24ClientTest {
                 .hasMessage("isbn13은 13자리 숫자여야 합니다.");
     }
 
+    @Test
+    void 검색어로_도서를_조회해_공통_도서로_변환한다() {
+        RestClient.Builder builder = RestClient.builder()
+                .baseUrl("https://apis.yes24.com")
+                .defaultHeader("X-Api-Key", "test-api-key");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        Yes24Client client = new Yes24Client(builder.build(), "001");
+
+        // 공통 검색 계약에 맞춰 도서만 첫 페이지에서 10건 조회하고 상세 매핑 정보도 요청한다.
+        server.expect(requestTo("https://apis.yes24.com/v1/goods/itemList"
+                        + "?query=%ED%81%B4%EB%A6%B0%20%EC%BD%94%EB%93%9C&category=BOOK&sort=DEFAULT"
+                        + "&page=1&pageSize=10&detail=Y"))
+                .andExpect(header("X-Api-Key", "test-api-key"))
+                .andRespond(withSuccess(successResponse(), MediaType.APPLICATION_JSON));
+
+        var books = client.searchBooks("  클린 코드  ");
+
+        assertThat(books).hasSize(1);
+        assertThat(books.get(0).getItemId()).isEqualTo(12345678);
+        assertThat(books.get(0).getMallName()).isEqualTo(BookMall.YES24);
+        assertThat(books.get(0).getDescription()).isEqualTo("소프트웨어 장인 정신을 담은 도서입니다.");
+        server.verify();
+    }
+
+    @Test
+    void 검색_결과가_없으면_빈_목록을_반환한다() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://apis.yes24.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        Yes24Client client = new Yes24Client(builder.build(), "001");
+
+        // YES24가 결과 없음에 사용하는 404와 SEARCH_001 조합은 정상적인 빈 검색 결과로 취급한다.
+        server.expect(requestTo("https://apis.yes24.com/v1/goods/itemList"
+                        + "?query=%EC%97%86%EB%8A%94%EC%B1%85&category=BOOK&sort=DEFAULT"
+                        + "&page=1&pageSize=10&detail=Y"))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body("""
+                                {
+                                  "success": false,
+                                  "message": "검색 결과가 없습니다.",
+                                  "errorCode": "SEARCH_001"
+                                }
+                                """));
+
+        assertThat(client.searchBooks("없는책")).isEmpty();
+        server.verify();
+    }
+
+    @Test
+    void 공백_검색어는_외부_API를_호출하기_전에_거부한다() {
+        Yes24Client client = new Yes24Client(RestClient.create(), "001");
+
+        // 명세상 필수인 검색어가 실질적으로 비어 있으면 호출자에게 즉시 입력 오류를 알린다.
+        assertThatThrownBy(() -> client.searchBooks("   "))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("query는 공백일 수 없습니다.");
+    }
+
     private String successResponse() {
         // 문서 예시 중 변환에 필요한 필드만 사용해 테스트의 의도를 분명하게 유지한다.
         return """
@@ -107,6 +167,7 @@ class Yes24ClientTest {
                       "starScore": 9.4,
                       "cover": "https://image.yes24.com/goods/12345678/L",
                       "link": "https://www.yes24.com/product/goods/12345678",
+                      "addOnLink": "",
                       "contentDetail": {
                         "bookIntroduction": "소프트웨어 장인 정신을 담은 도서입니다.",
                         "bookSummary": "깨끗한 코드 작성법",

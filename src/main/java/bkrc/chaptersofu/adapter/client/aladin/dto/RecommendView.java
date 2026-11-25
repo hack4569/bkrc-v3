@@ -22,7 +22,7 @@ import java.util.Map;
 @Slf4j
 public class RecommendView {
     @Schema(description = "도서 ID (itemId)", example = "123456789")
-    private long itemId;
+    private Long bookId;
     @Schema(description = "슬라이드에 표시할 코멘트 목록. type: description(책소개) / aiRecommend(AI추천) / mdRecommend(편집자추천) / phrase(책속문장) / user(사용자추천) / toc(목차)")
     private List<BookComment> recommendCommentList;
     @Schema(description = "도서 제목", example = "Clean Code")
@@ -70,7 +70,7 @@ public class RecommendView {
 
     public static RecommendView from(Book book) {
         return RecommendView.builder()
-                .itemId(book.getItemId())
+                .bookId(book.getBookId())
                 .title(book.getTitle())
                 .link(book.getLink())
                 .cover(book.getCover())

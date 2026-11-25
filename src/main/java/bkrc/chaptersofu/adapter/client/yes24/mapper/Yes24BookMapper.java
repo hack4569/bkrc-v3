@@ -34,7 +34,7 @@ public final class Yes24BookMapper {
                 source.itemId(),
                 BookMall.YES24,
                 source.title(),
-                source.link(),
+                source.addOnLink().isEmpty() ? source.link() : source.addOnLink(),
                 source.author(),
                 source.publishDate(),
                 introduction,
