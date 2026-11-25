@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/require-test-for-new-java.sh",
+            "timeout": 10,
+            "statusMessage": "새 Java 클래스의 테스트 존재 여부 확인 중..."
+          }
+        ]
+      }
+    ]
+  }
+}
