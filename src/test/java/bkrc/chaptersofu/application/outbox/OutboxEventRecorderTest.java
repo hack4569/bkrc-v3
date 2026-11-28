@@ -5,12 +5,14 @@ import bkrc.chaptersofu.application.required.event.EventPayload;
 import bkrc.chaptersofu.application.required.event.EventType;
 import bkrc.chaptersofu.application.required.event.payload.MemberJoinEventPayload;
 import bkrc.chaptersofu.application.required.outbox.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.annotation.Propagation;
@@ -22,13 +24,30 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @DataJpaTest
-@Import(OutboxEventRecorder.class)
+@Import(OutboxEventRecorderTest.RecorderConfig.class)
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class OutboxEventRecorderTest {
     @Autowired OutboxEventRecorder recorder;
     @Autowired OutboxRepository repository;
     @Autowired PlatformTransactionManager transactionManager;
-    @MockitoBean ApplicationEventPublisher publisher;
+    // 스프링은 ApplicationEventPublisher로 컨텍스트 자신을 주입하므로 @MockitoBean으로는 교체되지 않는다.
+    // 그래서 목 발행자를 생성자에 직접 넣은 OutboxEventRecorder 빈을 등록해 사용한다.
+    static final ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
+
+    @TestConfiguration
+    static class RecorderConfig {
+        @Bean
+        OutboxEventRecorder outboxEventRecorder(OutboxRepository outboxRepository) {
+            // @Bean으로 등록해도 @Transactional(MANDATORY) 프록시가 적용되어 트랜잭션 규칙을 그대로 검증할 수 있다.
+            return new OutboxEventRecorder(outboxRepository, publisher);
+        }
+    }
+
+    @BeforeEach
+    void resetPublisher() {
+        // 정적 목은 테스트 간에 공유되므로 호출 기록과 스텁을 매번 초기화한다.
+        reset(publisher);
+    }
 
     private EventPayload payload() {
         return MemberJoinEventPayload.builder().loginId("outbox-test").build();

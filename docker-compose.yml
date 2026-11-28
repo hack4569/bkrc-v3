@@ -19,8 +19,8 @@ services:
       - "15672:15672"
     restart: unless-stopped
     environment:
-      RABBITMQ_DEFAULT_USER: guestuser      # ← 이 값
-      RABBITMQ_DEFAULT_PASS: guestuser      # ← 이 값
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_NAME:guestuser}      # ← 이 값
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PW}      # ← 이 값
     networks:                                # ← 추가
       - bkrc-network
   # Prometheus — 메트릭 수집

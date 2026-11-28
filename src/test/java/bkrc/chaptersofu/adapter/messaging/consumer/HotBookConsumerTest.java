@@ -23,7 +23,8 @@ class HotBookConsumerTest {
         verify(service).handleEvent(argThat(received ->
                 received.getType() == EventType.BOOK_LIKE
                         && received.getPayload() instanceof BookLikeEventPayload payload
-                        && payload.getBookId().equals(10)
+                        // bookId는 Long 타입이므로 Integer 리터럴(10)과 equals 비교하면 항상 false가 된다.
+                        && payload.getBookId().equals(10L)
                         && payload.getDelta().equals(1)));
     }
 }
