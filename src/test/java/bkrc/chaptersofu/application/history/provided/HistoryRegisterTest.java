@@ -20,7 +20,7 @@ class HistoryRegisterTest {
 
     @Test
     void 이력을_저장하고_삭제한다() {
-        historyRegister.saveHistory(1001, 2001L);
+        historyRegister.saveHistory(1001L, 2001L);
         assertThat(historyFinder.getHistoryByMemberId(2001L)).hasSize(1);
 
         assertThat(historyRegister.deleteHistoryByMemberId(2001L)).isEqualTo(1);
@@ -29,11 +29,11 @@ class HistoryRegisterTest {
 
     @Test
     void 중복_이력_저장은_실패한다() {
-        historyRegister.saveHistory(1001, 2001L);
+        historyRegister.saveHistory(1001L, 2001L);
 
         HistoryException exception = catchThrowableOfType(
                 HistoryException.class,
-                () -> historyRegister.saveHistory(1001, 2001L));
+                () -> historyRegister.saveHistory(1001L, 2001L));
 
         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.HISTORY_ALREADY_EXISTS);
     }

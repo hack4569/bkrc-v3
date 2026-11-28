@@ -5,9 +5,9 @@ plugins {
     id 'jacoco'
 }
 
-group = 'com.bkrc'
+group = 'com.book'
 version = '0.0.1-SNAPSHOT'
-description = 'bkrc-v4'
+description = 'book-v4'
 
 java {
     toolchain {

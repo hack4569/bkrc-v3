@@ -6,7 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "내가 좋아요한 도서 응답")
 public record MyLikeResponse(
         @Schema(description = "좋아요 ID", example = "123456789") long likeId,
-        @Schema(description = "도서 ID (itemId)", example = "123456789") int itemId,
+        @Schema(description = "내부 도서 ID", example = "1") long bookId,
+        @Schema(description = "외부 판매처 상품 ID", example = "123456789") int itemId,
         @Schema(description = "도서 제목", example = "Clean Code") String title,
         @Schema(description = "도서 커버 이미지 URL") String cover,
         @Schema(description = "저자", example = "로버트 C. 마틴") String author,
@@ -17,6 +18,7 @@ public record MyLikeResponse(
         var book = like.getBook();
         return new MyLikeResponse(
                 like.getLikeId(),
+                book.getBookId(),
                 book.getItemId(),
                 book.getTitle(),
                 book.getCover(),

@@ -1,7 +1,9 @@
 USE book_recommend;
 
--- 쿠폰 부하테스트용 회원 60,000명을 생성합니다.
--- 생성 범위: 900000000000000001 ~ 900000000000060000
+-- 쿠폰 부하테스트용 회원 150,000명을 생성합니다.
+-- 초당 5,000건 × 30초 테스트(coupon_download_5000rps_test.js)에 회원 150,000명이 필요해 범위를 늘렸습니다.
+-- 기존 1,000rps 테스트는 앞쪽 ID만 사용하므로 그대로 동작합니다.
+-- 생성 범위: 900000000000000001 ~ 900000000000150000
 -- 로그인 API를 사용하지 않으므로 비밀번호는 인증에 사용되지 않습니다.
 -- 재실행 시 이미 존재하는 member_id 또는 login_id는 변경하지 않습니다.
 INSERT INTO member (
@@ -40,28 +42,30 @@ FROM (
         (SELECT 0 n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
          UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) thousands
     CROSS JOIN
+        -- 0~14까지 두어 최대 150,000번째 회원까지 생성합니다.
         (SELECT 0 n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
-         UNION ALL SELECT 5) ten_thousands
+         UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9
+         UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14) ten_thousands
 ) numbers
-WHERE numbers.seq <= 60000
+WHERE numbers.seq <= 150000
 ON DUPLICATE KEY UPDATE member_id = member.member_id;
 
--- 결과가 60,000이면 정상입니다.
+-- 결과가 150,000이면 정상입니다.
 SELECT COUNT(*) AS load_test_member_count
 FROM member
-WHERE member_id BETWEEN 900000000000000001 AND 900000000000060000;
+WHERE member_id BETWEEN 900000000000000001 AND 900000000000150000;
 
 SELECT MIN(member_id) AS first_member_id,
        MAX(member_id) AS last_member_id
 FROM member
-WHERE member_id BETWEEN 900000000000000001 AND 900000000000060000;
+WHERE member_id BETWEEN 900000000000000001 AND 900000000000150000;
 
 -- 필요하면 테스트 전에 대상 쿠폰을 이미 받은 회원이 없는지 확인합니다.
 -- SET @coupon_id = 1;
 -- SELECT COUNT(*) FROM member_coupon
 -- WHERE coupon_id = @coupon_id
---   AND member_id BETWEEN 900000000000000001 AND 900000000000060000;
+--   AND member_id BETWEEN 900000000000000001 AND 900000000000150000;
 
 -- 테스트 종료 후 전용 회원과 발급 내역을 제거해야 할 경우 아래 순서로 직접 실행합니다.
--- DELETE FROM member_coupon WHERE member_id BETWEEN 900000000000000001 AND 900000000000060000;
--- DELETE FROM member WHERE member_id BETWEEN 900000000000000001 AND 900000000000060000;
+-- DELETE FROM member_coupon WHERE member_id BETWEEN 900000000000000001 AND 900000000000150000;
+-- DELETE FROM member WHERE member_id BETWEEN 900000000000000001 AND 900000000000150000;

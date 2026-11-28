@@ -9,14 +9,14 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "book_recommendation", uniqueConstraints = @UniqueConstraint(
-        name = "uk_book_recommendation_item_member", columnNames = {"item_id", "member_id"}))
+        name = "uk_book_recommendation_book_member", columnNames = {"book_id", "member_id"}))
 @Getter
 @NoArgsConstructor
 public class BookRecommendation extends BaseEntity {
     @Id
     private Long recommendationId;
-    @Column(nullable = false)
-    private Integer itemId;
+    @Column(name = "book_id", nullable = false)
+    private Long bookId;
     @Column(nullable = false)
     private String cover;
     @Column(nullable = false)
@@ -32,11 +32,11 @@ public class BookRecommendation extends BaseEntity {
     @JsonIgnore
     private Member member;
 
-    public static BookRecommendation create(Long id, Integer itemId, String cover, String title,
+    public static BookRecommendation create(Long id, Long bookId, String cover, String title,
                                              String link, String recommendation, Member member) {
         BookRecommendation value = new BookRecommendation();
         value.recommendationId = id;
-        value.itemId = itemId;
+        value.bookId = bookId;
         value.cover = cover;
         value.title = title;
         value.link = link;

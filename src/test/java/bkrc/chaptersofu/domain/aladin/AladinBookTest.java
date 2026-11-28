@@ -72,6 +72,24 @@ class AladinBookTest {
         assertThat(book.hasNotBeenViewedBefore(List.of(), REFERENCE_DATE)).isTrue();
     }
 
+    @Test
+    void 엔티티와_응답_DTO_사이의_변환에서_필드가_유지된다() {
+        // 응답 -> 엔티티 -> 응답으로 왕복 변환해 매핑 누락 필드가 없는지 확인한다.
+        AladinBookResponse source = new AladinBookResponse();
+        source.setItemId(1);
+        source.setTitle("데미안");
+        source.setAuthor("헤세");
+        source.setPriceSales(9000);
+        source.setPriceStandard(10000);
+        source.setCategoryName("국내도서>소설");
+        source.setFixedPrice(true);
+        source.setToc("목차");
+
+        AladinBookResponse result = AladinBookResponse.from(AladinBook.toEntity(source));
+
+        assertThat(result).usingRecursiveComparison().isEqualTo(source);
+    }
+
     private AladinBook book(Integer itemId, String publicationDate) {
         AladinBookResponse response = new AladinBookResponse();
         response.setItemId(itemId);
@@ -81,7 +99,8 @@ class AladinBookTest {
 
     private History history(Integer itemId, LocalDateTime createdAt) {
         History history = History.builder()
-                .itemId(itemId)
+                // 레거시 AladinBook 테스트는 기존 숫자 ID를 내부 bookId로 대응시켜 검증한다.
+                .bookId(itemId.longValue())
                 .memberId(1L)
                 .build();
         history.setCreated(createdAt);

@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LikeCountTest {
     @Test
     void 좋아요_수를_증가시키면_이벤트_버전도_증가한다() {
-        LikeCount count = LikeCount.create(1, 3);
+        LikeCount count = LikeCount.create(1L, 3);
 
         count.increase();
 
@@ -17,7 +17,7 @@ class LikeCountTest {
 
     @Test
     void 좋아요_수를_감소시키면_이벤트_버전도_증가한다() {
-        LikeCount count = LikeCount.create(1, 3);
+        LikeCount count = LikeCount.create(1L, 3);
 
         count.decrease();
 

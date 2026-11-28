@@ -24,7 +24,7 @@ public class HotBookRepository {
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-    public void add(Integer bookId, LocalDateTime time, Long score, Long limit, Duration ttl) {
+    public void add(Long bookId, LocalDateTime time, Long score, Long limit, Duration ttl) {
         redisTemplate.executePipelined((RedisCallback<?>) action -> {
             StringRedisConnection conn = (StringRedisConnection) action;
             String key = generateKey(time);
@@ -35,13 +35,13 @@ public class HotBookRepository {
         });
     }
 
-    public List<Integer> readAll(String dateStr) {
+    public List<Long> readAll(String dateStr) {
         return redisTemplate.opsForZSet()
                 .reverseRangeWithScores(generateKey(dateStr), 0, -1).stream()
                 .peek(tuple ->
                         log.info("[HotBookRepository.readAll] bookId={}, score={}", tuple.getValue(), tuple.getScore()))
                 .map(ZSetOperations.TypedTuple::getValue)
-                .map(Integer::valueOf)
+                .map(Long::valueOf)
                 .toList();
     }
 

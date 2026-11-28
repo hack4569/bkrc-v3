@@ -28,20 +28,20 @@ public class LikeApi {
             @ApiResponse(responseCode = "400", description = "LIKE_ALREADY_EXISTS: 이미 좋아요 처리 되었습니다.",
                     content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
-    @PostMapping("/v1/like/{itemId}")
+    @PostMapping("/v1/like/{bookId}")
     public LikeResponse like(
             @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
-            @Parameter(description = "도서 ID (itemId)", required = true, example = "1")
-            @PathVariable Integer itemId) {
-        return LikeResponse.of(likeRegister.like(itemId, memberId));
+            @Parameter(description = "내부 도서 ID (bookId)", required = true, example = "1")
+            @PathVariable Long bookId) {
+        return LikeResponse.of(likeRegister.like(bookId, memberId));
     }
 
     @Operation(summary = "도서 좋아요 취소", description = "등록된 좋아요를 취소합니다. JWT 인증이 필요합니다.")
-    @PostMapping("/v1/like/cancel/{itemId}")
+    @PostMapping("/v1/like/cancel/{bookId}")
     public void unLike(
             @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
-            @Parameter(description = "도서 ID (itemId)", required = true, example = "1")
-            @PathVariable Integer itemId) {
-        likeRegister.unLike(itemId, memberId);
+            @Parameter(description = "내부 도서 ID (bookId)", required = true, example = "1")
+            @PathVariable Long bookId) {
+        likeRegister.unLike(bookId, memberId);
     }
 }

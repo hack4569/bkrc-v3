@@ -6,5 +6,5 @@ import bkrc.chaptersofu.application.required.event.Event;
 public interface HotBookEventHandler<T extends EventPayload> {
     void handle(Event<T> event);
     boolean supports(Event<T> event);
-    Integer findBookId(Event<T> event);
+    Long findBookId(Event<T> event);
 }

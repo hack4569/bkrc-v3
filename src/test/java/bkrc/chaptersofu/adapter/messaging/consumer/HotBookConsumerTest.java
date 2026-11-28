@@ -16,14 +16,15 @@ class HotBookConsumerTest {
         HotBookService service = mock(HotBookService.class);
         HotBookConsumer consumer = new HotBookConsumer(service);
         Event<EventPayload> event = Event.of(EventType.BOOK_LIKE,
-                BookLikeEventPayload.builder().bookId(10).memberId(20L).delta(1).build());
+                BookLikeEventPayload.builder().bookId(10L).memberId(20L).delta(1).build());
 
         consumer.listen(event.toJson());
 
         verify(service).handleEvent(argThat(received ->
                 received.getType() == EventType.BOOK_LIKE
                         && received.getPayload() instanceof BookLikeEventPayload payload
-                        && payload.getBookId().equals(10)
+                        // bookId는 Long 타입이므로 Integer 리터럴(10)과 equals 비교하면 항상 false가 된다.
+                        && payload.getBookId().equals(10L)
                         && payload.getDelta().equals(1)));
     }
 }

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record CreateRecommendationRequest(
-        @NotNull Integer itemId,
+        @NotNull Long bookId,
         @NotBlank String cover,
         @NotBlank String title,
         @NotBlank String link,

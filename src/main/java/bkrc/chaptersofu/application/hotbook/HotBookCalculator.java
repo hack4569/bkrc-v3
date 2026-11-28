@@ -12,7 +12,7 @@ public class HotBookCalculator {
     private final LikeCountFinder likeCountFinder;
 
     private static final long ARTICLE_LIKE_COUNT_WEIGHT = 3;
-    public long calculate(Integer bookId) {
+    public long calculate(Long bookId) {
         return Optional.ofNullable(likeCountFinder.readLikeCount(bookId)).orElse(0L) * ARTICLE_LIKE_COUNT_WEIGHT;
     }
 }

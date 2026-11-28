@@ -16,7 +16,7 @@ class RedisLikeCountStoreTest {
         when(redis.opsForValue()).thenReturn(values);
         when(values.get("hot-book::book::7::like-count")).thenReturn("15");
 
-        assertThat(new RedisLikeCountStore(redis).readLikeCount(7)).isEqualTo(15L);
+        assertThat(new RedisLikeCountStore(redis).readLikeCount(7L)).isEqualTo(15L);
     }
 
 }

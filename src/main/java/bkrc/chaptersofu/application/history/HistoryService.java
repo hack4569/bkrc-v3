@@ -32,24 +32,24 @@ public class HistoryService implements HistoryFinder, HistoryRegister {
     }
 
     @Override
-    public void saveHistory(Integer itemId, Long memberId) {
+    public void saveHistory(Long bookId, Long memberId) {
         try {
-            History saved = historyRepository.saveAndFlush(History.create(itemId, memberId, snowflake.nextId()));
+            History saved = historyRepository.saveAndFlush(History.create(bookId, memberId, snowflake.nextId()));
             // 중복 제약까지 확인하기 위해 flush가 성공한 뒤 열람 이력을 기록합니다.
             AfterCommitExecutor.execute(() -> log.info(
                     "HISTORY_RECORDED historyId={} bookId={} memberId={}",
-                    saved.getId(), saved.getItemId(), saved.getMemberId()
+                    saved.getId(), saved.getBookId(), saved.getMemberId()
             ));
         } catch (DataIntegrityViolationException de) {
             throw new HistoryException(
                     ErrorCode.HISTORY_ALREADY_EXISTS,
-                    "bookId=" + itemId + ", memberId=" + memberId,
+                    "bookId=" + bookId + ", memberId=" + memberId,
                     de
             );
         } catch (Exception ex) {
             throw new HistoryException(
                     ErrorCode.SERVER_ERROR,
-                    "operation=saveHistory, bookId=" + itemId + ", memberId=" + memberId,
+                    "operation=saveHistory, bookId=" + bookId + ", memberId=" + memberId,
                     ex
             );
         }

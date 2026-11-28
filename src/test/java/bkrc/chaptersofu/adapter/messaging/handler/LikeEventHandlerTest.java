@@ -39,6 +39,6 @@ class LikeEventHandlerTest {
     }
 
     private BookLikeEventPayload payload() {
-        return BookLikeEventPayload.builder().bookId(10).memberId(20L).delta(1).build();
+        return BookLikeEventPayload.builder().bookId(10L).memberId(20L).delta(1).build();
     }
 }

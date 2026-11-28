@@ -36,44 +36,44 @@ public class MemberRecommendationService implements RecommendationFinder, Recomm
     public BookRecommendation create(Long memberId, CreateRecommendationRequest request) {
         var member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
-        var saved = recommendationRepository.save(BookRecommendation.create(snowflake.nextId(), request.itemId(),
+        var saved = recommendationRepository.save(BookRecommendation.create(snowflake.nextId(), request.bookId(),
                 request.cover(), request.title(), request.link(), request.recommendation(), member));
         // 추천 내용 전문은 개인정보 및 로그 용량을 고려해 기록하지 않습니다.
         AfterCommitExecutor.execute(() -> log.info(
                 "RECOMMENDATION_CREATED recommendationId={} bookId={} memberId={}",
-                saved.getRecommendationId(), saved.getItemId(), memberId
+                saved.getRecommendationId(), saved.getBookId(), memberId
         ));
         return saved;
     }
 
     @Transactional(readOnly = true)
     @Override
-    public BookRecommendation get(Long memberId, Integer itemId) {
-        return recommendationRepository.findByItemIdAndMemberMemberId(itemId, memberId)
+    public BookRecommendation get(Long memberId, Long bookId) {
+        return recommendationRepository.findByBookIdAndMemberMemberId(bookId, memberId)
                 .orElseThrow(() -> new RecommendationException(
                         ErrorCode.BOOK_NOT_FOUND,
-                        "bookId=" + itemId + ", memberId=" + memberId
+                        "bookId=" + bookId + ", memberId=" + memberId
                 ));
     }
 
     @Transactional
     @Override
-    public BookRecommendation update(Long memberId, Integer itemId, String content) {
-        var value = recommendationRepository.findByItemIdAndMemberMemberId(itemId, memberId)
+    public BookRecommendation update(Long memberId, Long bookId, String content) {
+        var value = recommendationRepository.findByBookIdAndMemberMemberId(bookId, memberId)
                 .orElseThrow(() -> new RecommendationException(
                         ErrorCode.BOOK_NOT_FOUND,
-                        "bookId=" + itemId + ", memberId=" + memberId
+                        "bookId=" + bookId + ", memberId=" + memberId
                 ));
         if (!"N".equals(value.getApproved())) {
             throw new RecommendationException(
                     ErrorCode.RECOMMENDATION_NOT_EDITABLE,
-                    "bookId=" + itemId + ", memberId=" + memberId + ", approved=" + value.getApproved()
+                    "bookId=" + bookId + ", memberId=" + memberId + ", approved=" + value.getApproved()
             );
         }
         value.updateRecommendation(content);
         AfterCommitExecutor.execute(() -> log.info(
                 "RECOMMENDATION_UPDATED recommendationId={} bookId={} memberId={} status={}",
-                value.getRecommendationId(), itemId, memberId, value.getApproved()
+                value.getRecommendationId(), bookId, memberId, value.getApproved()
         ));
         return value;
     }

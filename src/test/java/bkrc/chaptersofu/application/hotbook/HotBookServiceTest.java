@@ -1,11 +1,11 @@
 package bkrc.chaptersofu.application.hotbook;
 
-import bkrc.chaptersofu.application.aladin.provided.AladinFinder;
+import bkrc.chaptersofu.application.bkrc.provided.BkrcFinder;
 import bkrc.chaptersofu.application.required.HotBookEventHandler;
 import bkrc.chaptersofu.application.required.event.Event;
 import bkrc.chaptersofu.application.required.event.EventPayload;
 import bkrc.chaptersofu.application.required.event.EventType;
-import bkrc.chaptersofu.domain.aladin.AladinBook;
+import bkrc.chaptersofu.domain.book.Book;
 import bkrc.chaptersofu.domain.common.shared.ErrorCode;
 import bkrc.chaptersofu.domain.common.shared.EventHandlerException;
 import org.junit.jupiter.api.Test;
@@ -25,26 +25,26 @@ class HotBookServiceTest {
         HotBookEventHandler<EventPayload> handler = mock(HotBookEventHandler.class);
         HotBookCalculator calculator = mock(HotBookCalculator.class);
         HotBookRepository repository = mock(HotBookRepository.class);
-        AladinFinder finder = mock(AladinFinder.class);
+        BkrcFinder finder = mock(BkrcFinder.class);
         Event<EventPayload> event = Event.of(EventType.BOOK_LIKE, mock(EventPayload.class));
         when(handler.supports(event)).thenReturn(true);
-        when(handler.findBookId(event)).thenReturn(12);
-        when(calculator.calculate(12)).thenReturn(9L);
+        when(handler.findBookId(event)).thenReturn(12L);
+        when(calculator.calculate(12L)).thenReturn(9L);
 
         new HotBookService(List.of(handler), calculator, repository, finder).handleEvent(event);
 
         verify(handler).handle(event);
-        verify(repository).add(eq(12), any(LocalDateTime.class), eq(9L), eq(10L), eq(Duration.ofDays(10)));
+        verify(repository).add(eq(12L), any(LocalDateTime.class), eq(9L), eq(10L), eq(Duration.ofDays(10)));
     }
 
     @Test
     void 핫북_ID를_도서로_변환하고_없는_도서는_제외한다() {
         HotBookRepository repository = mock(HotBookRepository.class);
-        AladinFinder finder = mock(AladinFinder.class);
-        AladinBook book = mock(AladinBook.class);
-        when(repository.readAll("20261011")).thenReturn(List.of(1, 2));
-        when(finder.getAladinBook(1)).thenReturn(book);
-        when(finder.getAladinBook(2)).thenReturn(null);
+        BkrcFinder finder = mock(BkrcFinder.class);
+        Book book = mock(Book.class);
+        when(repository.readAll("20261011")).thenReturn(List.of(1L, 2L));
+        when(finder.getBook(1L)).thenReturn(book);
+        when(finder.getBook(2L)).thenReturn(null);
         HotBookService service = new HotBookService(List.of(), mock(HotBookCalculator.class), repository, finder);
 
         assertThat(service.readAll("20261011")).containsExactly(book);
@@ -53,7 +53,7 @@ class HotBookServiceTest {
     @Test
     void 이벤트_핸들러가_없으면_예외가_발생한다() {
         HotBookService service = new HotBookService(List.of(), mock(HotBookCalculator.class),
-                mock(HotBookRepository.class), mock(AladinFinder.class));
+                mock(HotBookRepository.class), mock(BkrcFinder.class));
         Event<EventPayload> event = Event.of(EventType.BOOK_LIKE, mock(EventPayload.class));
 
         assertThatThrownBy(() -> service.handleEvent(event))

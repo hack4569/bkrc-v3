@@ -1,6 +1,6 @@
 package bkrc.chaptersofu.domain.like;
 
-import bkrc.chaptersofu.domain.aladin.AladinBook;
+import bkrc.chaptersofu.domain.book.Book;
 import bkrc.chaptersofu.domain.common.shared.BaseEntity;
 import bkrc.chaptersofu.domain.member.Member;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -17,7 +17,7 @@ import lombok.Getter;
 @Schema(description = "도서 좋아요 엔티티")
 @Entity
 @Table(name = "like_book", uniqueConstraints =
-        @UniqueConstraint(name = "uk_like_book_item_member", columnNames = {"item_id", "member_id"}))
+        @UniqueConstraint(name = "uk_like_book_member", columnNames = {"book_id", "member_id"}))
 @Getter
 public class Like extends BaseEntity {
     @Schema(description = "좋아요 ID (Snowflake)")
@@ -30,14 +30,14 @@ public class Like extends BaseEntity {
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_id")
+    @JoinColumn(name = "book_id", nullable = false)
     @JsonIgnore
-    private AladinBook book;
+    private Book book;
 
     protected Like() {
     }
 
-    public static Like create(Long id, AladinBook book, Member member) {
+    public static Like create(Long id, Book book, Member member) {
         Like like = new Like();
         like.likeId = id;
         like.book = book;

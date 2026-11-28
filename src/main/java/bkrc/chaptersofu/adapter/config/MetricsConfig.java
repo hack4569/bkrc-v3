@@ -10,14 +10,14 @@ public class MetricsConfig {
     // 캐시 HIT/MISS 카운터
     @Bean
     public Counter cacheHitCounter(MeterRegistry registry) {
-        return Counter.builder("bkrc.cache.hit")
+        return Counter.builder("book.cache.hit")
                 .description("Redis 캐시 HIT 횟수")
                 .register(registry);
     }
 
     @Bean
     public Counter cacheMissCounter(MeterRegistry registry) {
-        return Counter.builder("bkrc.cache.miss")
+        return Counter.builder("book.cache.miss")
                 .description("Redis 캐시 MISS 횟수")
                 .register(registry);
     }

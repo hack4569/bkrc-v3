@@ -8,16 +8,16 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface LikeCountRepository extends JpaRepository<LikeCount, Integer> {
-    Optional<LikeCount> findByItemId(Integer itemId);
+public interface LikeCountRepository extends JpaRepository<LikeCount, Long> {
+    Optional<LikeCount> findByBookId(Long bookId);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query(value = """
-            INSERT INTO like_count_book (item_id, like_count, event_version)
-            VALUES (:itemId, :delta, 1)
+            INSERT INTO like_count_book (book_id, like_count, event_version)
+            VALUES (:bookId, :delta, 1)
             ON DUPLICATE KEY UPDATE
                 like_count = like_count + :delta,
                 event_version = event_version + 1
             """, nativeQuery = true)
-    void applyDelta(@Param("itemId") Integer itemId, @Param("delta") Integer delta);
+    void applyDelta(@Param("bookId") Long bookId, @Param("delta") Integer delta);
 }

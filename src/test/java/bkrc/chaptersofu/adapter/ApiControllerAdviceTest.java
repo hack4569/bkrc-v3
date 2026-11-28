@@ -169,9 +169,9 @@ class ApiControllerAdviceTest {
                     java.util.List.of(),
                     mock(HotBookCalculator.class),
                     mock(HotBookRepository.class),
-                    mock(AladinFinder.class)
+                    mock(bkrc.chaptersofu.application.bkrc.provided.BkrcFinder.class)
             );
-            Event<EventPayload> event = Event.of(EventType.BOOK_LIKE, new TestEventPayload(10));
+            Event<EventPayload> event = Event.of(EventType.BOOK_LIKE, new TestEventPayload(10L));
 
             hotBookService.handleEvent(event);
         }
@@ -197,6 +197,6 @@ class ApiControllerAdviceTest {
         }
     }
 
-    private record TestEventPayload(Integer bookId) implements EventPayload {
+    private record TestEventPayload(Long bookId) implements EventPayload {
     }
 }

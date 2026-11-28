@@ -23,7 +23,7 @@ spring:
 
 token:
   expiration-time: 86400000
-  secret: my-very-long-secret-key-1234567890123456
+  secret: ${JWT_SECRET:default-secret}
 
 resilience4j:
   ratelimiter:
